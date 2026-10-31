@@ -49,7 +49,8 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(page.locator("#gaps tbody tr")).to_have_count(3)
     check_a11y(page, "your look")
     even = page.get_by_role("button", name="Even out redness")
-    if even.count() and even.is_visible():  # hair_first samples
+    hair_first = bool(even.count() and even.is_visible())  # the heroine sample (first on the home page)
+    if hair_first:
         even.click()
         expect(page.get_by_test_id("hero-caption")).to_contain_text("foundation in her shade over the transfer")
         page.get_by_role("button", name="Transfer").click()
@@ -69,10 +70,13 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     artist.goto(base_url + artist_url)
     expect(artist.get_by_text("For your makeup artist · no account needed")).to_be_visible()
     reviews = artist.locator("fieldset.review")
-    expect(reviews).to_have_count(4)  # eyelids, cheeks, lips, hair
+    expect(reviews).to_have_count(5 if hair_first else 4)  # eyelids, cheeks, lips, hair (+ skin: even out redness)
+    if hair_first:
+        expect(artist.get_by_test_id("review-skin")).to_be_visible()
     for i in range(reviews.count()):
         fs = reviews.nth(i)
-        fs.get_by_label("I'll swap the product" if i == 1 else "I'll do this").check()
+        cheeks = fs.get_attribute("data-testid") == "review-cheeks"
+        fs.get_by_label("I'll swap the product" if cheeks else "I'll do this").check()
     artist.locator("input[name=note-cheeks]").fill("I'll use a cooler pink")
     artist.locator("input[name=note-cheeks]").press("Tab")
     check_a11y(artist, "artist brief")
@@ -103,9 +107,10 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
                   and json.loads((p / "manifest.json").read_text()).get("order") == "hair_first"]
     if not hair_first:
         pytest.skip("no hair_first sample recorded")
-    assert hair_first[0] not in json.load(urllib.request.urlopen(base_url + "/healthz"))["samples"], "unlisted"
+    assert hair_first[0] in json.load(urllib.request.urlopen(base_url + "/healthz"))["samples"], "on the home page"
     page = browser_ctx.new_page()
-    page.goto(f"{base_url}/try/{hair_first[0]}")
+    page.goto(base_url + "/")
+    page.get_by_test_id(f"sample-{hair_first[0]}").click()  # the way a visitor opens it: from the home page
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
     expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
     page.get_by_role("button", name="Even out redness").click()

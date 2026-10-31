@@ -236,6 +236,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
   body { background: #fff; }
   main { max-width: none; }
   .card { border: 0; padding: 0; }
+  .attest, .gaps tr, figure { break-inside: avoid; }
 }
 
 .hero-cap { font-size: .78rem; color: var(--muted, #6b605a); margin: 6px 16px 0; line-height: 1.35; }

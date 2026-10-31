@@ -14,7 +14,5 @@
   }
  },
  "role": "holdout",
- "hidden": false,
- "unlisted": true,
- "unlisted_reason": "Heroine sample (hair first + even out redness); reachable by its link, shown on the home page after the team's yes."
+ "hidden": false
 }

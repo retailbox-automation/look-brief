@@ -9,7 +9,8 @@ from lookbrief import attest
 from lookbrief.config import Settings
 from lookbrief.youcam import UNITS, TaskResult
 
-SID = VISIBLE_IDS[0]
+SID = "s2-classic-red"  # transfer-first sample these session tests were written for; hair_first has its own tests
+assert SID in VISIBLE_IDS
 
 
 def _settings(tmp_path, **kw) -> Settings:
@@ -332,11 +333,32 @@ def test_transfer_first_samples_keep_their_order(client, sid):
     assert "base" not in st["images"] and "even" not in st["images"] and "hair" in st["images"]
 
 
-def test_unlisted_samples_work_by_link_only(client):
+def test_unlisted_samples_work_by_link_only(tmp_path, monkeypatch):
+    """A sample flagged `unlisted` opens by its /try link but is not on the home page or in /healthz.
+    Checked on a copy, so the test does not depend on which real sample is unlisted today (none may be)."""
+    import shutil
+
+    samples = tmp_path / "samples"
+    listed, unlisted = VISIBLE_IDS[0], VISIBLE_IDS[-1]
+    assert listed != unlisted
+    for s in (listed, unlisted):
+        shutil.copytree(SAMPLES / s, samples / s)
+    meta_path = samples / unlisted / "sample.json"
+    meta = json.loads(meta_path.read_text())
+    meta["unlisted"] = True
+    meta_path.write_text(json.dumps(meta))
+    monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
+    c = TestClient(app_mod.create_app(_settings(tmp_path / "x", samples_dir=samples)))
+    html = c.get("/").text
+    assert f"/try/{listed}" in html and listed in c.get("/healthz").json()["samples"]
+    assert f"/try/{unlisted}" not in html and unlisted not in c.get("/healthz").json()["samples"]
+    assert c.get(f"/try/{unlisted}", follow_redirects=False).status_code == 303
+
+
+def test_heroine_sample_is_on_the_home_page(client):
     html = client.get("/").text
-    for u in UNLISTED_IDS:
-        assert f"/try/{u}" not in html and u not in client.get("/healthz").json()["samples"]
-        assert client.get(f"/try/{u}", follow_redirects=False).status_code == 303
+    assert "/try/s0-champagne-rose" in html and not UNLISTED_IDS
+    assert "s0-champagne-rose" in client.get("/healthz").json()["samples"]
 
 
 def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeypatch):
@@ -344,3 +366,15 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
     monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
     c = TestClient(app_mod.create_app(_settings(tmp_path / "x", source_url="https://example.org/repo")))
     assert 'href="https://example.org/repo"' in c.get("/").text
+
+
+@pytest.mark.parametrize(("sample", "label", "not_label"), [
+    ("s2-classic-red", "Target (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
+    ("s0-champagne-rose", "Target (Hair Transfer + Makeup Transfer)", "Target (Makeup Transfer)"),
+])
+def test_card_names_the_transfers_that_made_the_target(client, sample, label, not_label):
+    r = client.get(f"/try/{sample}", follow_redirects=False)
+    sid = r.headers["location"].rsplit("/", 1)[1]
+    b = client.post(f"/api/sessions/{sid}/brief").json()
+    html = client.get(b["bride_url"].replace("/b/", "/card/")).text
+    assert label in html and not_label not in html
