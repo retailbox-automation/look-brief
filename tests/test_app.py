@@ -81,6 +81,15 @@ def test_the_state_says_the_look_is_the_recipe_render(client):
     assert st["images"][st["views"]["before"]].endswith("/bride.jpg")
 
 
+def test_the_state_groups_the_zones_for_the_tabs(client):
+    st = client.get(f"/api/sessions/{_replay_session(client)}").json()
+    assert [g["label"] for g in st["zone_groups"]] == ["Eyes", "Face", "Lips"]
+    zones = [z for g in st["zone_groups"] for z in g["zones"]]
+    assert [z["zone"] for z in zones] == ["eyes", "liner", "lashes", "brows", "cheeks", "bronzer", "highlight", "lips",
+                                          "lip_line"]
+    assert zones[0]["label"] == "Eyelids" and zones[-1]["label"] == "Lip liner"
+
+
 def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     sid = _replay_session(client)
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
@@ -125,6 +134,13 @@ def test_the_none_circle_drops_the_zone_from_the_request(client):
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "bronzer", "op": "shade:none"})
     assert r.status_code == 200 and "bronzer" not in [e["category"] for e in r.json()["vto_effects"]]
     assert "bronzer" not in [x["zone"] for x in r.json()["shades"]] and len(r.json()["shades"]) == 8
+
+
+def test_the_none_circle_says_what_is_left_out(client):
+    opts = client.get(f"/api/sessions/{_replay_session(client)}").json()["edit_options"]
+    names = {o["zone"]: o["name"] for o in opts if o["op"] == "shade:none"}
+    assert names == {"liner": "No eyeliner", "bronzer": "No bronzer", "highlight": "No highlighter",
+                     "lip_line": "No lip liner"}
 
 
 def test_a_quiet_edit_is_hidden_and_refused(tmp_path, monkeypatch):
@@ -465,25 +481,37 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
     assert 'href="https://example.org/repo"' in c.get("/").text
 
 
-@pytest.mark.parametrize(("sample", "edit", "label", "not_label"), [
-    ("s2-classic-red", None, "Agreed look (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
-    ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
+@pytest.mark.parametrize(("sample", "edit", "label"), [
+    ("s2-classic-red", None, "Agreed look: her recipe, rendered by Makeup VTO"),
+    ("s0-champagne-rose", None, "Agreed look: her recipe, rendered by Makeup VTO with foundation in her shade"),
     ("s0-champagne-rose", ["cheeks", "shade:salmon"],
-     "Agreed look: her edits, re-rendered by Makeup VTO with foundation", "Agreed look: transfer + foundation"),
-    ("s2-classic-red", ["lips", "finish:gloss"], "Agreed look: her edits, re-rendered by Makeup VTO",
-     "with foundation"),
+     "Agreed look: her recipe, rendered by Makeup VTO with foundation in her shade"),
+    ("s2-classic-red", ["lips", "finish:gloss"], "Agreed look: her recipe, rendered by Makeup VTO"),
 ])
-def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
-    """The card shows what was agreed: her edited re-render if she edited, the evened look for hair first."""
+def test_card_shows_the_agreed_look(client, sample, edit, label):
+    """The card shows what was agreed: the render of her recipe, edited or not; never the transfer."""
     r = client.get(f"/try/{sample}", follow_redirects=False)
     sid = r.headers["location"].rsplit("/", 1)[1]
     if edit:
         assert client.post(f"/api/sessions/{sid}/edits", json={"zone": edit[0], "op": edit[1]}).status_code == 200
     b = client.post(f"/api/sessions/{sid}/brief").json()
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
-    assert label in html and not_label not in html
-    if edit:
-        assert f"render-{edit[0]}-{edit[1].replace(':', '-')}" in html, "the agreed image is the edited re-render"
+    assert f"<figcaption>{label}</figcaption>" in html
+    name = "render-base" if not edit else f"render-{edit[0]}-{edit[1].replace(':', '-')}"
+    assert f"{name}.png" in html, "the agreed image is the render of her recipe"
+
+
+def test_card_lists_every_zone_of_the_recipe_with_its_shade(client):
+    sid = _replay_session(client)
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "bronzer", "op": "shade:none"})
+    b = client.post(f"/api/sessions/{sid}/brief").json()
+    bride = b["bride_url"].split("t=")[1]
+    snap = client.get(f"/api/briefs/{b['brief_id']}?t={bride}").json()["snapshot"]
+    assert "bronzer" not in snap["review_zones"], "a product she left out is not reviewed"
+    assert len(snap["review_zones"]) == 8 + 1, "eight zones and the hair"
+    html = client.get(b["bride_url"].replace("/b/", "/card/")).text
+    assert "Ruby" in html and "Rose gold smoke" in html and "#B0102E" in html
+    assert "Bronzer" not in html.split("</table>")[0].split("<table")[1]
 
 
 def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
@@ -521,12 +549,9 @@ def _links(b: dict) -> tuple[str, str, str]:
     return b["brief_id"], b["bride_url"].split("t=")[1], b["artist_url"].split("t=")[1]
 
 
-@pytest.mark.parametrize(("sample", "edit", "target"), [
-    ("s0-champagne-rose", None, "even"),  # hair first: her look is the evened one
-    ("s2-classic-red", None, "look"),  # transfer first, no even-out
-    ("s2-classic-red", ("cheeks", "bolder"), "render"),  # her adjusted look
-])
-def test_brief_target_is_the_look_she_agrees_to(client, sample, edit, target):
+@pytest.mark.parametrize(("sample", "edit"), [
+    ("s0-champagne-rose", None), ("s2-classic-red", None), ("s2-classic-red", ("cheeks", "bolder"))])
+def test_brief_target_is_the_recipe_render_she_agrees_to(client, sample, edit):
     sid = _sample_session(client, sample)
     if edit:
         r = client.post(f"/api/sessions/{sid}/edits", json={"zone": edit[0], "op": edit[1]})
@@ -534,26 +559,19 @@ def test_brief_target_is_the_look_she_agrees_to(client, sample, edit, target):
     bid, bride, artist = _links(client.post(f"/api/sessions/{sid}/brief").json())
     for t in (bride, artist):
         v = client.get(f"/api/briefs/{bid}?t={t}").json()
-        assert v["snapshot"]["target"] == target
-        assert client.get(v["images"][target]).status_code == 200
+        assert v["snapshot"]["target"] == "render"
+        assert client.get(v["images"]["render"]).status_code == 200
     figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
     assert sum(f.startswith("Agreed look") for f in figs) == 1, f"exactly one photo is the agreed look: {figs}"
     assert figs[0] == "Bare face" and figs[1].startswith("Agreed look")
-    if target == "even":
-        assert "Raw transfer, before evening out (Hair Transfer + Makeup Transfer)" in figs
+    assert "How we read the inspiration (Makeup Transfer)" in figs
 
 
-def test_old_snapshot_without_target_falls_back_like_the_look_screen(client):
+def test_hair_first_before_photo_is_her_face_with_the_new_hair(client):
     sid = _sample_session(client, "s0-champagne-rose")
     bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
-    store = client.app.state.store
-    snap = store.brief(bid)["snapshot"]
-    snap.pop("target")
-    store._exec("UPDATE briefs SET snapshot_json=? WHERE id=?", (json.dumps(snap), bid))
-    assert client.get(f"/api/briefs/{bid}?t={bride}").json()["snapshot"]["target"] == "even"
-    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
-    assert figs[1] == "Agreed look: transfer + foundation in her shade (Makeup VTO)"
-    assert sum(f.startswith("Agreed look") for f in figs) == 1, figs
+    snap = client.get(f"/api/briefs/{bid}?t={bride}").json()["snapshot"]
+    assert snap["before"] == "base"
 
 
 def test_revise_without_changes_keeps_the_version_and_answers(client):

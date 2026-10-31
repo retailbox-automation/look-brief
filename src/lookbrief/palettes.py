@@ -31,6 +31,8 @@ ZONES = {  # zone -> Makeup VTO category, in the order of the request body
 }
 ZONE_LABELS = {"eyes": "Eyelids", "liner": "Eyeliner", "lashes": "Lashes", "brows": "Brows", "cheeks": "Cheeks",
                "bronzer": "Bronzer", "highlight": "Highlighter", "lips": "Lips", "lip_line": "Lip liner"}
+ZONE_GROUPS = (("Eyes", ("eyes", "liner", "lashes", "brows")), ("Face", ("cheeks", "bronzer", "highlight")),
+               ("Lips", ("lips", "lip_line")))
 LOOK_IDS = ("softglam", "fresh", "evening")
 LOOK_LABELS = {"softglam": "Soft glam", "fresh": "Fresh", "evening": "Evening"}
 DEFAULT_LOOK = "softglam"
@@ -97,7 +99,6 @@ def _ladder(*shades: Shade) -> tuple[Shade, ...]:
     return tuple(sorted(shades, key=shade_lightness, reverse=True))
 
 
-_NONE = Shade(NONE_ID, "None", (), "")
 _LASHES = _ladder(_bare("soft-brown", "Soft brown", "#4A2F27"), _bare("soft-black", "Soft black", "#17110f"),
                   _bare("jet-black", "Jet black", "#000000"))
 _DEEP_LASHES = _ladder(_bare("espresso", "Espresso", "#2B1B17"), _bare("soft-black", "Soft black", "#17110f"),
@@ -367,7 +368,9 @@ def ladder(group: str, zone: str) -> tuple[Shade, ...]:
 
 def circles(group: str, zone: str) -> tuple[Shade, ...]:
     """What the sheet offers: the ladder, plus the circle without the product in a thin zone."""
-    return LADDERS[group][zone] + ((_NONE,) if zone in THIN_ZONES else ())
+    if zone not in THIN_ZONES:
+        return LADDERS[group][zone]
+    return (*LADDERS[group][zone], Shade(NONE_ID, f"No {ZONE_LABELS[zone].lower()}", (), ""))
 
 
 def shade(group: str, zone: str, shade_id: str) -> Shade:

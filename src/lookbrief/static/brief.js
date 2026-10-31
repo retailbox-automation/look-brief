@@ -16,21 +16,18 @@
     return { ok: r.ok, body };
   }
 
-  // the photo the bride agrees to (snapshot.target): what it is, for the alt text and the visible caption
-  function targetText(snap) {
-    if (snap.target === "even") return "foundation in her shade over the transfer (YouCam Makeup VTO)";
-    if (snap.target === "render") return `${role === "bride" ? "your" : "the bride's"} adjusted look, re-rendered with YouCam Makeup VTO`;
-    return snap.order === "hair_first" ? "YouCam Hair Transfer + Makeup Transfer" : "YouCam Makeup Transfer";
-  }
+  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${esc(colors[0])} 55%, ${esc(colors[1])} 55%)` : esc(colors[0]);
+  const finishText = (zi) => zi.texture ? `${esc(zi.texture)} · ` : "";
 
   function zoneInfo(z) { return view.snapshot.zones.find((x) => x.zone === z) || { zone: z, label: "Hair" }; }
 
   function render() {
     const im = view.images;
-    $("b-before").src = im.bride || ""; $("b-inspo").src = im.inspiration || "";
-    $("b-after").src = im[view.snapshot.target] || im.look || "";
-    $("b-after").alt = `Agreed look: ${targetText(view.snapshot)}`;
-    $("b-after-cap").textContent = `Agreed look: ${targetText(view.snapshot)}`;
+    $("b-before").src = im[view.snapshot.before] || ""; $("b-inspo").src = im.inspiration || "";
+    const agreedText = `Agreed look: ${role === "bride" ? "your" : "the bride's"} recipe, rendered with YouCam Makeup VTO`;
+    $("b-after").src = im[view.snapshot.target] || "";
+    $("b-after").alt = agreedText;
+    $("b-after-cap").textContent = agreedText;
     const hairFirst = view.snapshot.order === "hair_first";
     const hairImg = im.hair || (hairFirst && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
     if (hairImg) $("b-hair").src = hairImg; else $("b-hair").closest("figure").hidden = true;
@@ -42,9 +39,10 @@
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
+      const dots = (zi.palette || []).map((c) => `<span class="swatch" style="background:${esc(c)}" aria-hidden="true"></span>`).join(" ");
       const detail = z === "skin"
-        ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> Foundation in her own shade ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} — evens redness, applied over the transfer`
-        : zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%`
+        ? `${dots} ${esc(zi.shade_name)} ${esc(zi.product_hex)} · coverage ${esc(zi.intensity)} — evens redness under the makeup`
+        : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
         : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
@@ -60,7 +58,7 @@
       el.addEventListener("input", () => { dirty[el.name.slice(5)] = el.value; });
       el.addEventListener("change", () => save(el.name.slice(5)));
     });
-    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">${z.zone === "skin" ? `foundation in her shade · intensity ${esc(z.intensity)}` : `intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%`}</span></li>`).join("");
+    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${dotFill(z.palette || [])}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><span class="shade-meta">${esc(z.shade_name)}</span><code class="shade-hex">${esc((z.palette || []).join(" ").toUpperCase())}</code></li>`).join("");
     const a = view.agreed;
     const me = a[role];
     const other = role === "artist" ? "bride" : "artist";

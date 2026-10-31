@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from . import __version__, attest, build_id, photo_check, pipeline
+from . import __version__, attest, build_id, palettes, photo_check, pipeline
 from . import recipe as rcp
 from .config import Settings, youcam_key
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx
@@ -212,6 +212,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
                                                 "checks", "order", "even_out", "map_reference", "views")})
+            out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z]} for z in zs]}
+                                  for label, zs in palettes.ZONE_GROUPS]
             if sess["mode"] == "replay":
                 out["edit_options"] = pipeline.edit_options(st, replay_keys(sess))
             else:
@@ -500,27 +502,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         st = sess["state"]
         d = session_dir(sess["id"])
         images = {k: v for k, v in st["images"].items() if (d / v).exists()}
-        zones = [{"zone": r["zone"], "label": r["label"], "product_hex": r["product_hex"],
-                  "intensity": r["intensity"], "on_face_hex": r["on_face_hex"], "coverage": r["coverage"]}
-                 for r in st["shades"]]
+        keep = ("zone", "label", "shade_name", "palette", "texture", "product_hex", "intensity", "on_face_hex",
+                "coverage")
+        zones = [{k: r[k] for k in keep} for r in st["shades"]]  # a product she left out has no row
         review_zones = [z["zone"] for z in zones]
         if "hair" in st["images"] or st.get("order") == "hair_first":
             review_zones.append("hair")
         if st.get("even_out") and "even" in st["images"]:
             ev = st["even_out"]
-            zones.append({"zone": "skin", "label": "Skin", "product_hex": ev["skin_hex"],
+            zones.append({"zone": "skin", "label": "Skin", "shade_name": "Foundation in her own shade",
+                          "palette": [ev["skin_hex"]], "texture": "", "product_hex": ev["skin_hex"],
                           "intensity": ev["coverage"], "on_face_hex": None, "coverage": None})
             review_zones.append("skin")
-        # the photo the bride agrees to, as the look screen shows it (session.js renderHero)
-        if st["edits"] and "render" in images:
-            target = "render"
-        elif st.get("order") == "hair_first" and "even" in images:
-            target = "even"
-        else:
-            target = "look"
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),
-            "images": images, "target": target,
+            "images": images, "target": st["views"]["after"], "before": st["views"]["before"],
             "images_sha256": {k: attest.sha256_file(d / v) for k, v in images.items()},
             "zones": zones, "review_zones": review_zones, "recipe": st["recipe"],
             "recipe_sha256": st["recipe_sha256"], "edits": st["edits"], "gaps": st["gaps"],
@@ -536,9 +532,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         reviews = store.reviews(bid, v)
         agreed = store.agreements(bid, v)
         snap = {k: val for k, val in b["snapshot"].items() if k != "session_id"}
-        if snap.get("target") not in snap["images"]:  # snapshots made before the target was recorded
-            im = snap["images"]
-            snap["target"] = "render" if snap.get("edits") and "render" in im else ("even" if "even" in im else "look")
         missing = [z for z in snap["review_zones"] if z not in reviews]
         discuss = [z for z, r in reviews.items() if r["status"] == "discuss"]
         return {
