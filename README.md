@@ -1,5 +1,162 @@
 # Look Brief
 
-Wedding makeup brief before the paid trial, built on the Perfect Corp YouCam API.
+**Agree on your wedding makeup before you pay for the trial.** The bride uploads her selfie and the photo she
+loves. YouCam **AI Makeup Transfer** puts that exact makeup on *her* face and **AI Hair Transfer** adds the hair;
+Look Brief measures the makeup zone by zone (eyelids, cheeks, lips — shade, strength, coverage), turns it into an
+editable recipe that **AI Makeup VTO** re-renders ("softer blush", "lips a shade lighter"), and sends it to her
+makeup artist, who confirms every zone by link without an account. The result is one agreed-look card, signed by
+the server, so the paid trial only executes what both already saw.
 
-Work in progress.
+- **Live demo:** https://lookbrief.retailbox-automation.com (Replay: recorded real YouCam API results, no key needed)
+- **Run locally in 5 minutes:** see [Run it](#run-it-in-5-minutes)
+- License: MIT · built for the YouCam API Skin AI & eCommerce VTO Hackathon (Perfect Corp, Devpost), Oct–Nov 2026
+
+## Judge it in 90 seconds
+
+| Claim | Check it | What you will see |
+|---|---|---|
+| Real YouCam API results, not mock-ups | Demo → any sample → caption under each picture; `samples/*/manifest.json`, `samples/*/fixtures/` | "Recorded real YouCam API result · task k-uiHOuju2… · 6.7s · 2026-10-31T13:23:48Z"; the same task ids and sanitized API responses in the repo |
+| Three YouCam APIs work as one flow | [API map](#how-it-works) below; `src/lookbrief/engine.py` | Makeup Transfer → Hair Transfer → Makeup VTO, chained per session |
+| The editable recipe is measured against the transfer | [`docs/ACCURACY.md`](docs/ACCURACY.md), `uv run python scripts/accuracy_report.py` | Mean shade gap ΔE2000 **1.97** over 9 zones of 3 faces (eyelids 1.02, cheeks 2.55, lips 2.34) |
+| Calibrated with data, not by eye | [`docs/CALIBRATION.md`](docs/CALIBRATION.md), `uv run python scripts/calibration_report.py` | v1 rule **3.2 → v2 1.97**, both measured on images committed here |
+| The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
+| The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
+| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 100 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
+| Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/*.json` | YouCam credit read before and after every recording: 3 samples 90 units, calibration evidence 3, findings 1 |
+| No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
+
+## Why
+
+A bride who rarely wears makeup brings a screenshot of someone else's face to a paid trial and often leaves
+disappointed: the picture shows a different face, different skin and different light. Look Brief moves the
+"is this my look?" moment before the trial and turns it into a brief both sides sign off on. It does not replace
+the artist; it gives her a measured starting point and a written agreement.
+
+## How it works
+
+```
+selfie + inspiration ──► photo check (local, before any unit is spent)
+                         │
+                         ├─► AI Makeup Transfer   POST /s2s/v2.0/task/mu-transfer    (2 units)
+                         │      └─► makeup map: CIE Lab difference, zones from face landmarks
+                         ├─► AI Hair Transfer     POST /s2s/v2.1/task/hair-transfer  (2 units, custom reference)
+                         └─► recipe ─► AI Makeup VTO POST /s2s/v2.0/task/makeup-vto  (1 unit per render / edit)
+                                         └─► accuracy: transfer vs re-render, per zone
+brief link ─► artist: per zone "I'll do this / I'll swap the product / Let's discuss" ─► both agree
+           ─► agreed-look card + server attestation (Ed25519)
+```
+
+| YouCam API | Endpoint | Our code | Example recorded task |
+|---|---|---|---|
+| AI Makeup Transfer | `POST /s2s/v2.0/task/mu-transfer` | `engine.py` `LiveEngine.makeup_transfer` | `k-uiHOuju22Y…` (s1, 6.7 s) |
+| AI Hair Style — custom reference | `POST /s2s/v2.1/task/hair-transfer` | `engine.py` `LiveEngine.hair_transfer` | `LzsuLtj-Uzxm…` (s1, 6.6 s) |
+| AI Makeup VTO | `POST /s2s/v2.0/task/makeup-vto` | `recipe.py` → `engine.py` `LiveEngine.render` | `0c0bebJoDZVg…` (s1 base, 6.7 s) |
+| File upload | `POST /s2s/v2.0/file` + `PUT` | `youcam.py` `YouCamClient.upload` | — |
+| Credit | `GET /s2s/v1.0/client/credit` | `youcam.py` `YouCamClient.credit` | read before/after every recording |
+
+**The makeup map.** Makeup Transfer returns only a picture. Look Brief subtracts the bare selfie from the
+transferred look in CIE Lab, marks pixels that visibly changed (ΔE76 > 6), and assigns them to zones built from
+MediaPipe Face Landmarker points (nearest-feature cells around eyelids, cheeks, lips, nose, brows; the forehead is
+a no-makeup control). Per zone it reports the median shade on the face, the bare-skin shade under it, strength
+and coverage (`src/lookbrief/makeup_map.py`, `landmarks.py`).
+
+**The recipe.** Each zone becomes a Makeup VTO effect: product shade pushed away from the skin, intensity from the
+transfer's coverage, lips lifted by L* +8 because VTO lands lip colour darker, and `skin_smooth: 0` always
+(`src/lookbrief/recipe.py`). Edits move one zone one step and re-render for 1 unit.
+
+**Replay and Live.** Replay serves recorded real API results from `samples/` with their original task ids and
+timestamps — the organiser confirmed this is acceptable for judging (Devpost forum, thread 45693). Live calls the
+API from the server only, behind a consent screen, with a unit budget, a per-network daily limit and a
+per-session cap; when any limit is reached it falls back to the recorded samples. Uploaded photos are deleted after
+24 hours or on request.
+
+## Run it in 5 minutes
+
+Requirements: Python 3.12 and [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/retailbox-automation/look-brief && cd look-brief
+uv sync
+uv run lookbrief            # http://127.0.0.1:8731 — three recorded samples, no key needed
+```
+
+Or with Docker: `docker build -t lookbrief . && docker run -p 8080:8080 lookbrief` → http://127.0.0.1:8080
+
+**Live mode with your own YouCam key** (about 5 units per look, 1 per zone edit):
+
+```bash
+cp .env.example .env        # put your key in YOUCAM_API_KEY (server side only, never in the browser)
+LOOKBRIEF_LIVE=1 uv run --env-file .env lookbrief   # then open /live
+```
+
+Limits are environment variables: `LOOKBRIEF_LIVE_UNIT_BUDGET` (default 200), `LOOKBRIEF_LIVE_MIN_CREDIT` (100),
+`LOOKBRIEF_LIVE_SESSIONS_PER_IP_DAY` (5), `LOOKBRIEF_LIVE_SESSION_UNIT_CAP` (12). Live status: `GET /api/limits`.
+
+**Record your own sample** (rights-cleared faces only): put `bride.jpg` and `inspiration.jpg` in
+`samples/<id>/` with a `sample.json`, then `uv run python scripts/record_sample.py samples/<id>` (17 units with
+the full edit grid).
+
+## The agreed-look card and what the signature means
+
+When the bride link and the artist link have both agreed on the same brief version — every zone answered, no
+"Let's discuss" left open — the server signs a JSON statement with Ed25519: brief id and version, each zone's
+product shade, intensity, the artist's answer and note, the recipe hash, the SHA-256 of every image, the YouCam
+task ids, and both agreement times. It proves what this server recorded; it is **not** a personal signature of
+either person. The public demo creates a fresh key at every start (the key lives until the container restarts)
+and prints the public key on each card and at `/.well-known/lookbrief-attest.json`.
+
+```bash
+python scripts/verify_card.py look-brief-<id>.json \
+  --key-url https://lookbrief.retailbox-automation.com/.well-known/lookbrief-attest.json
+```
+
+## Tests and checks
+
+```bash
+uv run pytest -q                 # 99 unit tests + 1 Playwright smoke (run `uv run playwright install chromium` once)
+uv run ruff check src tests scripts && uv run mypy src
+```
+
+The unit tests check CIEDE2000 against the 34 reference pairs of Sharma, Wu & Dalal (2005), zone geometry on the
+recorded faces, cross-machine reproducibility of the recorded maps, the recipe against the documented Makeup VTO
+schema and pattern catalog, a plain-language hint for every documented YouCam error code, the API client
+(retries, error tasks, key never logged, signed URLs redacted), every replay fixture, and the whole app API
+including Live on a fake client (consent, photo check, ledger, caps, budget fallback, deletion). The Playwright
+smoke walks the bride and artist paths on a 390×844 phone viewport and runs axe-core (WCAG 2 A/AA) on every screen.
+
+## Platform findings
+
+Nine findings with evidence in this repo — [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md). The three
+that shaped the product: Makeup VTO smooths the whole face unless `skin_smooth` is set to 0; Makeup VTO is not
+deterministic for eye shadow and lips (identical recipe, up to 2.13 ΔE2000 apart) while blush is; and lip colour
+lands darker than the hex it is given.
+
+## Honest limits
+
+- Previews, not photos: Hair Transfer also changes the forehead area (ΔE76 1.9–3.3), so the makeup map is
+  measured before hair.
+- The editable recipe approximates the transfer; the accuracy table shows how closely, zone by zone.
+- Nose and contour changes are reported but not re-rendered.
+- No external users yet; the samples are fictional, AI-generated faces.
+- The public demo is Replay-only; Live needs your own key.
+
+## How AI was used
+
+The YouCam API does the visual work (makeup transfer, hair transfer, makeup re-render). Sample faces and
+inspiration photos are fictional people generated with ChatGPT Images for this project (no real person, no brand).
+The code was written with the help of AI coding assistants and reviewed and tested by the team. No language model
+runs inside the product.
+
+## Project layout
+
+```
+src/lookbrief/   app.py (FastAPI) · youcam.py (API client) · engine.py (Live/Replay) · pipeline.py
+                 landmarks.py · makeup_map.py · recipe.py · photo_check.py · attest.py · store.py (SQLite)
+samples/         3 recorded samples: inputs, results, sanitized fixtures, manifest, credit before/after
+scripts/         record_sample.py · accuracy_report.py · calibration_report.py · verify_card.py · …
+docs/            ACCURACY.md · CALIBRATION.md · PLATFORM-FINDINGS.md (+ evidence)
+tests/           unit tests · e2e/ Playwright smoke
+```
+
+Third-party: MediaPipe Face Landmarker model (Google, Apache-2.0) in `src/lookbrief/models/`; YouCam API by
+Perfect Corp. Team: Mikhail Oskola, Nadezhda Korchagina.
