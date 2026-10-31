@@ -18,7 +18,7 @@
   <label>Your inspiration photo (the makeup you love)
     <input type="file" name="inspiration" accept="image/jpeg,image/png" required>
   </label>
-  <p class="note">Uses about {{ 5 }} YouCam units, then 1 per zone adjustment (cap {{ live.session_unit_cap }} per session). Budget left: {{ live.budget_left }}.</p>
+  <p class="note">Uses {{ look_units }} YouCam units (hair, makeup transfer, re-render, even out redness), then 1 per zone adjustment (cap {{ live.session_unit_cap }} per session). Budget left: {{ live.budget_left }}.</p>
   <button class="btn primary block" type="submit">Check photos and create my look</button>
   <div id="live-out" role="status" aria-live="polite"></div>
 </form>

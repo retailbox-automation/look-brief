@@ -228,7 +228,7 @@
       $("status").innerHTML = `<strong>${esc(h.title)}.</strong> ${esc(h.fix)} <a href="/">Back</a>`;
       return;
     }
-    $("status").textContent = body.mode === "replay" ? "Loading the recorded results…" : "Calling YouCam: makeup transfer → hair → re-render (about 25 seconds)…";
+    $("status").textContent = body.mode === "replay" ? "Loading the recorded results…" : "Calling YouCam: hair transfer → makeup transfer → re-render → even out redness (about 30 seconds)…";
     setTimeout(poll, 1200);
   }
 

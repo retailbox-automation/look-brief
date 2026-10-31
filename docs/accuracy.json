@@ -1,51 +1,51 @@
 {
  "per_sample": {
   "s0-champagne-rose": {
-   "title": "Champagne & bronze",
-   "skin_control_transfer_de76": 0.54,
+   "title": "Champagne & rose",
+   "skin_control_transfer_de76": 0.0,
    "skin_control_render_de76": 0.0,
    "zones": {
     "eyes": {
      "zone": "eyes",
      "label": "Eyelids",
-     "color_transfer": "#8b5b46",
-     "color_render": "#905f49",
-     "color_gap_de2000": 1.58,
-     "pixel_gap_de2000": 6.63,
-     "coverage_transfer": 0.3812,
-     "coverage_render": 0.3843
+     "color_transfer": "#986552",
+     "color_render": "#996451",
+     "color_gap_de2000": 0.66,
+     "pixel_gap_de2000": 7.56,
+     "coverage_transfer": 0.275,
+     "coverage_render": 0.2445
     },
     "cheeks": {
      "zone": "cheeks",
      "label": "Cheeks",
-     "color_transfer": "#b56a54",
-     "color_render": "#b7765e",
-     "color_gap_de2000": 4.22,
-     "pixel_gap_de2000": 4.24,
-     "coverage_transfer": 0.1401,
-     "coverage_render": 0.1975
+     "color_transfer": "#bf6e52",
+     "color_render": "#bc785e",
+     "color_gap_de2000": 3.38,
+     "pixel_gap_de2000": 3.89,
+     "coverage_transfer": 0.232,
+     "coverage_render": 0.2516
     },
     "lips": {
      "zone": "lips",
      "label": "Lips",
-     "color_transfer": "#be7567",
-     "color_render": "#b5645a",
-     "color_gap_de2000": 5.48,
-     "pixel_gap_de2000": 6.88,
-     "coverage_transfer": 0.111,
-     "coverage_render": 0.0181
+     "color_transfer": "#c17571",
+     "color_render": "#b9645e",
+     "color_gap_de2000": 5.56,
+     "pixel_gap_de2000": 6.43,
+     "coverage_transfer": 0.1271,
+     "coverage_render": 0.0123
     }
    },
    "task_ids": {
-    "mu_transfer": "NMXA11tJ3SYneFiIVT3PGpGHoVL4lNRhoBdxM-wsP0h8hiSGenTsTHJNcSScJw2WL1tdL0WuaKpao2rhLgDDpA",
-    "render:base": "u-K8WHO338qFZYUk0HRyQipNtPX0ivaURv3PLdL9Eo-gBQ1rcbkYM0fnKvmCJBDvd-BTT-LvvMAmKHuvXEbI5Q"
+    "mu_transfer": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCr40gTcv_cdAR3i0vep5cBL1tdL0WuaKpao2rhLgDDpA",
+    "render:base": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCBX198r8MqLv0OJMOVFV-9d-BTT-LvvMAmKHuvXEbI5Q"
    },
    "recordings": [
     {
-     "at": "2026-10-31T14:45:38Z",
-     "credit_before": 859,
-     "credit_after": 844,
-     "units_spent": 15,
+     "at": "2026-10-31T16:23:23Z",
+     "credit_before": 820,
+     "credit_after": 802,
+     "units_spent": 18,
      "photo_check": {
       "bride": {
        "role": "bride",
@@ -64,10 +64,10 @@
        "issues": [],
        "width": 768,
        "height": 1024,
-       "yaw_deg": -0.7,
-       "pitch_deg": 4.3,
-       "roll_deg": 2.0,
-       "face_width_share": 0.631
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
       }
      }
     }

@@ -1,7 +1,7 @@
 {
  "step": "render:lips:bolder",
- "task_id": "u-K8WHO338qFZYUk0HRyQipNtPX0ivaURv3PLdL9Eo_8B-DuA_D3_DtzuzT9IupMd-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T14:45:21Z",
+ "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cD5IxitoDJs8C0qIeujfk-7d-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T16:23:06Z",
  "seconds": 6.6,
  "units": 1,
  "request_without_file_ids": {
@@ -19,9 +19,9 @@
     },
     "palettes": [
      {
-      "color": "#784c3a",
+      "color": "#8e5e50",
       "texture": "matte",
-      "colorIntensity": 87
+      "colorIntensity": 74
      }
     ]
    },
@@ -32,9 +32,9 @@
     },
     "palettes": [
      {
-      "color": "#af5343",
+      "color": "#c0593c",
       "texture": "matte",
-      "colorIntensity": 73
+      "colorIntensity": 84
      }
     ]
    },
@@ -45,9 +45,9 @@
     },
     "palettes": [
      {
-      "color": "#d78c7d",
+      "color": "#da8c88",
       "texture": "matte",
-      "colorIntensity": 68
+      "colorIntensity": 71
      }
     ],
     "style": {

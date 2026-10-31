@@ -60,6 +60,7 @@ def load_samples(d: Path) -> dict[str, dict]:
         meta = json.loads((sd / "sample.json").read_text())
         meta["recorded"] = (sd / "manifest.json").exists()
         meta.setdefault("hidden", False)  # hidden samples stay as evidence but are not offered in the app
+        meta.setdefault("unlisted", False)  # unlisted samples work by their /try link but are not on the home page
         meta["dir"] = sd
         out[meta["id"]] = meta
     return out
@@ -95,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     signer = attest.load_signer(s.attest_key_b64, s.data_dir / "attest_ed25519.key", ephemeral=s.attest_ephemeral)
     samples = load_samples(s.samples_dir)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
+    templates.env.globals["source_url"] = s.source_url  # footer link only once the repository is public
     app = FastAPI(title="Look Brief", version=__version__, docs_url=None, redoc_url=None)
     app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
     key = youcam_key()
@@ -268,7 +270,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def index(request: Request):
         ip = client_ip(request)
         return templates.TemplateResponse(request, "index.html", {
-            "samples": [m for m in samples.values() if m["recorded"] and not m["hidden"]], "live": live_status(ip)})
+            "samples": [m for m in samples.values() if m["recorded"] and not m["hidden"] and not m["unlisted"]],
+            "live": live_status(ip)})
 
     @app.get("/try/{sample_id}")
     def try_sample(sample_id: str, request: Request, background: BackgroundTasks):
@@ -293,7 +296,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/live", response_class=HTMLResponse)
     def live_page(request: Request):
-        return templates.TemplateResponse(request, "live.html", {"live": live_status(client_ip(request))})
+        return templates.TemplateResponse(request, "live.html", {"live": live_status(client_ip(request)),
+                                                                 "look_units": LOOK_UNITS})
 
     @app.get("/s/{sid}", response_class=HTMLResponse)
     def session_page(sid: str, request: Request):
@@ -323,7 +327,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/healthz")
     def healthz():
         return {"ok": True, "version": __version__, "build": build_id(),
-                "samples": [k for k, m in samples.items() if m["recorded"] and not m["hidden"]]}
+                "samples": [k for k, m in samples.items() if m["recorded"] and not m["hidden"] and not m["unlisted"]]}
 
     @app.get("/api/limits")
     def limits(request: Request):

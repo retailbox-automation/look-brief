@@ -1,0 +1,35 @@
+{
+ "step": "even_out",
+ "task_id": "jZUtW2ZlG5ci6dfkWm8eRuLYPJ88K3TdcvOR2Zcq8upLbTcQ8h3wjfYbi6CulJxhd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T16:21:40Z",
+ "seconds": 6.7,
+ "units": 1,
+ "request_without_file_ids": {
+  "version": "1.0",
+  "effects": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "foundation",
+    "palettes": [
+     {
+      "color": "#dfa588",
+      "colorIntensity": 50,
+      "glowIntensity": 0,
+      "coverageIntensity": 30
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
+ }
+}

@@ -90,3 +90,25 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(bride.get_by_text("I'll use a cooler pink")).to_be_visible()
     check_a11y(bride, "agreed-look card")
     assert time.monotonic() - t0 < 90, "the guided path must fit in 90 seconds"
+
+
+def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
+    """The heroine sample: hair first, then makeup, then 'Even out redness' (foundation in her shade)."""
+    import json
+    import urllib.request
+    from pathlib import Path
+
+    samples = Path(__file__).resolve().parents[2] / "samples"
+    hair_first = [p.name for p in sorted(samples.glob("s*")) if (p / "manifest.json").exists()
+                  and json.loads((p / "manifest.json").read_text()).get("order") == "hair_first"]
+    if not hair_first:
+        pytest.skip("no hair_first sample recorded")
+    assert hair_first[0] not in json.load(urllib.request.urlopen(base_url + "/healthz"))["samples"], "unlisted"
+    page = browser_ctx.new_page()
+    page.goto(f"{base_url}/try/{hair_first[0]}")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
+    page.get_by_role("button", name="Even out redness").click()
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("foundation in her shade over the transfer")
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Recorded real YouCam API result")
+    check_a11y(page, "hair-first look")

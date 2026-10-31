@@ -2,7 +2,7 @@ import json
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SAMPLE_IDS, SAMPLES, VISIBLE_IDS
+from helpers import HIDDEN_IDS, SAMPLES, UNLISTED_IDS, VISIBLE_IDS
 
 from lookbrief import app as app_mod
 from lookbrief import attest
@@ -316,7 +316,7 @@ def test_runs_left_by_a_previous_process_are_marked_interrupted(tmp_path, monkey
 
 
 def test_hidden_samples_are_not_offered(client):
-    hidden = [s for s in SAMPLE_IDS if s not in VISIBLE_IDS]
+    hidden = HIDDEN_IDS
     assert hidden, "s1 is kept as calibration evidence but hidden"
     html = client.get("/").text
     for h in hidden:
@@ -330,3 +330,17 @@ def test_transfer_first_samples_keep_their_order(client, sid):
     st = client.get(r.headers["location"].replace("/s/", "/api/sessions/")).json()
     assert st["status"] == "ready" and st["order"] == "transfer_first"
     assert "base" not in st["images"] and "even" not in st["images"] and "hair" in st["images"]
+
+
+def test_unlisted_samples_work_by_link_only(client):
+    html = client.get("/").text
+    for u in UNLISTED_IDS:
+        assert f"/try/{u}" not in html and u not in client.get("/healthz").json()["samples"]
+        assert client.get(f"/try/{u}", follow_redirects=False).status_code == 303
+
+
+def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeypatch):
+    assert "github.com" not in client.get("/").text
+    monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
+    c = TestClient(app_mod.create_app(_settings(tmp_path / "x", source_url="https://example.org/repo")))
+    assert 'href="https://example.org/repo"' in c.get("/").text

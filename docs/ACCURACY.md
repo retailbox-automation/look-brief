@@ -27,7 +27,7 @@ Skin control (forehead, no makeup), median ΔE76 vs the bare selfie:
 
 | Sample | Transfer | Re-render (`skin_smooth` 0) |
 |---|---|---|
-| Champagne & bronze | 0.54 | 0.0 |
+| Champagne & rose | 0.0 | 0.0 |
 | Soft glam | 0.37 | 0.0 |
 | Classic red lip | 0.44 | 0.0 |
 | Mauve smoky eye | 0.73 | 0.0 |
@@ -39,9 +39,9 @@ development sample (control run, see docs/CALIBRATION.md).
 
 | Sample | Zone | Shade gap ΔE2000 | Coverage: transfer → re-render |
 |---|---|---|---|
-| Champagne & bronze | Eyelids | 1.58 | 38% → 38% |
-| Champagne & bronze | Cheeks | 4.22 | 14% → 20% |
-| Champagne & bronze | Lips | 5.48 | 11% → 2% |
+| Champagne & rose | Eyelids | 0.66 | 28% → 24% |
+| Champagne & rose | Cheeks | 3.38 | 23% → 25% |
+| Champagne & rose | Lips | 5.56 | 13% → 1% |
 
 ## Out-of-sample live check (through the app)
 

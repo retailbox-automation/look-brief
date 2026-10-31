@@ -1,13 +1,15 @@
 {
  "step": "mu_transfer",
- "task_id": "NMXA11tJ3SYneFiIVT3PGpGHoVL4lNRhoBdxM-wsP0h8hiSGenTsTHJNcSScJw2WL1tdL0WuaKpao2rhLgDDpA",
- "recorded_at": "2026-10-31T14:42:24Z",
- "seconds": 6.6,
+ "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCr40gTcv_cdAR3i0vep5cBL1tdL0WuaKpao2rhLgDDpA",
+ "recorded_at": "2026-10-31T16:21:32Z",
+ "seconds": 6.7,
  "units": 2,
- "request_without_file_ids": {
-  "reused": "transfer-b.json"
- },
+ "request_without_file_ids": {},
  "response": {
-  "note": "recorded earlier by the same script family; see the source JSON"
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
  }
 }

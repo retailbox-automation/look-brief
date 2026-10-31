@@ -21,7 +21,7 @@
   </main>
   <footer class="foot">
     <p>Built on the Perfect Corp <strong>YouCam API</strong> (Makeup Transfer, Hair Transfer, Makeup VTO). Previews, not photos.
-      <a href="https://github.com/retailbox-automation/look-brief">Source (MIT)</a> · <a href="/api/limits">Live status</a></p>
+      {% if source_url %}<a href="{{ source_url }}">Source (MIT)</a>{% else %}Source code: MIT, published with the submission{% endif %} · <a href="/api/limits">Live status</a></p>
   </footer>
   {% block scripts %}{% endblock %}
 </body>

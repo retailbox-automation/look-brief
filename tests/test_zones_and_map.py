@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 import pytest
-from helpers import SAMPLE_IDS, SAMPLES, load_rgb
+from helpers import SAMPLE_IDS, SAMPLES, bare_path, load_rgb
 
 from lookbrief import landmarks, makeup_map
 from lookbrief.color import hex_delta_e2000
@@ -12,7 +12,7 @@ from lookbrief.color import hex_delta_e2000
 def sample(request):
     sd = SAMPLES / request.param
     mf = json.loads((sd / "manifest.json").read_text())
-    bare = load_rgb(sd / "bride.jpg")
+    bare = load_rgb(bare_path(sd, mf))
     look = load_rgb(sd / mf["steps"]["mu_transfer"]["image"], size=(bare.shape[1], bare.shape[0]))
     face = landmarks.detect(bare)
     return sd, mf, bare, look, face

@@ -35,6 +35,7 @@ class Settings:
     data_dir: Path = field(default_factory=lambda: Path(os.environ.get("LOOKBRIEF_DATA", ROOT / "data")))
     samples_dir: Path = field(default_factory=lambda: Path(os.environ.get("LOOKBRIEF_SAMPLES", ROOT / "samples")))
     public_url: str = field(default_factory=lambda: os.environ.get("LOOKBRIEF_PUBLIC_URL", "").rstrip("/"))
+    source_url: str = field(default_factory=lambda: os.environ.get("LOOKBRIEF_SOURCE_URL", ""))
     live_enabled: bool = field(default_factory=lambda: os.environ.get("LOOKBRIEF_LIVE", "1") == "1")
     live_unit_budget: int = field(default_factory=lambda: _int("LOOKBRIEF_LIVE_UNIT_BUDGET", 200))
     live_min_credit: int = field(default_factory=lambda: _int("LOOKBRIEF_LIVE_MIN_CREDIT", 100))

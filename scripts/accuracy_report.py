@@ -31,7 +31,9 @@ def main() -> int:
         mf = json.loads((sd / "manifest.json").read_text())
         meta = json.loads((sd / "sample.json").read_text())
         is_holdout = meta.get("role") == "holdout"
-        bare_img = Image.open(sd / "bride.jpg").convert("RGB")
+        # hair_first samples are measured against her face with the new hair (same light as the transfer)
+        bare_file = sd / mf["steps"]["hair_transfer"]["image"] if mf.get("order") == "hair_first" else sd / "bride.jpg"
+        bare_img = Image.open(bare_file).convert("RGB")
         bare = np.asarray(bare_img, dtype=np.uint8)
         face = landmarks.detect(bare)
         assert face is not None, sd.name

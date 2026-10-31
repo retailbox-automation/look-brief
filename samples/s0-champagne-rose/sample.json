@@ -1,7 +1,7 @@
 {
  "id": "s0-champagne-rose",
- "title": "Champagne & bronze",
- "description": "Light freckled skin; champagne-and-bronze eyes, sheer blush, peach-nude lips",
+ "title": "Champagne & rose",
+ "description": "Light freckled skin; champagne eyes, soft rose lips; hair first, then makeup, then even out redness",
  "faces": "Fictional people, AI-generated with ChatGPT Images on 2026-10-31 for this project; no real person, no brand.",
  "files": {
   "bride.jpg": {
@@ -9,10 +9,12 @@
    "source": "hero-selfie"
   },
   "inspiration.jpg": {
-   "sha256": "6ee5c658c60ced7415c2780484ae737ad9e0e4f56dffd4eeff438a5bbae428a3",
-   "source": "hero-inspo-b"
+   "sha256": "e60ad0aa293d8013de4e1e96f04ecbf51405e284ef16fc1bfc48a98e88e649e2",
+   "source": "inspo-c-rose"
   }
  },
  "role": "holdout",
- "hidden": false
+ "hidden": false,
+ "unlisted": true,
+ "unlisted_reason": "Heroine sample (hair first + even out redness); reachable by its link, shown on the home page after the team's yes."
 }
