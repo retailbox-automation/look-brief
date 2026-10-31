@@ -15,7 +15,7 @@ RUN uv sync --frozen --no-dev
 RUN useradd -m -u 10001 app && mkdir -p /data && chown app /data
 USER app
 ENV HOST=0.0.0.0 PORT=8080 LOOKBRIEF_DATA=/data LOOKBRIEF_LIVE=0 LOOKBRIEF_ATTEST_EPHEMERAL=1 \
-    LOOKBRIEF_TRUST_PROXY=1 LOOKBRIEF_SAMPLES=/app/samples
+    LOOKBRIEF_TRUST_PROXY=1 LOOKBRIEF_SAMPLES=/app/samples LOOKBRIEF_PUBLIC_URL=https://lookbrief.retailbox-automation.com
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:%s/healthz' % os.environ.get('PORT','8080'),timeout=4)"

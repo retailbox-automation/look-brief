@@ -315,7 +315,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if role is None:
             raise HTTPException(404, "brief not found")
         view = brief_view(bid, role, t)
-        return templates.TemplateResponse(request, "card.html", {"v": view, "token": t,
+        site = s.public_url or str(request.base_url).rstrip("/")
+        return templates.TemplateResponse(request, "card.html", {"v": view, "token": t, "site": site,
                                                                  "public_key": signer.public_jwk_like()})
 
     # ---------------- API ----------------

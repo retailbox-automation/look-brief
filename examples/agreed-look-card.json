@@ -1,0 +1,113 @@
+{
+ "payload": {
+  "type": "lookbrief.agreement.v1",
+  "statement": "The Look Brief server recorded that the bride link and the makeup-artist link both agreed to this exact brief version. This is a server attestation, not a personal signature.",
+  "brief_id": "JXohH5y6uC2T",
+  "version": 1,
+  "issuer": "https://lookbrief.retailbox-automation.com",
+  "issued_at": "2026-10-31T16:17:03Z",
+  "agreed_at": {
+   "artist": "2026-10-31T16:17:03Z",
+   "bride": "2026-10-31T16:17:03Z"
+  },
+  "reviews_sha256": "1f4485600bc901052a2600117cfa4ac2e075c65a47e8be29f347ade531a95080",
+  "zones": [
+   {
+    "zone": "eyes",
+    "label": "Eyelids",
+    "product_hex": "#855745",
+    "intensity": 80,
+    "on_face_hex": "#885d4b",
+    "coverage": 0.325,
+    "status": "do",
+    "note": ""
+   },
+   {
+    "zone": "cheeks",
+    "label": "Cheeks",
+    "product_hex": "#f4938f",
+    "intensity": 67,
+    "on_face_hex": "#e79d8f",
+    "coverage": 0.0929,
+    "status": "swap",
+    "note": "I'll use a cream blush one shade cooler"
+   },
+   {
+    "zone": "lips",
+    "label": "Lips",
+    "product_hex": "#bb3636",
+    "intensity": 90,
+    "on_face_hex": "#a52b2d",
+    "coverage": 0.21,
+    "status": "do",
+    "note": ""
+   },
+   {
+    "zone": "hair",
+    "label": "Hair",
+    "status": "do",
+    "note": ""
+   }
+  ],
+  "recipe": {
+   "version": 1,
+   "zones": {
+    "eyes": {
+     "category": "eye_shadow",
+     "pattern": "1color1",
+     "color": "#855745",
+     "intensity": 80,
+     "skin": "#8c6552"
+    },
+    "cheeks": {
+     "category": "blush",
+     "pattern": "1color1",
+     "color": "#f4938f",
+     "intensity": 67,
+     "skin": "#dea38f"
+    },
+    "lips": {
+     "category": "lip_color",
+     "pattern": "original",
+     "color": "#bb3636",
+     "intensity": 90,
+     "skin": "#ae6d69"
+    }
+   }
+  },
+  "recipe_sha256": "398e2645126f228a8b55981b654540e276b28233fa17f02029b87b605ece880d",
+  "images_sha256": {
+   "bride": "ec97e47778c94e90690f00db288d77984ebf14023f82298aa68710ff26058298",
+   "inspiration": "d7a4c2b4e15e893dd49d55b9897fa31c454742d2bd8f213c0686c9d3ec42da49",
+   "look": "9b328fca86a4f88ffa7ffd9504019ac1c61e150ab21e90ec6af899be24e70d00",
+   "hair": "6397be9150949a01a5bfbfa07f31587dda18f9a704a13696cb07f655d4246314",
+   "layer": "d14641960fb7917017ebd51e0ae09cbfcf42e5d37a3d859b21d19d30f7997174",
+   "render": "0e7ae4550d687cce300989d70a687a6ac5c22ba3cb06aa2baa1870272eb3d09c"
+  },
+  "youcam_steps": {
+   "mu_transfer": {
+    "mode": "replay",
+    "task_id": "ygx_B9JwbbesH6d6YnOPlQyCg1ZdxRFvplay8BkAEQbqdwSc3E6MvTPC8ApWmK6WL1tdL0WuaKpao2rhLgDDpA",
+    "recorded_at": "2026-10-31T13:25:39Z",
+    "seconds": 6.6
+   },
+   "hair_transfer": {
+    "mode": "replay",
+    "task_id": "m_npC9yUJXNDKEFBpSnk9JO55DNIPa58NVRSwuqn4uO_cQiRYuqj1iczqcaC_SYmAO6h9Y273R6RR5V6m9KYNQ",
+    "recorded_at": "2026-10-31T13:25:47Z",
+    "seconds": 6.6
+   },
+   "render:base": {
+    "mode": "replay",
+    "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeb9tq3Oqtx3WpmIfEU23QIWd-BTT-LvvMAmKHuvXEbI5Q",
+    "recorded_at": "2026-10-31T13:34:18Z",
+    "seconds": 6.6
+   }
+  },
+  "mode": "replay"
+ },
+ "alg": "Ed25519",
+ "key_id": "2d7855d1a8f769dc",
+ "public_key_b64": "+38H5NkwIBo5OP05oIiH+9/PVC65G04yEflYqZNWPsA=",
+ "signature_b64": "moMGWiqjLhVMZ8DLTWfkIzeXlNWkFpN0MXtMFAbgdpwObA6G5p9MtcUbNqPWUViLtaTn3fSstZUcAunxsOPxCw=="
+}
