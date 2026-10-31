@@ -201,6 +201,10 @@ def test_the_ends_of_the_order_block_the_step():
     assert rcp.blocked(farthest, "lips", "bolder") == "boldest" and rcp.blocked(farthest, "lips", "softer") is None
     with pytest.raises(ValueError):
         rcp.apply_edit(nearest, "lips", "softer")
+    one_before_last = rcp.apply_edit(base, "lips", f"shade:{order[-2]}")
+    assert rcp.apply_edit(one_before_last, "lips", "bolder")["zones"]["lips"]["shade_id"] == order[-1]
+    second = rcp.apply_edit(base, "lips", f"shade:{order[1]}")
+    assert rcp.apply_edit(second, "lips", "softer")["zones"]["lips"]["shade_id"] == order[0]
 
 
 def test_a_zone_without_makeup_has_nothing_to_soften_and_bolder_starts_at_the_nearest_shade():
