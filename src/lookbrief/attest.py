@@ -52,12 +52,17 @@ class Signer:
 
     def sign(self, payload: dict) -> dict:
         sig = self.private.sign(canonical(payload))
-        return {"payload": payload, "alg": ALG, "key_id": self.key_id, "signature_b64": b64(sig)}
+        return {"payload": payload, "alg": ALG, "key_id": self.key_id, "public_key_b64": b64(self.public_raw),
+                "signature_b64": b64(sig)}
 
 
-def load_signer(key_b64: str = "", key_file: Path | None = None) -> Signer:
-    """Production: raw 32-byte seed in env LOOKBRIEF_ATTEST_KEY (base64, injected by infisical run).
-    Local runs: a seed file in the data dir, created on first start."""
+def load_signer(key_b64: str = "", key_file: Path | None = None, ephemeral: bool = False) -> Signer:
+    """Public demo: `ephemeral` — a fresh key in memory at every start, never stored (it lives until the
+    container restarts; the public key is served at /.well-known/lookbrief-attest.json and printed on
+    every card). Self-hosting: a raw 32-byte seed in env LOOKBRIEF_ATTEST_KEY (base64) or a seed file
+    in the data dir, created on first start."""
+    if ephemeral:
+        return Signer(Ed25519PrivateKey.generate())
     if key_b64:
         return Signer(Ed25519PrivateKey.from_private_bytes(unb64(key_b64)))
     if key_file is None:

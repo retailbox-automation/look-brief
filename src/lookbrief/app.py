@@ -87,7 +87,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     s = settings or Settings()
     s.data_dir.mkdir(parents=True, exist_ok=True)
     store = Store(s.data_dir / "lookbrief.db")
-    signer = attest.load_signer(s.attest_key_b64, s.data_dir / "attest_ed25519.key")
+    signer = attest.load_signer(s.attest_key_b64, s.data_dir / "attest_ed25519.key", ephemeral=s.attest_ephemeral)
     samples = load_samples(s.samples_dir)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
     app = FastAPI(title="Look Brief", version=__version__, docs_url=None, redoc_url=None)

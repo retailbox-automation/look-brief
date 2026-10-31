@@ -33,7 +33,8 @@
       <h2>Server-attested agreement</h2>
       <p>Bride agreed {{ v.agreed.bride }} · artist agreed {{ v.agreed.artist }}.</p>
       <p class="note">{{ v.attestation.payload.statement }}</p>
-      <p class="mono">Ed25519 key {{ v.attestation.key_id }} · signature {{ v.attestation.signature_b64[:24] }}…</p>
+      <p class="mono">Ed25519 public key {{ v.attestation.public_key_b64 }} (key id {{ v.attestation.key_id }})</p>
+      <p class="mono">signature {{ v.attestation.signature_b64 }}</p>
       <p class="mono">recipe sha256 {{ snap.recipe_sha256[:16] }}…</p>
       <p><a href="/api/briefs/{{ v.id }}/attestation.json?t={{ token }}">Download the signed JSON</a> · verify with <code>python scripts/verify_card.py look-brief-{{ v.id }}.json --key-url {{ v.public_url or '' }}/.well-known/lookbrief-attest.json</code></p>
     {% else %}

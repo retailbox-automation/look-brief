@@ -26,3 +26,11 @@ def test_other_key_fails(tmp_path):
     a = attest.load_signer(key_file=tmp_path / "a")
     b = attest.load_signer(key_file=tmp_path / "b")
     assert not attest.verify(a.sign({"x": 1}), b.public_jwk_like()["public_key_b64"])
+
+
+def test_ephemeral_key_is_new_each_time_and_embedded():
+    a = attest.load_signer(ephemeral=True)
+    b = attest.load_signer(ephemeral=True)
+    assert a.key_id != b.key_id
+    att = a.sign({"x": 1})
+    assert att["public_key_b64"] == a.public_jwk_like()["public_key_b64"] and attest.verify(att, att["public_key_b64"])

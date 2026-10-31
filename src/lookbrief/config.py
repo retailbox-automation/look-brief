@@ -43,3 +43,4 @@ class Settings:
     trust_proxy: bool = field(default_factory=lambda: os.environ.get("LOOKBRIEF_TRUST_PROXY", "0") == "1")
     upload_ttl_hours: int = field(default_factory=lambda: _int("LOOKBRIEF_UPLOAD_TTL_HOURS", 24))
     attest_key_b64: str = field(default_factory=lambda: os.environ.get("LOOKBRIEF_ATTEST_KEY", ""))
+    attest_ephemeral: bool = field(default_factory=lambda: os.environ.get("LOOKBRIEF_ATTEST_EPHEMERAL", "0") == "1")
