@@ -8,7 +8,6 @@ from helpers import HIDDEN_IDS, SAMPLES, UNLISTED_IDS, VISIBLE_IDS, make_v2_samp
 
 from lookbrief import app as app_mod
 from lookbrief import attest, palettes
-from lookbrief import recipe as rcp
 from lookbrief.config import Settings
 from lookbrief.youcam import UNITS, TaskResult
 
@@ -68,7 +67,7 @@ def test_replay_session_state(client):
     assert st["checks"]["bride"]["ok"] and st["checks"]["inspiration"]["ok"]
     assert abs(st["checks"]["bride"]["yaw_deg"]) < 15
     off = [o for o in st["edit_options"] if not o["available"]]
-    assert off and all(o["reason"] in ("current", "lightest", "deepest") for o in off), off
+    assert off and all(o["reason"] in ("current", "softest", "boldest") for o in off), off
     assert not any(o["reason"] == "not_recorded" for o in off), "every button of the base look has its render"
     assert st["recipe"]["version"] == 2 and len(st["recipe"]["zones"]) == 9 and len(st["shades"]) == 9
     for url in st["images"].values():
@@ -85,36 +84,66 @@ def test_the_state_says_the_look_is_the_recipe_render(client):
 def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     sid = _replay_session(client)
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
-    assert r.status_code == 200 and r.json()["edits"] == [["cheeks", "bolder"]]
-    opts = [o for o in r.json()["edit_options"] if o["zone"] != "look" and "reason" not in o]
+    assert r.status_code == 200 and [e[0] for e in r.json()["edits"]] == ["cheeks"]
+    assert r.json()["edits"][0][1].startswith("shade:"), "Bolder is stored as the shade it lands on"
+    opts = [o for o in r.json()["edit_options"] if o["zone"] not in ("look", "cheeks") and "reason" not in o]
     assert len(opts) > 40, "after one change every recorded single change can still be pressed"
     assert all(o["replaces"] for o in opts), "samples hold one change: each of them replaces the current one"
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
-    assert r.status_code == 200 and r.json()["edits"] == [["lips", "softer"]]
-    assert r.json()["images"]["render"].endswith("render-lips-softer.png")
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "finish:gloss"})
+    assert r.status_code == 200 and r.json()["edits"] == [["lips", "finish:gloss"]]
+    assert r.json()["images"]["render"].endswith("render-lips-finish-gloss.png")
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
     assert r.json()["edits"] == []
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "nose", "op": "softer"}).status_code == 400
 
 
 def test_a_circle_a_step_and_a_look_through_the_api(client):
-    sid = _replay_session(client)  # s2: the classic red lip is pinned to ruby, the deepest step of the light lips
-    ladder = [s.id for s in palettes.ladder("light", "lips")]
-    assert ladder[-1] == "ruby"
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "deeper"})
-    assert r.status_code == 400 and r.json() == {"error": "deepest", "reason": rcp.BLOCK_NOTES["deepest"]}
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
-    assert r.status_code == 200 and r.json()["edits"] == [["lips", f"shade:{ladder[-2]}"]]
+    sid = _replay_session(client)  # s2: the classic red lip is pinned to ruby
+    order = [x.id for x in palettes.skin_order("light", "lips", "#e4b29c")]
+    softer = order[order.index("ruby") - 1]
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
+    assert r.status_code == 200 and r.json()["edits"] == [["lips", f"shade:{softer}"]]
     via_step = r.json()["images"]["render"]
-    assert r.json()["recipe"]["zones"]["lips"]["shade_id"] == ladder[-2]
+    assert r.json()["recipe"]["zones"]["lips"]["shade_id"] == softer
     client.post(f"/api/sessions/{sid}/edits", json={"action": "reset"})
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": f"shade:{ladder[-2]}"})
-    assert r.json()["images"]["render"] == via_step, "Lighter is the render of the neighbour circle"
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": f"shade:{softer}"})
+    assert r.json()["images"]["render"] == via_step, "Softer is the render of the neighbour circle"
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "look", "op": "evening"})
     assert r.status_code == 200 and r.json()["edits"] == [["look", "evening"]]
     assert r.json()["recipe"]["look"] == "evening" and r.json()["images"]["render"].endswith("render-look-evening.png")
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "look", "op": "softglam"})
     assert r.json()["edits"] == [] and r.json()["recipe"]["zones"]["lips"]["shade_id"] == "ruby", "back to the sample"
+
+
+def test_lighter_and_deeper_are_gone_from_the_api(client):
+    sid = _replay_session(client)
+    for op in ("lighter", "deeper"):
+        assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": op}).status_code == 400
+
+
+def test_the_none_circle_drops_the_zone_from_the_request(client):
+    sid = _replay_session(client)
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "bronzer", "op": "shade:none"})
+    assert r.status_code == 200 and "bronzer" not in [e["category"] for e in r.json()["vto_effects"]]
+    assert "bronzer" not in [x["zone"] for x in r.json()["shades"]] and len(r.json()["shades"]) == 8
+
+
+def test_a_quiet_edit_is_hidden_and_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
+    import shutil
+    samples = tmp_path / "samples"
+    shutil.copytree(V2_SAMPLES / SID, samples / SID, symlinks=True)
+    mf_path = samples / SID / "manifest.json"
+    mf = json.loads(mf_path.read_text())
+    mf["quiet_edits"] = ["lips:finish:gloss"]
+    mf_path.write_text(json.dumps(mf))
+    c = TestClient(app_mod.create_app(_settings(tmp_path / "x", samples_dir=samples)))
+    sid = _replay_session(c)
+    opts = c.get(f"/api/sessions/{sid}").json()["edit_options"]
+    assert ("lips", "finish:gloss") not in {(o["zone"], o["op"]) for o in opts}
+    r = c.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "finish:gloss"})
+    assert r.status_code == 400 and r.json()["error"] == "quiet"
+    assert c.get(f"/api/sessions/{sid}").json()["edits"] == []
 
 
 @pytest.mark.parametrize("body", [
@@ -226,11 +255,12 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     assert st["status"] == "ready" and st["mode"] == "live" and st["units_spent"] == 6
     assert st["order"] == "hair_first" and {"base", "look", "even", "render"} <= set(st["images"])
     assert st["steps"]["even_out"]["label"] == "foundation in her shade over the transfer"
-    zone = next(iter(st["recipe_base"]["zones"]))
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
+    circles = [f"shade:{s.id}" for s in palettes.ladder(st["recipe"]["group"], "lips")
+               if s.id != st["recipe"]["zones"]["lips"]["shade_id"]]
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": circles[0]})
     assert r.status_code == 200 and r.json()["units_spent"] == 7
-    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
+    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": circles[1]})
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": circles[2]})
     assert r.status_code == 429 and r.json()["error"] == "session_cap"
     lim = live_client.get("/api/limits").json()
     assert lim["budget_spent"] == 8 and lim["budget_left"] == 5 and lim["available"] is False
@@ -355,10 +385,10 @@ def test_replay_session_cap_evicts_oldest(tmp_path, monkeypatch):
 def test_a_button_on_the_edge_is_refused_and_changes_nothing(client):
     """A tap on a disabled button must not send an edit that "does nothing": the server applies the same rule."""
     sid = _replay_session(client)
-    opt = next(o for o in client.get(f"/api/sessions/{sid}").json()["edit_options"] if o.get("reason") == "deepest")
+    opt = next(o for o in client.get(f"/api/sessions/{sid}").json()["edit_options"] if o.get("reason") == "boldest")
     assert opt["note"] and not opt["available"]
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": opt["zone"], "op": opt["op"]})
-    assert r.status_code == 400 and r.json() == {"error": "deepest", "reason": opt["note"]}
+    assert r.status_code == 400 and r.json() == {"error": "boldest", "reason": opt["note"]}
     assert client.get(f"/api/sessions/{sid}").json()["edits"] == []
 
 
@@ -439,9 +469,10 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
 @pytest.mark.parametrize(("sample", "edit", "label", "not_label"), [
     ("s2-classic-red", None, "Agreed look (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
     ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
-    ("s0-champagne-rose", ["cheeks", "bolder"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
-     "Agreed look: transfer + foundation"),
-    ("s2-classic-red", ["lips", "bolder"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
+    ("s0-champagne-rose", ["cheeks", "shade:salmon"],
+     "Agreed look: her edits, re-rendered by Makeup VTO with foundation", "Agreed look: transfer + foundation"),
+    ("s2-classic-red", ["lips", "finish:gloss"], "Agreed look: her edits, re-rendered by Makeup VTO",
+     "with foundation"),
 ])
 def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
     """The card shows what was agreed: her edited re-render if she edited, the evened look for hair first."""
@@ -453,7 +484,7 @@ def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert label in html and not_label not in html
     if edit:
-        assert f"render-{edit[0]}-{edit[1]}" in html, "the agreed image is the edited re-render"
+        assert f"render-{edit[0]}-{edit[1].replace(':', '-')}" in html, "the agreed image is the edited re-render"
 
 
 def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
@@ -463,8 +494,7 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
     r = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
     sid = r.json()["session_id"]
     st = live_client.get(f"/api/sessions/{sid}").json()
-    zone = next(iter(st["recipe_base"]["zones"]))
-    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"}).json()
+    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "finish:gloss"}).json()
     skin = st["even_out"]["skin_hex"]
     vto = [b["effects"] for n, b in FakeYouCam.calls if n == "makeup-vto"]
     makeup = {"eye_shadow", "blush", "lip_color"}
@@ -543,7 +573,7 @@ def test_revise_without_changes_keeps_the_version_and_answers(client):
     client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
     v = client.post(f"/api/briefs/{bid}/revise", json={"t": bride}).json()
     assert v["version"] == 2 and not v.get("unchanged") and v["reviews"] == {} and v["agreed"] == {}
-    assert v["snapshot"]["edits"] == [["cheeks", "bolder"]]
+    assert [e[0] for e in v["snapshot"]["edits"]] == ["cheeks"]
 
 
 def test_send_brief_twice_reuses_the_links_until_the_look_changes(client):

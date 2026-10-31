@@ -80,8 +80,9 @@ def skin_hex_of(workdir: Path, bare_name: str, face: landmarks.FaceGeometry) -> 
 
 def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, order: str = "transfer_first",
                pins: dict | None = None) -> dict:
-    """`pins` (sample.json `recipe_pins`: group, look, shades): the recipe of a sample, exactly as approved; without
-    pins the group comes from her forehead and the inspiration picks the shades of lips, cheeks and lids."""
+    """`pins` (sample.json `recipe_pins`: group, look, shades; `skin_hex` to fix her skin): the recipe of a sample,
+    exactly as approved; without pins the group comes from her forehead and the inspiration picks the shades of lips,
+    cheeks and lids."""
     if order not in ORDERS:
         raise ValueError(f"unknown order {order}")
     workdir.mkdir(parents=True, exist_ok=True)
@@ -124,8 +125,9 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
 
     base = engine.recorded_recipe([]) if isinstance(engine, ReplayEngine) else None
     if base is None and pins:
-        base = rcp.base_recipe(None, pins["group"], pins["look"], pins.get("shades"))
-    state["recipe_base"] = base or rcp.base_recipe(mmap, palettes.skin_group(hex_to_lab(skin)))
+        base = rcp.base_recipe(None, pins["group"], pins.get("skin_hex") or skin, pins["look"], pins.get("shades"))
+    state["recipe_base"] = base or rcp.base_recipe(mmap, palettes.skin_group(hex_to_lab(skin)), skin)
+    state["quiet_edits"] = engine.quiet_edits() if isinstance(engine, ReplayEngine) else []
     state["edits"] = []
     state["views"] = {"hero": "render", "before": "base" if order == "hair_first" else "bride", "after": "render"}
     state = rerender(engine, ctx, workdir, state, [], face=face)
@@ -205,19 +207,24 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
 def plan_edit(state: dict, zone: str, op: str, recorded: set[str] | None = None) -> dict:
     """What pressing a button does now. {"edits": [...], "replaces": bool}, or {"reason": <key of rcp.BLOCK_NOTES>}.
     `recorded` (Replay): the edit must land on a recorded render; if the combination is not recorded but the single
-    change is, it replaces the current one (one change at a time). Buttons and the server share this rule."""
+    change is, it replaces the current one (one change at a time). Finishes are recorded on the base shade only, so
+    one never replaces the shade she chose. Buttons and the server share this rule."""
     base = state["recipe_base"]
     now = state.get("recipe") or base
     edits = state.get("edits") or []
     reason = rcp.blocked(now, zone, op)
     if reason:
         return {"reason": reason}
+    if rcp.quiet_key(now, zone, op) in (state.get("quiet_edits") or ()):
+        return {"reason": "quiet"}
     step = rcp.resolve_edit(now, zone, op)
     nxt = rcp.add_edit(base, edits, *step)
     if recorded is None or rcp.edit_key(nxt) in recorded:
         return {"edits": nxt, "replaces": False}
+    if op.startswith(rcp.FINISH_PREFIX) and now["zones"][zone]["shade_id"] != base["zones"][zone]["shade_id"]:
+        return {"reason": "not_recorded"}
     single = rcp.add_edit(base, [], *step)
-    if single != edits and rcp.edit_key(single) in recorded:
+    if rcp.edit_key(single) in recorded:
         return {"edits": single, "replaces": True}
     return {"reason": "not_recorded"}
 
@@ -233,15 +240,18 @@ def _option(state: dict, zone: str, op: str, label: str, recorded: set[str] | No
 
 
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
-    """Every button of the look screen: {zone, op, label, available, replaces[, reason, note]}, where `zone` "look"
-    holds the look buttons (+`selected`), and op "shade:<id>" the circles of a zone (+`name`, `hex`, `colors`,
-    `texture`, `selected`). A button that is off says why."""
+    """Every button of the look screen: {zone, op, label, available, replaces[, reason, note]}. `zone` "look" holds the
+    look buttons (+`selected`); op "softer" / "bolder" the steps of a zone; op "finish:<texture>" its finishes
+    (+`selected`); op "shade:<id>" its circles (+`name`, `hex`, `colors`, `texture`, `selected`; `hex` is None on the
+    circle "none"). A button that is off says why; a button whose step does not show is not offered."""
     now = state.get("recipe") or state["recipe_base"]
     opts = [_option(state, rcp.LOOK_ZONE, look, palettes.LOOK_LABELS[look], recorded_keys, selected=look == now["look"])
             for look in palettes.LOOK_IDS]
     for zone, z in now["zones"].items():
         opts += [_option(state, zone, op, rcp.EDIT_LABELS[op], recorded_keys) for op in rcp.EDIT_OPS]
-        opts += [_option(state, zone, rcp.SHADE_PREFIX + s.id, s.name, recorded_keys, name=s.name, hex=s.colors[0],
-                         colors=list(s.colors), texture=s.texture, selected=s.id == z["shade_id"])
-                 for s in palettes.ladder(now["group"], zone)]
-    return opts
+        opts += [_option(state, zone, rcp.FINISH_PREFIX + t, t.title(), recorded_keys, selected=t == z["texture"])
+                 for t in rcp.FINISHES.get(zone, ())]
+        opts += [_option(state, zone, rcp.SHADE_PREFIX + s.id, s.name, recorded_keys, name=s.name,
+                         hex=s.colors[0] if s.colors else None, colors=list(s.colors), texture=s.texture,
+                         selected=s.id == z["shade_id"]) for s in palettes.circles(now["group"], zone)]
+    return [o for o in opts if o.get("reason") != "quiet"]

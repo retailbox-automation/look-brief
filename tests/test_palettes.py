@@ -7,15 +7,16 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from helpers import SAMPLES, load_rgb
+from helpers import SAMPLES, SKIN, load_rgb
 
 from lookbrief import landmarks, makeup_map, palettes
 from lookbrief import recipe as rcp
-from lookbrief.color import hex_to_lab
+from lookbrief.color import hex_delta_e2000, hex_to_lab
 
 APPROVED = json.loads((Path(__file__).parent / "fixtures" / "approved_looks.json").read_text())
 DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.json").read_text())
 SIZES = {"lips": 9, "cheeks": 8, "eyes": 8}
+THIN = ("bronzer", "highlight", "liner", "lip_line")
 ALL = [(g, z) for g in palettes.GROUPS for z in palettes.ZONES]
 
 
@@ -37,10 +38,43 @@ def test_nine_zones_map_to_the_api_categories_in_request_order():
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
-def test_each_group_has_43_shades(group):
+def test_each_group_has_its_shades(group):
     sizes = {z: len(palettes.ladder(group, z)) for z in palettes.ZONES}
-    assert sizes == {z: SIZES.get(z, 3) for z in palettes.ZONES}
-    assert sum(sizes.values()) == 43
+    deep_liner = {"liner": 4} if group == "deep" else {}
+    assert sizes == {**{z: SIZES.get(z, 3) for z in palettes.ZONES}, **deep_liner}
+    assert sum(sizes.values()) == (44 if group == "deep" else 43)
+
+
+def test_deep_liner_has_the_bronze_step():
+    assert palettes.shade("deep", "liner", "bronze").colors == ("#8A5A3A",)
+
+
+@pytest.mark.parametrize("group", palettes.GROUPS)
+def test_only_thin_zones_have_a_circle_without_the_product(group):
+    for zone in palettes.ZONES:
+        ids = [s.id for s in palettes.circles(group, zone)]
+        assert (palettes.NONE_ID in ids) is (zone in THIN), zone
+        assert ids[:len(palettes.ladder(group, zone))] == [s.id for s in palettes.ladder(group, zone)]
+
+
+@pytest.mark.parametrize(("group", "zone"), [(g, z) for g in palettes.GROUPS for z in THIN])
+def test_thin_zone_steps_differ_in_colour_and_in_strength(group, zone):
+    ladder = palettes.ladder(group, zone)
+    strengths = [s.intensity for s in ladder]
+    assert all(isinstance(i, int) and 0 < i <= 100 for i in strengths), strengths
+    assert strengths == sorted(strengths) and len(set(strengths)) == len(strengths), "deeper steps carry more"
+
+
+@pytest.mark.parametrize(("group", "zone"), [(g, z) for g in palettes.GROUPS for z in palettes.ZONES if z not in THIN])
+def test_other_zones_keep_the_strength_of_the_look(group, zone):
+    assert {s.intensity for s in palettes.ladder(group, zone)} == {None}
+
+
+@pytest.mark.parametrize(("group", "zone"), ALL)
+def test_skin_order_runs_from_her_skin_outwards(group, zone):
+    order = palettes.skin_order(group, zone, SKIN[group])
+    d = [hex_delta_e2000(s.colors[0], SKIN[group]) for s in order]
+    assert d == sorted(d) and {s.id for s in order} == {s.id for s in palettes.ladder(group, zone)}
 
 
 @pytest.mark.parametrize(("group", "zone"), ALL)
@@ -76,18 +110,13 @@ def test_other_zones_carry_one_colour(group, zone):
 def test_looks_use_steps_of_the_ladders_and_stay_in_range(group, look):
     for zone, z in palettes.LOOKS[group][look].items():
         assert palettes.shade(group, zone, z.shade), (group, look, zone)
-        lo, hi = palettes.RANGES[group][zone]
-        assert lo <= z.intensity <= hi, (group, look, zone)
+        assert 0 <= z.intensity <= 100, (group, look, zone)
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
-def test_softglam_covers_nine_zones_and_every_strength_button_moves(group):
-    look = palettes.LOOKS[group][palettes.DEFAULT_LOOK]
-    assert set(look) == set(palettes.ZONES)
-    for zone, z in look.items():
-        lo, hi = palettes.RANGES[group][zone]
-        step = palettes.INTENSITY_STEP[zone]
-        assert lo <= z.intensity - step and z.intensity + step <= hi, (group, zone)
+@pytest.mark.parametrize("look", palettes.LOOK_IDS)
+def test_looks_cover_nine_zones(group, look):
+    assert list(palettes.LOOKS[group][look]) == list(palettes.ZONES)
 
 
 def test_ruby_is_a_step_of_the_light_lips_for_the_classic_red_sample():
@@ -129,7 +158,7 @@ def test_approved_looks_are_sent_byte_for_byte(group, look):
             assert e["palettes"][0]["colorIntensity"] == 50
             e["palettes"][0]["colorIntensity"] = 40
             even = {"skin_hex": e["palettes"][0]["color"], "coverage": e["palettes"][0]["coverageIntensity"]}
-    got = rcp.to_vto_effects(rcp.look_recipe(group, look), even)
+    got = rcp.to_vto_effects(rcp.look_recipe(group, look, SKIN[group]), even)
     assert rcp.canonical(got) == rcp.canonical(want)
 
 

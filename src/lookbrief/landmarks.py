@@ -38,6 +38,16 @@ NOSE = [168, 6, 197, 195, 5, 4, 1, 19, 94, 2, 98, 327, 129, 358, 64, 294, 48, 27
 FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152,
              148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109]
 
+# Where the fixed Makeup VTO patterns land, read from probes of 2026-10-31 (renders that differ by one product):
+# highlighter OvalFace28 sits on the cheekbone below the eye; Bronzer1 on temples, cheek hollows and chin, not there.
+R_CHEEKBONE = [117, 118, 119, 120, 47, 100, 101, 50, 123, 116]
+L_CHEEKBONE = [346, 347, 348, 349, 277, 329, 330, 280, 352, 345]
+R_TEMPLE = [54, 103, 67, 104, 68, 71, 21]
+L_TEMPLE = [284, 332, 297, 333, 298, 301, 251]
+R_HOLLOW = [187, 207, 216, 192, 213, 147, 137, 177]
+L_HOLLOW = [411, 427, 436, 416, 433, 376, 366, 401]
+CHIN = [32, 194, 201, 200, 421, 418, 262, 396, 175, 171]
+
 ZONE_NAMES = ("eyes", "cheeks", "lips", "skin")
 ZONE_LABELS = {"eyes": "Eyelids", "cheeks": "Cheeks", "lips": "Lips", "skin": "Skin (control)",
                "nose": "Nose & contour", "brows": "Brows"}
@@ -156,6 +166,20 @@ def core_polygons(face: FaceGeometry) -> dict[str, list[NDArray[np.float64]]]:
         "brows": [_hull(p[R_BROW]), _hull(p[L_BROW])],
         "nose": [_hull(p[NOSE])],
     }
+
+
+def product_polygons(face: FaceGeometry) -> dict[str, list[NDArray[np.float64]]]:
+    """Where highlighter and bronzer land (see the landmark lists above). Measuring masks, not seeds of the cells."""
+    p = face.points
+    return {"highlight": [_hull(p[R_CHEEKBONE]), _hull(p[L_CHEEKBONE])],
+            "bronzer": [_hull(p[i]) for i in (R_TEMPLE, L_TEMPLE, R_HOLLOW, L_HOLLOW, CHIN)]}
+
+
+def lid_rim_polygons(face: FaceGeometry, reach: float) -> list[NDArray[np.float64]]:
+    """A band along each upper lid, `reach` x inter-ocular distance high: where liner and lashes show."""
+    up = np.array([0.0, reach * face.interocular_px])
+    lines = [_resample(face.points[lid], 24) for lid in (R_UPPER_LID, L_UPPER_LID)]
+    return [np.concatenate([line, (line - up)[::-1]]) for line in lines]
 
 
 def zone_polygons(face: FaceGeometry) -> dict[str, list[NDArray[np.float64]]]:

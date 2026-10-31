@@ -17,6 +17,7 @@ def _meta(s: str) -> dict:
 VISIBLE_IDS = [s for s in SAMPLE_IDS if not _meta(s).get("hidden") and not _meta(s).get("unlisted")]
 UNLISTED_IDS = [s for s in SAMPLE_IDS if _meta(s).get("unlisted") and not _meta(s).get("hidden")]
 HIDDEN_IDS = [s for s in SAMPLE_IDS if _meta(s).get("hidden")]
+SKIN = {"light": "#dfa588", "medium": "#c8956d", "olive": "#c4a070", "deep": "#be8567"}  # foreheads; s0 and s3 are real
 
 
 def _recipe_version(s: str) -> int:
@@ -54,7 +55,8 @@ def make_v2_samples(dest: Path) -> Path:
         mf = json.loads((sd / "manifest.json").read_text())
         steps = {k: v for k, v in mf["steps"].items() if not k.startswith("render:")}
         pins = meta["recipe_pins"]
-        base = rcp.base_recipe(None, pins["group"], pins["look"], pins["shades"])
+        skin = mf["map"]["zones"]["skin"]["color_before"]
+        base = rcp.base_recipe(None, pins["group"], skin, pins["look"], pins["shades"])
         old = mf["steps"]["render:base"]
         for edits in [[], *rcp.record_grid(base)]:
             steps[f"render:{rcp.edit_key(edits)}"] = {**old, "recipe": rcp.apply_edits(base, edits)}

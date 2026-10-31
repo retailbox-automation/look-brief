@@ -37,7 +37,7 @@ LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-v
 
 class EditIn(BaseModel):
     zone: str | None = None  # a zone, or "look" for the look buttons
-    op: str | None = None  # softer | bolder | lighter | deeper | shade:<id>; zone "look": fresh | softglam | evening
+    op: str | None = None  # softer | bolder | shade:<id> | finish:<texture>; zone "look": fresh | softglam | evening
     action: str = "add"  # add | undo | reset
 
 

@@ -1,7 +1,7 @@
-"""The palette: skin groups, nine zones, ladders of shades, three looks per group, strength ranges.
+"""The palette: skin groups, nine zones, ladders of shades, three looks per group.
 
-Every colour the app can send to Makeup VTO is a step of a ladder here: an edit moves along a ladder or changes
-strength inside a range, it never computes a colour. All hex values are ours (from wording in beauty sources), except
+Every colour the app can send to Makeup VTO is a step of a ladder here: an edit moves to another step, it never
+computes a colour. All hex values are ours (from wording in beauty sources), except
 the looks of the light and deep groups: those are the request bodies the API accepted on 2026-10-31 and the client
 approved by eye (tests/fixtures/approved_looks.json). The medium and olive groups are built the same way and have not
 been rendered on a real face yet.
@@ -15,7 +15,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-from .color import hex_to_lab
+from .color import hex_delta_e2000, hex_to_lab
 
 GROUPS = ("light", "medium", "olive", "deep")
 ZONES = {  # zone -> Makeup VTO category, in the order of the request body
@@ -41,26 +41,18 @@ LIGHT_MIN_ITA = 40.0
 DEEP_BELOW_ITA = 28.0
 OLIVE_MIN_HUE = 60.0  # h* of the forehead; above this the middle band reads yellow-green, not rosy
 
-INTENSITY_STEP = {"eyes": 10, "liner": 10, "lashes": 10, "brows": 8, "cheeks": 8, "bronzer": 6, "highlight": 8,
-                  "lips": 10, "lip_line": 10}
-RANGES = {  # Softer / Bolder move only inside these
-    "light": {"eyes": (45, 92), "liner": (40, 80), "lashes": (50, 90), "brows": (20, 50), "cheeks": (20, 55),
-              "bronzer": (8, 32), "highlight": (25, 60), "lips": (45, 95), "lip_line": (25, 70)},
-    "medium": {"eyes": (45, 92), "liner": (40, 85), "lashes": (55, 90), "brows": (20, 52), "cheeks": (22, 56),
-               "bronzer": (8, 32), "highlight": (25, 60), "lips": (48, 95), "lip_line": (30, 72)},
-    "olive": {"eyes": (50, 95), "liner": (45, 85), "lashes": (55, 92), "brows": (20, 52), "cheeks": (24, 56),
-              "bronzer": (8, 34), "highlight": (25, 60), "lips": (50, 96), "lip_line": (30, 72)},
-    "deep": {"eyes": (55, 98), "liner": (50, 90), "lashes": (60, 95), "brows": (22, 55), "cheeks": (26, 56),
-             "bronzer": (10, 34), "highlight": (30, 60), "lips": (60, 98), "lip_line": (35, 75)},
-}
+# Few steps on a thin line of product: a step differs in colour and in strength, and the product can be left out.
+THIN_ZONES = ("bronzer", "highlight", "liner", "lip_line")
+NONE_ID = "none"
 
 
 @dataclass(frozen=True)
 class Shade:
     id: str  # ends up in render file names: lowercase letters, digits, hyphens
     name: str
-    colors: tuple[str, ...]  # eyes: lid, crease; other zones: one colour
+    colors: tuple[str, ...]  # eyes: lid, crease; other zones: one colour; the "none" circle: no colour
     texture: str = "matte"  # "" where the API has no texture field (lashes, bronzer, highlighter)
+    intensity: int | None = None  # thin zones: the strength this step brings; else the look keeps its own
 
 
 @dataclass(frozen=True)
@@ -77,8 +69,8 @@ def shade_lightness(s: Shade) -> float:
     return float(np.mean([hex_to_lab(c)[0] for c in s.colors]))
 
 
-def _s(id_: str, name: str, *colors: str, texture: str = "matte") -> Shade:
-    return Shade(id_, name, colors, texture)
+def _s(id_: str, name: str, *colors: str, texture: str = "matte", intensity: int | None = None) -> Shade:
+    return Shade(id_, name, colors, texture, intensity)
 
 
 def _sheer(id_: str, name: str, color: str) -> Shade:
@@ -93,14 +85,15 @@ def _shimmer(id_: str, name: str, lid: str, crease: str) -> Shade:
     return _s(id_, name, lid, crease, texture="shimmer")
 
 
-def _bare(id_: str, name: str, color: str) -> Shade:
-    return _s(id_, name, color, texture="")
+def _bare(id_: str, name: str, color: str, intensity: int | None = None) -> Shade:
+    return _s(id_, name, color, texture="", intensity=intensity)
 
 
 def _ladder(*shades: Shade) -> tuple[Shade, ...]:
     return tuple(sorted(shades, key=shade_lightness, reverse=True))
 
 
+_NONE = Shade(NONE_ID, "None", (), "")
 _LASHES = _ladder(_bare("soft-brown", "Soft brown", "#4A2F27"), _bare("soft-black", "Soft black", "#17110f"),
                   _bare("jet-black", "Jet black", "#000000"))
 _DEEP_LASHES = _ladder(_bare("espresso", "Espresso", "#2B1B17"), _bare("soft-black", "Soft black", "#17110f"),
@@ -117,8 +110,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _shimmer("copper-umber", "Copper umber", "#A8613A", "#3F2620"),
             _shimmer("rose-brown", "Rose brown", "#7D5A55", "#4A2F27"),
             _s("chocolate-smoke", "Chocolate smoke", "#4A2F27", "#2B1B17")),
-        "liner": _ladder(_s("taupe-brown", "Taupe brown", "#7A5C52"), _s("espresso", "Espresso", "#2B1B17"),
-                         _s("soft-black", "Soft black", "#17110f")),
+        "liner": _ladder(_s("taupe-brown", "Taupe brown", "#7A5C52", intensity=45),
+                         _s("espresso", "Espresso", "#2B1B17", intensity=62),
+                         _s("soft-black", "Soft black", "#17110f", intensity=78)),
         "lashes": _LASHES,
         "brows": _ladder(_s("soft-taupe", "Soft taupe", "#8A6A5C"), _s("smoky-taupe", "Smoky taupe", "#7A5C52"),
                          _s("brown", "Brown", "#5A4034")),
@@ -131,10 +125,11 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("muted-rose", "Muted rose", "#D58C95"),
             _satin("rose-mauve", "Rose mauve", "#C98A8A"),
             _satin("deep-rose", "Deep rose", "#D0707E")),
-        "bronzer": _ladder(_bare("golden-peach", "Golden peach", "#D9A57A"), _bare("honey", "Honey", "#C08A55"),
-                           _bare("amber", "Amber", "#B97A4C")),
-        "highlight": _ladder(_bare("pearl-champagne", "Pearl champagne", "#F3E3D0"), _bare("pearl", "Pearl", "#EBD7CF"),
-                             _bare("rose-gold", "Rose gold", "#E8B9A0")),
+        "bronzer": _ladder(_bare("golden-peach", "Golden peach", "#D9A57A", 12), _bare("honey", "Honey", "#C08A55", 22),
+                           _bare("amber", "Amber", "#B97A4C", 32)),
+        "highlight": _ladder(_bare("pearl-champagne", "Pearl champagne", "#F3E3D0", 32),
+                             _bare("pearl", "Pearl", "#EBD7CF", 44),
+                             _bare("rose-gold", "Rose gold", "#E8B9A0", 56)),
         "lips": _ladder(
             _sheer("peach-pink", "Peach pink", "#E9A08C"),
             _sheer("light-pink", "Light pink", "#E8A0A8"),
@@ -145,8 +140,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("smoky-rose", "Smoky rose", "#8E4F5E"),
             _satin("orchid-berry", "Orchid berry", "#A32A6B"),
             _s("ruby", "Ruby", "#B0102E")),
-        "lip_line": _ladder(_s("cool-brown", "Cool brown", "#8D5F58"), _s("rose", "Rose", "#A63A50"),
-                            _s("red", "Red", "#8E0F1A")),
+        "lip_line": _ladder(_s("cool-brown", "Cool brown", "#8D5F58", intensity=30),
+                            _s("rose", "Rose", "#A63A50", intensity=45),
+                            _s("red", "Red", "#8E0F1A", intensity=60)),
     },
     "medium": {
         "eyes": _ladder(
@@ -158,8 +154,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _shimmer("bronze-smoke", "Bronze smoke", "#8C5A2E", "#3F2620"),
             _shimmer("plum-smoke", "Plum smoke", "#5E3F48", "#2F1710"),
             _s("chocolate-smoke", "Chocolate smoke", "#4A2F27", "#2B1B17")),
-        "liner": _ladder(_s("chocolate", "Chocolate", "#4A2F27"), _s("espresso", "Espresso", "#2B1B17"),
-                         _s("soft-black", "Soft black", "#17110f")),
+        "liner": _ladder(_s("chocolate", "Chocolate", "#4A2F27", intensity=48),
+                         _s("espresso", "Espresso", "#2B1B17", intensity=64),
+                         _s("soft-black", "Soft black", "#17110f", intensity=80)),
         "lashes": _LASHES,
         "brows": _ladder(_s("smoky-taupe", "Smoky taupe", "#7A5C52"), _s("brown", "Brown", "#5A4034"),
                          _s("soft-black-brown", "Soft black brown", "#3B2F2F")),
@@ -172,10 +169,11 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("warm-pink", "Warm pink", "#E27A8A"),
             _satin("muted-rose", "Muted rose", "#C97C84"),
             _satin("warm-berry", "Warm berry", "#B04A5E")),
-        "bronzer": _ladder(_bare("honey", "Honey", "#C08A55"), _bare("amber", "Amber", "#B97A4C"),
-                           _bare("copper", "Copper", "#A8683F")),
-        "highlight": _ladder(_bare("warm-champagne", "Warm champagne", "#F0CFA8"), _bare("gold", "Gold", "#E5BE8A"),
-                             _bare("rose-gold", "Rose gold", "#E8B9A0")),
+        "bronzer": _ladder(_bare("honey", "Honey", "#C08A55", 12), _bare("amber", "Amber", "#B97A4C", 22),
+                           _bare("copper", "Copper", "#A8683F", 32)),
+        "highlight": _ladder(_bare("warm-champagne", "Warm champagne", "#F0CFA8", 32),
+                             _bare("gold", "Gold", "#E5BE8A", 44),
+                             _bare("rose-gold", "Rose gold", "#E8B9A0", 56)),
         "lips": _ladder(
             _satin("candy-pink", "Candy pink", "#E4719A"),
             _sheer("coral-rose", "Coral rose", "#C8736B"),
@@ -186,8 +184,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("cool-brown", "Cool brown", "#8D5F58"),
             _s("ruby", "Ruby", "#B0102E"),
             _s("wine", "Wine", "#6A1B2C")),
-        "lip_line": _ladder(_s("cool-brown", "Cool brown", "#8D5F58"), _s("rose", "Rose", "#A63A50"),
-                            _s("red", "Red", "#8E0F1A")),
+        "lip_line": _ladder(_s("cool-brown", "Cool brown", "#8D5F58", intensity=34),
+                            _s("rose", "Rose", "#A63A50", intensity=48),
+                            _s("red", "Red", "#8E0F1A", intensity=62)),
     },
     "olive": {
         "eyes": _ladder(
@@ -199,8 +198,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _shimmer("plum-smoke", "Plum smoke", "#5E3F48", "#2F1710"),
             _shimmer("burgundy-night", "Burgundy night", "#6E1A2E", "#2F1710"),
             _s("chocolate-smoke", "Chocolate smoke", "#4A2F27", "#2B1B17")),
-        "liner": _ladder(_s("plum-brown", "Plum brown", "#5E3F48"), _s("espresso", "Espresso", "#2B1B17"),
-                         _s("soft-black", "Soft black", "#17110f")),
+        "liner": _ladder(_s("plum-brown", "Plum brown", "#5E3F48", intensity=50),
+                         _s("espresso", "Espresso", "#2B1B17", intensity=66),
+                         _s("soft-black", "Soft black", "#17110f", intensity=82)),
         "lashes": _LASHES,
         "brows": _ladder(_s("brown", "Brown", "#5A4034"), _s("soft-black-brown", "Soft black brown", "#3B2F2F"),
                          _s("dark-brown", "Dark brown", "#33241E")),
@@ -213,10 +213,11 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("bronzed-terracotta", "Bronzed terracotta", "#B8663E"),
             _satin("cherry-red", "Cherry red", "#D2223A"),
             _satin("warm-berry", "Warm berry", "#B04A5E")),
-        "bronzer": _ladder(_bare("amber", "Amber", "#B97A4C"), _bare("copper", "Copper", "#A8683F"),
-                           _bare("deep-tan", "Deep tan", "#8A5230")),
-        "highlight": _ladder(_bare("warm-champagne", "Warm champagne", "#F0CFA8"), _bare("gold", "Gold", "#E5BE8A"),
-                             _bare("gold-bronze", "Gold bronze", "#D9A066")),
+        "bronzer": _ladder(_bare("amber", "Amber", "#B97A4C", 12), _bare("copper", "Copper", "#A8683F", 22),
+                           _bare("deep-tan", "Deep tan", "#8A5230", 32)),
+        "highlight": _ladder(_bare("warm-champagne", "Warm champagne", "#F0CFA8", 32),
+                             _bare("gold", "Gold", "#E5BE8A", 44),
+                             _bare("gold-bronze", "Gold bronze", "#D9A066", 56)),
         "lips": _ladder(
             _sheer("peach", "Peach", "#E8967E"),
             _satin("peach-nude", "Peach nude", "#C4806B"),
@@ -227,8 +228,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _s("warm-red", "Warm red", "#A8281B"),
             _satin("plum", "Plum", "#6E2A3E"),
             _s("oxblood", "Oxblood", "#7A0F1E")),
-        "lip_line": _ladder(_s("rose-brown", "Rose brown", "#A5685E"), _s("red", "Red", "#8E0F1A"),
-                            _s("wine", "Wine", "#6A1B2C")),
+        "lip_line": _ladder(_s("rose-brown", "Rose brown", "#A5685E", intensity=34),
+                            _s("red", "Red", "#8E0F1A", intensity=48),
+                            _s("wine", "Wine", "#6A1B2C", intensity=62)),
     },
     "deep": {
         "eyes": _ladder(
@@ -240,8 +242,10 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _shimmer("emerald-night", "Emerald night", "#0F6B4A", "#2F1710"),
             _shimmer("burgundy-night", "Burgundy night", "#6E1A2E", "#2F1710"),
             _shimmer("purple-night", "Purple night", "#5B2A86", "#2F1710")),
-        "liner": _ladder(_s("espresso", "Espresso", "#2B1B17"), _s("soft-black", "Soft black", "#120c0a"),
-                         _s("black", "Black", "#0d0908")),
+        "liner": _ladder(_s("bronze", "Bronze", "#8A5A3A", intensity=50),
+                         _s("espresso", "Espresso", "#2B1B17", intensity=62),
+                         _s("soft-black", "Soft black", "#120c0a", intensity=74),
+                         _s("black", "Black", "#0d0908", intensity=86)),
         "lashes": _DEEP_LASHES,
         "brows": _ladder(_s("soft-black-brown", "Soft black brown", "#3B2F2F"),
                          _s("dark-brown", "Dark brown", "#33241E"), _s("espresso", "Espresso", "#2B1B17")),
@@ -255,10 +259,12 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("mulled-rose", "Mulled rose", "#8E3A3C"),
             _satin("dark-cherry", "Dark cherry", "#7E2A38"),
             _satin("deep-sienna", "Deep sienna", "#6B2A2A")),
-        "bronzer": _ladder(_bare("deep-tan", "Deep tan", "#8A5230"), _bare("deep-bronze", "Deep bronze", "#8A4A2B"),
-                           _bare("dark-bronze", "Dark bronze", "#6B3F28")),
-        "highlight": _ladder(_bare("warm-gold", "Warm gold", "#E3B98C"), _bare("gold-bronze", "Gold bronze", "#D9A066"),
-                             _bare("deep-gold", "Deep gold", "#C9A24A")),
+        "bronzer": _ladder(_bare("deep-tan", "Deep tan", "#8A5230", 16),
+                           _bare("deep-bronze", "Deep bronze", "#8A4A2B", 24),
+                           _bare("dark-bronze", "Dark bronze", "#6B3F28", 34)),
+        "highlight": _ladder(_bare("warm-gold", "Warm gold", "#E3B98C", 34),
+                             _bare("gold-bronze", "Gold bronze", "#D9A066", 46),
+                             _bare("deep-gold", "Deep gold", "#C9A24A", 58)),
         "lips": _ladder(
             _satin("fuchsia", "Fuchsia", "#D6247F"),
             _satin("caramel-nude", "Caramel nude", "#A8645A"),
@@ -269,8 +275,9 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _satin("plum", "Plum", "#6E2A3E"),
             _s("oxblood", "Oxblood", "#7A0F1E"),
             _s("dark-berry", "Dark berry", "#4A1230")),
-        "lip_line": _ladder(_s("wine", "Wine", "#6A1B2C"), _s("chocolate-berry", "Chocolate berry", "#5A2A2E"),
-                            _s("dark-berry", "Dark berry", "#4A1230")),
+        "lip_line": _ladder(_s("wine", "Wine", "#6A1B2C", intensity=40),
+                            _s("chocolate-berry", "Chocolate berry", "#5A2A2E", intensity=54),
+                            _s("dark-berry", "Dark berry", "#4A1230", intensity=68)),
     },
 }
 
@@ -290,9 +297,8 @@ def _look(kind: str, eyes: tuple[str, int, int, int], liner: tuple[str, int], la
     """eyes: (shade, intensity, shimmer, crease offset); cheeks: (shade, intensity, pattern, glow); other zones:
     (shade, intensity). No `lip_line` = no lip liner in this look, as approved for the fresh look of the light group."""
     fixed = _LOOK_PATTERNS[kind]
-    plain = {"brows": brows, "bronzer": bronzer, "highlight": highlight, "lips": lips}
-    if lip_line:
-        plain["lip_line"] = lip_line
+    plain = {"brows": brows, "bronzer": bronzer, "highlight": highlight, "lips": lips,
+             "lip_line": lip_line or (NONE_ID, 0)}
     zones = {
         "eyes": ZoneLook(eyes[0], eyes[1], fixed["eyes"], shimmer=eyes[2], crease_offset=eyes[3]),
         "liner": ZoneLook(liner[0], liner[1], fixed["liner"]),
@@ -300,7 +306,7 @@ def _look(kind: str, eyes: tuple[str, int, int, int], liner: tuple[str, int], la
         "cheeks": ZoneLook(cheeks[0], cheeks[1], cheeks[2], glow=cheeks[3]),
     }
     zones.update({z: ZoneLook(v[0], v[1], _ZONE_PATTERNS[z]) for z, v in plain.items()})
-    return {z: zones[z] for z in ZONES if z in zones}
+    return {z: zones[z] for z in ZONES}
 
 
 LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
@@ -355,11 +361,27 @@ def ladder(group: str, zone: str) -> tuple[Shade, ...]:
     return LADDERS[group][zone]
 
 
+def circles(group: str, zone: str) -> tuple[Shade, ...]:
+    """What the sheet offers: the ladder, plus the circle without the product in a thin zone."""
+    return LADDERS[group][zone] + ((_NONE,) if zone in THIN_ZONES else ())
+
+
 def shade(group: str, zone: str, shade_id: str) -> Shade:
-    for s in LADDERS[group][zone]:
+    for s in circles(group, zone):
         if s.id == shade_id:
             return s
     raise ValueError(f"no shade {shade_id!r} for {zone} in the {group} palette")
+
+
+def skin_order(group: str, zone: str, skin_hex: str) -> list[Shade]:
+    """The shades of a zone from the closest to her skin to the farthest (CIEDE2000; lids: the lid colour, the crease
+    breaks a tie). Softer and Bolder walk this order. The circle without the product is not on it: taking a product away is a choice
+    of its own, not a softer step."""
+
+    def distance(s: Shade) -> list[float]:
+        return [float(hex_delta_e2000(c, skin_hex)) for c in s.colors]
+
+    return sorted(LADDERS[group][zone], key=distance)
 
 
 def ita(lab: NDArray[np.float64]) -> float:

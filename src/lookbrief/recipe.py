@@ -1,9 +1,10 @@
 """A look on nine zones -> an editable AI Makeup VTO recipe, and the edits a bride or artist can ask for.
 
 The recipe comes from the palette (lookbrief.palettes), not from the transfer: the look sets every zone, and on a live
-photo the inspiration picks the colour family of lips, cheeks and lids from the ladder. An edit is a step on a ladder
-or a strength inside a range, so no path can send a colour of its own. How far the re-render lands from the transfer
-is measured per zone (makeup_map.compare); the recipe is no longer fitted to it.
+photo the inspiration picks the colour family of lips, cheeks and lids from the ladder. An edit picks another shade or
+finish of the palette, so no path can send a colour of its own: Softer and Bolder step to the neighbour shade closer
+to her skin or further from it (strength alone barely moves a render: dE2000 0.6-1.3 for +-10, probe of 2026-10-31).
+How far the re-render lands from the transfer is measured per zone (makeup_map.compare); the recipe is not fitted to it.
 """
 
 from __future__ import annotations
@@ -19,23 +20,19 @@ from .color import hex_to_lab
 from .makeup_map import MakeupMap
 
 RECIPE_VERSION = 2
-EDIT_OPS = ("softer", "bolder", "lighter", "deeper")
+EDIT_OPS = ("softer", "bolder")
 EDIT_ZONES = tuple(palettes.ZONES)
-EDIT_LABELS = {
-    "softer": "softer",
-    "bolder": "bolder",
-    "lighter": "a shade lighter",
-    "deeper": "a shade deeper",
-}
+EDIT_LABELS = {"softer": "softer", "bolder": "bolder"}
+FINISHES = {"lips": ("matte", "satin", "gloss"), "eyes": ("matte", "shimmer", "metallic")}
 BLOCK_NOTES = {  # why a button is off
-    "softest": "This is the softest this zone goes.",
-    "boldest": "This is the boldest this zone goes.",
-    "lightest": "This is the lightest shade in your palette.",
-    "deepest": "This is the deepest shade in your palette.",
+    "softest": "This is the softest shade in your palette.",
+    "boldest": "This is the boldest shade in your palette.",
     "current": "",
     "not_recorded": "This change isn't in the recorded set.",
+    "quiet": "This change would not show on the photo.",
 }
 SHADE_PREFIX = "shade:"
+FINISH_PREFIX = "finish:"
 LOOK_ZONE = "look"  # an edit ["look", "evening"] swaps the whole recipe
 TONE_ZONES = ("lips", "cheeks", "eyes")  # the zones whose shade follows the inspiration on a live photo
 MIN_CHANGED_PX = 200  # fewer changed pixels: the transfer says nothing about this zone
@@ -43,7 +40,7 @@ MIN_CHANGED_PX = 200  # fewer changed pixels: the transfer says nothing about th
 NO_SMOOTHING = {"category": "skin_smooth", "skinSmoothStrength": 0, "skinSmoothColorIntensity": 0}
 # Finish numbers accepted by the API in the probes of 2026-10-31 (the same in every look).
 HIGHLIGHT_FINISH = {"glowIntensity": 45, "shimmerIntensity": 25, "shimmerDensity": 35, "shimmerSize": 25}
-SHEER_FINISH = {"gloss": 45, "transparencyIntensity": 30}
+LIP_FINISH = {"sheer": {"gloss": 45, "transparencyIntensity": 30}, "gloss": {"gloss": 50, "transparencyIntensity": 30}}
 LIP_LINE_FINISH = {"thickness": 30, "smoothness": 70}
 FOUNDATION_INTENSITY = 40  # 50 lifted the heroine's forehead L* by 1.7; the target is 1.5 at most
 FOUNDATION_GLOW = 20
@@ -60,15 +57,16 @@ def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None =
     return z
 
 
-def look_recipe(group: str, look: str, shades: dict[str, str] | None = None) -> dict:
-    """The look as it stands on the palette; `shades` swaps single zones ({zone: shade id})."""
+def look_recipe(group: str, look: str, skin_hex: str, shades: dict[str, str] | None = None) -> dict:
+    """The look as it stands on the palette; `shades` swaps single zones ({zone: shade id}). `skin_hex`: her skin,
+    the point Softer and Bolder measure from."""
     if group not in palettes.GROUPS or look not in palettes.LOOK_IDS:
         raise ValueError(f"unknown look {group}/{look}")
     picks = shades or {}
     spec = palettes.LOOKS[group][look]
     if set(picks) - set(spec):
         raise ValueError(f"the {look} look has no zones {sorted(set(picks) - set(spec))}")
-    return {"version": RECIPE_VERSION, "group": group, "look": look,
+    return {"version": RECIPE_VERSION, "group": group, "look": look, "skin_hex": skin_hex,
             "zones": {z: _zone(group, z, zl, picks.get(z)) for z, zl in spec.items()}}
 
 
@@ -83,7 +81,7 @@ def _nearest_tone(group: str, zone: str, color: str) -> str:
     return min(palettes.ladder(group, zone), key=distance).id
 
 
-def base_recipe(m: MakeupMap | None, group: str, look: str = palettes.DEFAULT_LOOK,
+def base_recipe(m: MakeupMap | None, group: str, skin_hex: str, look: str = palettes.DEFAULT_LOOK,
                 shades: dict[str, str] | None = None) -> dict:
     """The look, with lips, cheeks and lids taken from the ladder by the colour the transfer put there, so the
     inspiration decides the family and the palette keeps it beautiful. `m=None` (a pinned sample): exactly the look.
@@ -94,7 +92,7 @@ def base_recipe(m: MakeupMap | None, group: str, look: str = palettes.DEFAULT_LO
             stat = m.zones.get(zone)
             if stat is not None and stat.changed_px >= MIN_CHANGED_PX:
                 picks[zone] = _nearest_tone(group, zone, stat.color_after)
-    return look_recipe(group, look, {**picks, **(shades or {})})
+    return look_recipe(group, look, skin_hex, {**picks, **(shades or {})})
 
 
 def _check(recipe: dict, zone: object, op: object) -> None:
@@ -104,16 +102,18 @@ def _check(recipe: dict, zone: object, op: object) -> None:
         if op not in palettes.LOOK_IDS:
             raise ValueError(f"unknown look {op}")
         return
-    if zone not in EDIT_ZONES or not (op in EDIT_OPS or op.startswith(SHADE_PREFIX)):
+    if zone not in EDIT_ZONES or not (op in EDIT_OPS or op.startswith((SHADE_PREFIX, FINISH_PREFIX))):
         raise ValueError(f"unknown edit {zone}/{op}")
     if zone not in recipe["zones"]:
         raise ValueError(f"zone {zone} is not in this look")
     if op.startswith(SHADE_PREFIX):
         palettes.shade(recipe["group"], str(zone), op.removeprefix(SHADE_PREFIX))
+    if op.startswith(FINISH_PREFIX) and op.removeprefix(FINISH_PREFIX) not in FINISHES.get(str(zone), ()):
+        raise ValueError(f"no finish {op} for {zone}")
 
 
-def _ladder_ids(recipe: dict, zone: str) -> list[str]:
-    return [s.id for s in palettes.ladder(recipe["group"], zone)]
+def _skin_ids(recipe: dict, zone: str) -> list[str]:
+    return [s.id for s in palettes.skin_order(recipe["group"], zone, recipe["skin_hex"])]
 
 
 def blocked(recipe: dict, zone: str, op: str) -> str | None:
@@ -124,43 +124,45 @@ def blocked(recipe: dict, zone: str, op: str) -> str | None:
     z = recipe["zones"][zone]
     if op.startswith(SHADE_PREFIX):
         return "current" if op.removeprefix(SHADE_PREFIX) == z["shade_id"] else None
-    if op in ("softer", "bolder"):  # a step that would leave the range is off, not cut short
-        lo, hi = palettes.RANGES[recipe["group"]][zone]
-        step = palettes.INTENSITY_STEP[zone]
-        if op == "softer":
-            return "softest" if z["intensity"] - step < lo else None
-        return "boldest" if z["intensity"] + step > hi else None
-    ids = _ladder_ids(recipe, zone)
+    if op.startswith(FINISH_PREFIX):
+        return "current" if op.removeprefix(FINISH_PREFIX) == z["texture"] else None
+    if z["shade_id"] == palettes.NONE_ID:  # no product on the zone: nothing to soften, Bolder brings the nearest shade
+        return "softest" if op == "softer" else None
+    ids = _skin_ids(recipe, zone)
     i = ids.index(z["shade_id"])
-    if op == "lighter":
-        return "lightest" if i == 0 else None
-    return "deepest" if i == len(ids) - 1 else None
+    if op == "softer":
+        return "softest" if i == 0 else None
+    return "boldest" if i == len(ids) - 1 else None
 
 
 def resolve_edit(recipe: dict, zone: str, op: str) -> list[str]:
-    """The edit as it is stored and recorded: Lighter / Deeper are the neighbour circle (the same render)."""
+    """The edit as it is stored and recorded: Softer / Bolder are the neighbour circle (the same render)."""
     reason = blocked(recipe, zone, op)
     if reason and reason != "current":
         raise ValueError(f"{zone}/{op}: {reason}")
-    if op in ("lighter", "deeper"):
-        ids = _ladder_ids(recipe, zone)
-        i = ids.index(recipe["zones"][zone]["shade_id"])
-        return [zone, SHADE_PREFIX + ids[i - 1 if op == "lighter" else i + 1]]
+    if op in EDIT_OPS and zone != LOOK_ZONE:
+        ids = _skin_ids(recipe, zone)
+        now = recipe["zones"][zone]["shade_id"]
+        if now == palettes.NONE_ID:
+            return [zone, SHADE_PREFIX + ids[0]]
+        i = ids.index(now)
+        return [zone, SHADE_PREFIX + ids[i - 1 if op == "softer" else i + 1]]
     return [zone, op]
 
 
 def apply_edit(recipe: dict, zone: str, op: str) -> dict:
     zone, op = resolve_edit(recipe, zone, op)
     if zone == LOOK_ZONE:
-        return look_recipe(recipe["group"], op)
+        return look_recipe(recipe["group"], op, recipe["skin_hex"])
     out = copy.deepcopy(recipe)
     z = out["zones"][zone]
-    if op.startswith(SHADE_PREFIX):
-        s = palettes.shade(recipe["group"], zone, op.removeprefix(SHADE_PREFIX))
-        z.update(shade_id=s.id, shade_name=s.name, palette=list(s.colors), texture=s.texture)
-    else:
-        step = palettes.INTENSITY_STEP[zone]
-        z["intensity"] += step if op == "bolder" else -step
+    if op.startswith(FINISH_PREFIX):
+        z["texture"] = op.removeprefix(FINISH_PREFIX)
+        return out
+    s = palettes.shade(recipe["group"], zone, op.removeprefix(SHADE_PREFIX))
+    z.update(shade_id=s.id, shade_name=s.name, palette=list(s.colors), texture=s.texture)
+    if s.intensity is not None:
+        z["intensity"] = s.intensity
     return out
 
 
@@ -172,14 +174,17 @@ def apply_edits(recipe: dict, edits: list[list[str]]) -> dict:
 
 def add_edit(base: dict, edits: list[list[str]], zone: str, op: str) -> list[list[str]]:
     """The edit list after one more resolved edit: a look replaces everything (the base look means no edits), a zone
-    holds one shade, and a shade equal to where the zone started is no edit at all."""
+    holds one shade and one finish, a new shade drops the finish (a finish belongs to its shade), and a shade or finish
+    equal to where the zone started is no edit at all."""
     if zone == LOOK_ZONE:
         return [] if op == base["look"] else [[zone, op]]
-    if not op.startswith(SHADE_PREFIX):
-        return [*edits, [zone, op]]
-    kept = [e for e in edits if not (e[0] == zone and e[1].startswith(SHADE_PREFIX))]
-    start = apply_edits(base, kept)["zones"][zone]["shade_id"]
-    return kept if op == SHADE_PREFIX + start else [*kept, [zone, op]]
+    if op.startswith(FINISH_PREFIX):
+        kept = [e for e in edits if not (e[0] == zone and e[1].startswith(FINISH_PREFIX))]
+        start = FINISH_PREFIX + apply_edits(base, kept)["zones"][zone]["texture"]
+    else:
+        kept = [e for e in edits if not (e[0] == zone and e[1].startswith((SHADE_PREFIX, FINISH_PREFIX)))]
+        start = SHADE_PREFIX + apply_edits(base, kept)["zones"][zone]["shade_id"]
+    return kept if op == start else [*kept, [zone, op]]
 
 
 def edit_key(edits: list[list[str]]) -> str:
@@ -189,13 +194,21 @@ def edit_key(edits: list[list[str]]) -> str:
     return "+".join(f"{z}:{o}" for z, o in edits)
 
 
+def quiet_key(recipe: dict, zone: str, op: str) -> str:
+    """The key of a button in a sample's `quiet_edits`. Softer / Bolder are a step between two shades, so theirs names
+    the shade she wears: from another shade it is another step."""
+    if op in EDIT_OPS:
+        return f"{zone}:{op}@{recipe['zones'][zone]['shade_id']}"
+    return edit_key([[zone, op]])
+
+
 def record_grid(base: dict) -> list[list[list[str]]]:
-    """Every single change a sample records over its base render: all circles but the selected one, Softer / Bolder
-    where they are not on the edge, the other looks. Lighter / Deeper need no render of their own."""
+    """Every single change a sample records over its base render: all circles but the selected one, the finishes of
+    lips and lids but the current one, the other looks. Softer / Bolder need no render of their own."""
     group = base["group"]
-    grid = [[[z, SHADE_PREFIX + s.id]] for z, zl in base["zones"].items() for s in palettes.ladder(group, z)
+    grid = [[[z, SHADE_PREFIX + s.id]] for z, zl in base["zones"].items() for s in palettes.circles(group, z)
             if s.id != zl["shade_id"]]
-    grid += [[[z, op]] for z in base["zones"] for op in ("softer", "bolder") if not blocked(base, z, op)]
+    grid += [[[z, FINISH_PREFIX + t]] for z, ts in FINISHES.items() for t in ts if t != base["zones"][z]["texture"]]
     grid += [[[LOOK_ZONE, look]] for look in palettes.LOOK_IDS if look != base["look"]]
     return grid
 
@@ -207,6 +220,9 @@ def _palettes(z: dict) -> list[dict]:
         if z["texture"] == "shimmer":
             lid = {"color": color, "texture": "shimmer", "shimmerColor": color, "shimmerIntensity": z["shimmer"],
                    "colorIntensity": i}
+        elif z["texture"] == "metallic":
+            lid = {"color": color, "texture": "metallic", "shimmerColor": color, "shimmerIntensity": z["shimmer"],
+                   "metallicIntensity": z["shimmer"], "colorIntensity": i}
         return [lid, {"color": z["palette"][1], "texture": "matte", "colorIntensity": i + z["crease_offset"]}]
     if cat in ("eyelashes", "bronzer"):
         return [{"color": color, "colorIntensity": i}]
@@ -215,8 +231,7 @@ def _palettes(z: dict) -> list[dict]:
     if cat == "highlighter":
         return [{"color": color, **HIGHLIGHT_FINISH, "colorIntensity": i}]
     if cat == "lip_color":
-        finish = SHEER_FINISH if z["texture"] == "sheer" else {}
-        return [{"color": color, "texture": z["texture"], "colorIntensity": i, **finish}]
+        return [{"color": color, "texture": z["texture"], "colorIntensity": i, **LIP_FINISH.get(z["texture"], {})}]
     if cat == "lip_liner":
         return [{"color": color, "texture": z["texture"], "colorIntensity": i, **LIP_LINE_FINISH}]
     return [{"color": color, "texture": z["texture"], "colorIntensity": i}]  # eye_liner, eyebrows
@@ -239,7 +254,8 @@ def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
     effects: list[dict] = [dict(NO_SMOOTHING)]
     if even_out:
         effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
-    effects += [_effect(recipe["zones"][z]) for z in palettes.ZONES if z in recipe["zones"]]
+    zones = recipe["zones"]
+    effects += [_effect(zones[z]) for z in palettes.ZONES if z in zones and zones[z]["palette"]]  # "none": left out
     return effects
 
 
@@ -275,6 +291,8 @@ def shade_list(recipe: dict, m: MakeupMap) -> list[dict]:
     `coverage` exist only for the zones the makeup map measures (eyes, cheeks, lips)."""
     rows = []
     for name, z in recipe["zones"].items():
+        if not z["palette"]:  # the bride left this product out
+            continue
         zs = m.zones.get(name)
         rows.append({
             "zone": name,

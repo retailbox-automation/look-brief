@@ -192,6 +192,10 @@ class ReplayEngine:
         rec = self.manifest["steps"].get(f"render:{edit_key(edits)}")
         return rec.get("recipe") if rec else None
 
+    def quiet_edits(self) -> list[str]:
+        """Buttons whose step does not show on this sample's photo (scripts/edit_visibility_report.py --write)."""
+        return list(self.manifest.get("quiet_edits", []))
+
     def recorded_render_keys(self) -> list[str]:
         return [k.split(":", 1)[1] for k in self.manifest["steps"] if k.startswith("render:")]
 

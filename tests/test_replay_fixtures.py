@@ -40,7 +40,7 @@ def test_samples_are_recorded_on_their_pins(sid):
     meta = json.loads((SAMPLES / sid / "sample.json").read_text())
     pins = meta["recipe_pins"]
     base = json.loads((SAMPLES / sid / "manifest.json").read_text())["steps"]["render:base"]["recipe"]
-    assert base == rcp.base_recipe(None, pins["group"], pins["look"], pins["shades"])
+    assert base == rcp.base_recipe(None, pins["group"], base["skin_hex"], pins["look"], pins["shades"])
 
 
 @pytest.mark.parametrize("sid", recorded_samples(["s2-classic-red", "s3-mauve-smoky"]))
@@ -76,4 +76,4 @@ def test_replay_engine_serves_recordings_and_refuses_unknown():
     base = eng.recorded_recipe([])
     assert eng.render(ctx, base, []).meta.step == "render:base"
     with pytest.raises(NotRecorded):
-        eng.render(ctx, base, [["lips", "lighter"], ["eyes", "softer"]])
+        eng.render(ctx, base, [["lips", "shade:no-such-render"], ["eyes", "shade:no-such-render"]])
