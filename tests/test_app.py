@@ -404,3 +404,4 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
         assert f["color"] == skin and f["coverageIntensity"] == 30
     assert "foundation" in [x["category"] for x in st["vto_effects"]]
     assert st["gaps"]["reference"] == "even", "accuracy is measured against the evened look she is shown"
+    assert st["map_reference"] == "even", "the recipe is read from the evened look, not the blotchy transfer"

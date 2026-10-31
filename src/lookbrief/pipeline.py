@@ -107,20 +107,6 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
             state["notes"].append(f"Hair preview unavailable ({code}).")
 
     face = face_of(workdir, state["bare"])
-    bare, look = _arrays(workdir, state["images"]["look"], state["bare"])
-    mmap = None
-    recorded = engine.recorded_map() if isinstance(engine, ReplayEngine) else None
-    if recorded:
-        mmap = makeup_map.MakeupMap.from_dict(recorded)  # exactly what was rendered
-    if mmap is None:
-        mmap = makeup_map.compute(bare, look, face)
-        if recorder is not None:
-            recorder.set_map(mmap.to_dict())
-    makeup_map.heatmap(bare, look).save(workdir / "layer.png")
-    state["images"]["layer"] = "layer.png"
-    state["map"] = mmap.to_dict()
-    state["outlines"] = zone_outlines(face)
-
     if order == "hair_first":
         skin = skin_hex_of(workdir, state["bare"], face)
         try:
@@ -131,11 +117,36 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
         except (YouCamError, NotRecorded) as e:  # optional step
             state["notes"].append(f"Even-out preview unavailable ({getattr(e, 'code', 'not_recorded')}).")
 
+    recorded = engine.recorded_map() if isinstance(engine, ReplayEngine) else None
+    mmap = measure_map(workdir, state, face, recorded)
+    if recorder is not None and not recorded:
+        recorder.set_map(mmap.to_dict())
+
     base = engine.recorded_recipe([]) if isinstance(engine, ReplayEngine) else None
     base = base or rcp.base_recipe(mmap)
     state["recipe_base"] = base
     state["edits"] = []
     return rerender(engine, ctx, workdir, state, [], face=face)
+
+
+def map_reference(state: dict) -> str:
+    """The look the makeup map is read from: the evened look once it exists (hair first), else the transfer.
+    On a face with natural redness the raw transfer adds blotchy blush (PLATFORM-FINDINGS §10); reading the
+    recipe from it would bake that artifact into the cheeks."""
+    return state["images"]["even"] if even_out_of(state) else state["images"]["look"]
+
+
+def measure_map(workdir: Path, state: dict, face: landmarks.FaceGeometry,
+                recorded: dict | None = None) -> makeup_map.MakeupMap:
+    """Makeup map (recorded one in Replay), the heat layer and the zone outlines, written into `state`."""
+    bare, ref = _arrays(workdir, map_reference(state), state["bare"])
+    mmap = makeup_map.MakeupMap.from_dict(recorded) if recorded else makeup_map.compute(bare, ref, face)
+    makeup_map.heatmap(bare, ref).save(workdir / "layer.png")
+    state["images"]["layer"] = "layer.png"
+    state["map"] = mmap.to_dict()
+    state["map_reference"] = "even" if even_out_of(state) else "transfer"
+    state["outlines"] = zone_outlines(face)
+    return mmap
 
 
 def even_out_of(state: dict) -> dict | None:

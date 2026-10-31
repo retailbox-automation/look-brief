@@ -1,7 +1,7 @@
 {
  "step": "render:eyes:lighter",
- "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cDfwz6wIhRtRxTv-2gpQPcSd-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T16:22:14Z",
+ "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVAxnWcaNE54m5_qLwwoi8jd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T17:14:24Z",
  "seconds": 6.6,
  "units": 1,
  "request_without_file_ids": {
@@ -11,6 +11,17 @@
     "category": "skin_smooth",
     "skinSmoothStrength": 0,
     "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "foundation",
+    "palettes": [
+     {
+      "color": "#dfa588",
+      "colorIntensity": 50,
+      "glowIntensity": 0,
+      "coverageIntensity": 30
+     }
+    ]
    },
    {
     "category": "eye_shadow",

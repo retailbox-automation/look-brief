@@ -33,10 +33,10 @@
   "render:base": {
    "step": "render:base",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCBX198r8MqLv0OJMOVFV-9d-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.6,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtXSRctGSrGSilM-T850KMc7d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.8,
    "units": 1,
-   "recorded_at": "2026-10-31T16:21:47Z",
+   "recorded_at": "2026-10-31T17:14:02Z",
    "label": "base",
    "image": "results/render__base.png",
    "recipe": {
@@ -69,10 +69,10 @@
   "render:eyes:softer": {
    "step": "render:eyes:softer",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCicQxpPjbETb2YLzLA20x4d-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.7,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVh43soihHgghXzdRhN-H_Sd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.5,
    "units": 1,
-   "recorded_at": "2026-10-31T16:21:55Z",
+   "recorded_at": "2026-10-31T17:14:09Z",
    "label": "eyes:softer",
    "image": "results/render__eyes__softer.png",
    "recipe": {
@@ -105,10 +105,10 @@
   "render:eyes:bolder": {
    "step": "render:eyes:bolder",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cAH3GkFwkE5eLq4xeKjSmfYd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 10.9,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtUdv6XazdaubRbZGPSqGfTnd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:06Z",
+   "recorded_at": "2026-10-31T17:14:16Z",
    "label": "eyes:bolder",
    "image": "results/render__eyes__bolder.png",
    "recipe": {
@@ -141,10 +141,10 @@
   "render:eyes:lighter": {
    "step": "render:eyes:lighter",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cDfwz6wIhRtRxTv-2gpQPcSd-BTT-LvvMAmKHuvXEbI5Q",
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVAxnWcaNE54m5_qLwwoi8jd-BTT-LvvMAmKHuvXEbI5Q",
    "seconds": 6.6,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:14Z",
+   "recorded_at": "2026-10-31T17:14:24Z",
    "label": "eyes:lighter",
    "image": "results/render__eyes__lighter.png",
    "recipe": {
@@ -177,10 +177,10 @@
   "render:eyes:deeper": {
    "step": "render:eyes:deeper",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cADevwj9yifRVfmleYzVOfsd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.8,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtXxIfM_pUi6O4FQY_XxnkkXd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:21Z",
+   "recorded_at": "2026-10-31T17:14:31Z",
    "label": "eyes:deeper",
    "image": "results/render__eyes__deeper.png",
    "recipe": {
@@ -213,10 +213,10 @@
   "render:cheeks:softer": {
    "step": "render:cheeks:softer",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCcq7WkveVQXe6YJF6HSJHjd-BTT-LvvMAmKHuvXEbI5Q",
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtU0ZoIjIXG-yszLbr_1OlLMd-BTT-LvvMAmKHuvXEbI5Q",
    "seconds": 6.7,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:28Z",
+   "recorded_at": "2026-10-31T17:14:38Z",
    "label": "cheeks:softer",
    "image": "results/render__cheeks__softer.png",
    "recipe": {
@@ -249,10 +249,10 @@
   "render:cheeks:bolder": {
    "step": "render:cheeks:bolder",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCOj6h_km6iuWh8B1akQuKPd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.7,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtXGhPtLlyX8rBB3iuI7Hk5Id-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.5,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:36Z",
+   "recorded_at": "2026-10-31T17:14:46Z",
    "label": "cheeks:bolder",
    "image": "results/render__cheeks__bolder.png",
    "recipe": {
@@ -285,10 +285,10 @@
   "render:cheeks:lighter": {
    "step": "render:cheeks:lighter",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cBMRd0hg2ou3u6kwVqu9-EPd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 7.2,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVbGMqIAj_zpBhF0NC9Gh94d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:44Z",
+   "recorded_at": "2026-10-31T17:14:53Z",
    "label": "cheeks:lighter",
    "image": "results/render__cheeks__lighter.png",
    "recipe": {
@@ -321,10 +321,10 @@
   "render:cheeks:deeper": {
    "step": "render:cheeks:deeper",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cB4TzfdZ19wUC5HnhR3lFNkd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.9,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVnKXHDsr-nl3kpzlmhmtYZd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:51Z",
+   "recorded_at": "2026-10-31T17:15:00Z",
    "label": "cheeks:deeper",
    "image": "results/render__cheeks__deeper.png",
    "recipe": {
@@ -357,10 +357,10 @@
   "render:lips:softer": {
    "step": "render:lips:softer",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cAYRRDOl5DLQWIdL2g1h_30d-BTT-LvvMAmKHuvXEbI5Q",
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtXTTr_vfx41199hhj3yNNLOd-BTT-LvvMAmKHuvXEbI5Q",
    "seconds": 6.6,
    "units": 1,
-   "recorded_at": "2026-10-31T16:22:58Z",
+   "recorded_at": "2026-10-31T17:15:07Z",
    "label": "lips:softer",
    "image": "results/render__lips__softer.png",
    "recipe": {
@@ -393,10 +393,10 @@
   "render:lips:bolder": {
    "step": "render:lips:bolder",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cD5IxitoDJs8C0qIeujfk-7d-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.6,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVdSkJwGixoRjiYF93xvrtzd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
    "units": 1,
-   "recorded_at": "2026-10-31T16:23:06Z",
+   "recorded_at": "2026-10-31T17:15:15Z",
    "label": "lips:bolder",
    "image": "results/render__lips__bolder.png",
    "recipe": {
@@ -429,10 +429,10 @@
   "render:lips:lighter": {
    "step": "render:lips:lighter",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cAB-X65jhGJn-ek52hQsgGxd-BTT-LvvMAmKHuvXEbI5Q",
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtVCrcL2lHnmM5aX2A9uHQnsd-BTT-LvvMAmKHuvXEbI5Q",
    "seconds": 6.7,
    "units": 1,
-   "recorded_at": "2026-10-31T16:23:13Z",
+   "recorded_at": "2026-10-31T17:15:22Z",
    "label": "lips:lighter",
    "image": "results/render__lips__lighter.png",
    "recipe": {
@@ -465,10 +465,10 @@
   "render:lips:deeper": {
    "step": "render:lips:deeper",
    "mode": "live",
-   "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cDvzqKUgaVF0Cgz2Z_90d2md-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 8.8,
+   "task_id": "IdKHtTIX-T3nY6pEi5OeRIqbYfG6QgKcRU_GbgRtFtU7yn_pscQEpQ-fBSpjNGO1d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
    "units": 1,
-   "recorded_at": "2026-10-31T16:23:22Z",
+   "recorded_at": "2026-10-31T17:15:29Z",
    "label": "lips:deeper",
    "image": "results/render__lips__deeper.png",
    "recipe": {
