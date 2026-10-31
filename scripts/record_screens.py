@@ -4,9 +4,9 @@
     uv run python scripts/record_screens.py OUT_DIR [--sample s0-champagne-rose]
 
 One clip per step, phone viewport 390x844 @2x (MP4, 780x1688, 30 fps; frames from the DevTools screencast), plus a PNG per step at 1290x2796
-(430x932 @3x). Steps, all on ONE bride session: a-photos-check, b-transfer-reveal, c-zone-map, d-hair-even-out,
-e-eyelids-deeper, f-artist-brief, g-agreed-card; plus h-samples (home page, two other looks) and h-home.png.
-Every frame shows real recorded YouCam results with their Replay labels.
+(430x932 @3x). Steps, all on ONE bride session: a-photos-check, b-before-after, c-zone-map, d-looks, e-shade-circle,
+e2-finish (when the sample offers a finish), f-artist-brief, g-agreed-card; plus h-samples (home page, two other
+looks) and h-home.png. Every frame shows real recorded YouCam results with their Replay labels.
 """
 
 from __future__ import annotations
@@ -93,7 +93,8 @@ def pause(page, ms: int) -> None:
 
 
 # ---------- the seven steps, filmed in ONE session: the edit of (e) is what the artist (f) and the card (g) show ----------
-STORY_EDIT = ("Eyelids", "Eyelids: a shade deeper")  # the heroine's most visible edit (dE2000 6.5 in the zone)
+STORY_SHADE = ("Lips", "Lips: Ruby")  # the circle of (e); the most visible change on the heroine's lips
+LOOKS = ("Fresh", "Evening", "Soft glam")
 
 
 def step_a(page) -> None:  # photos + photo check (top of the look screen: inspiration -> you strip, check pill)
@@ -110,7 +111,7 @@ def prep_b(page) -> None:  # the slider starts at the left edge, in view, before
     pause(page, 300)
 
 
-def step_b(page) -> None:  # transfer reveal: one smooth move of the slider from left to right, handle visible
+def step_b(page) -> None:  # before and after: one smooth move of the slider from left to right, handle visible
     pause(page, 700)
     for v in range(0, 101):
         page.locator("#ba").fill(str(v))
@@ -123,33 +124,62 @@ def prep_top(page) -> None:
     pause(page, 300)
 
 
-def step_c(page) -> None:  # zone map over her evened look: outlines first, then the zones (outlines step aside)
+def step_c(page) -> None:  # zone map over her look: outlines first, then the zones (outlines step aside)
     pause(page, 2600)
     for z in ("Eyelids", "Cheeks", "Lips"):
         page.get_by_role("button", name=z, exact=True).click()
         pause(page, 1300)
 
 
-def step_d(page) -> None:  # hair is already in the look (hair first); toggle "Even out redness", end on it
-    pause(page, 1200)
-    for name in ("Transfer", "Even out redness"):
-        btn = page.get_by_role("button", name=name, exact=True)
-        if btn.count():
-            btn.click()
-            pause(page, 1800)
-
-
-def prep_e(page) -> None:  # the Eyelids zone is open, the photo and the buttons both on screen
-    page.evaluate("window.scrollTo(0, 0)")
-    page.get_by_role("button", name=STORY_EDIT[0], exact=True).click()
+def prep_sheet(page) -> None:  # the buttons and as much of the photo as fits
+    page.evaluate("window.scrollTo(0, 260)")
     pause(page, 300)
 
 
-def step_e(page) -> None:  # the story edit, re-rendered by Makeup VTO (recorded): ~1 s, tap, hold the result >= 3 s
+def step_d(page) -> None:  # another look with one tap, each held on screen, back to the first
     pause(page, 1000)
-    page.get_by_role("button", name=STORY_EDIT[1]).click()
-    page.wait_for_selector("#edit-msg:has-text('Updated.')", timeout=20_000)
+    for name in LOOKS:
+        page.get_by_role("button", name=name, exact=True).click()
+        page.wait_for_selector(f".look-btn[aria-pressed=true]:has-text('{name}')", timeout=20_000)
+        page.evaluate("window.scrollTo(0, 0)")
+        pause(page, 2400)
+
+
+def prep_e(page) -> None:  # the zone of the story is open, the photo and the circles both on screen
+    page.evaluate("window.scrollTo(0, 0)")
+    page.get_by_role("button", name=STORY_SHADE[0], exact=True).click()
+    pause(page, 300)
+
+
+def step_e(page) -> None:  # a circle: ~1 s, tap, the photo comes back into view, hold the result >= 3 s
+    pause(page, 1000)
+    page.get_by_role("button", name=STORY_SHADE[1], exact=True).click()
+    page.wait_for_selector("#edit-msg:has-text('Updated')", timeout=20_000)
     pause(page, 3400)
+
+
+def first_finish(page) -> dict | None:
+    """The finish the story shows: a sample's quiet list can leave none. Recorded on the base shade of a zone."""
+    sid = page.url.rsplit("/", 1)[1]
+    opts = page.evaluate(f"async () => (await (await fetch('/api/sessions/{sid}')).json()).edit_options")
+    return next((o for o in opts if o["op"].startswith("finish:") and not o["selected"]), None)
+
+
+def prep_e2(page) -> None:  # a finish belongs to the base shade (Replay): back to it off camera
+    page.get_by_role("button", name="Undo last change").click()
+    page.wait_for_selector("#edit-msg:has-text('Undone')", timeout=20_000)
+    page.evaluate("window.scrollTo(0, 0)")
+    pause(page, 300)
+
+
+def step_e2(page, finish: dict) -> None:  # Finish: the zone, the finish, hold the result
+    zone = {"lips": "Lips", "eyes": "Eyelids"}[finish["zone"]]
+    pause(page, 800)
+    page.get_by_role("button", name=zone, exact=True).click()
+    pause(page, 700)
+    page.get_by_role("button", name=f"{zone} finish: {finish['label']}", exact=True).click()
+    page.wait_for_selector("#edit-msg:has-text('Updated')", timeout=20_000)
+    pause(page, 3000)
 
 
 def step_f(page) -> None:  # the artist's link: answer every zone, add a note, agree
@@ -240,10 +270,17 @@ def main() -> int:
                 look.goto(f"{base}/try/{args.sample}")
                 look.wait_for_selector("#look:not([hidden])", timeout=30_000)
                 film(look, "a-photos-check", step_a, prep_top)
-                film(look, "b-transfer-reveal", step_b, prep_b)
+                film(look, "b-before-after", step_b, prep_b)
                 film(look, "c-zone-map", step_c, prep_top)
-                film(look, "d-hair-even-out", step_d, prep_top)
-                film(look, "e-eyelids-deeper", step_e, prep_e)
+                film(look, "d-looks", step_d, prep_sheet)
+                film(look, "e-shade-circle", step_e, prep_e)
+                prep_e2(look)
+                finish = first_finish(look)
+                if finish:
+                    film(look, "e2-finish", lambda pg, f=finish: step_e2(pg, f))
+                else:  # no finish shows on this sample: the circle of (e) is the edit that goes on
+                    prep_e(look)
+                    step_e(look)
                 look.get_by_role("button", name="Send brief to my makeup artist").click()
                 look.wait_for_selector("[data-testid=artist-link][href^='/b/']", timeout=10_000)
                 artist_url = look.get_by_test_id("artist-link").get_attribute("href")
@@ -251,8 +288,8 @@ def main() -> int:
                 bid, artist_t, bride_t = artist_url.split("/b/")[1].split("?")[0], artist_url.split("t=")[1], \
                     bride_url.split("t=")[1]
                 snap = ctx.request.get(f"{base}/api/briefs/{bid}?t={artist_t}").json()["snapshot"]
-                checks[kind] = {"edits": snap.get("edits"), "eyes": next(
-                    (z for z in snap["zones"] if z["zone"] == "eyes"), None)}
+                edits = snap.get("edits") or []
+                checks[kind] = {"edits": edits, "finish_filmed": bool(finish)}
                 artist = ctx.new_page()
                 artist.goto(base + artist_url)
                 artist.wait_for_load_state("networkidle")
@@ -261,8 +298,9 @@ def main() -> int:
                 card = ctx.new_page()
                 card.goto(f"{base}/card/{bid}?t={bride_t}")
                 card.wait_for_load_state("networkidle")
-                checks[kind]["card_has_edit_render"] = "render-eyes-deeper" in card.content()
-                if checks[kind]["edits"] != [["eyes", "deeper"]] or not checks[kind]["card_has_edit_render"]:
+                wanted = "render-" + "_".join(f"{z}-{op.replace(':', '-')}" for z, op in edits)
+                checks[kind]["card_has_edit_render"] = bool(edits) and wanted in card.content()
+                if not checks[kind]["card_has_edit_render"]:
                     raise RuntimeError(f"the edit of (e) did not reach the brief and the card: {checks[kind]}")
                 film(card, "g-agreed-card", step_g, top_png=True)
                 # (h) the home page: different looks, two of them opened

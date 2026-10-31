@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Export an example agreed-look card (HTML + PDF) from a recorded sample, without any API call.
 
-    uv run python scripts/export_card.py [sample_id]      # default: first visible sample
+    uv run python scripts/export_card.py [sample_id] [out_dir]      # default: first visible sample, examples/
 
 Starts the app on a free port (Replay, ephemeral key), walks the brief: artist answers every zone, both agree,
-then saves examples/agreed-look-card.html, examples/agreed-look-card.pdf and the signed JSON.
+then saves agreed-look-card.html, agreed-look-card.pdf and the signed JSON.
 """
 
 from __future__ import annotations
@@ -44,8 +44,8 @@ def main() -> int:
             except OSError:
                 time.sleep(0.2)
         sid = sys.argv[1] if len(sys.argv) > 1 else samples[0]
-        out = ROOT / "examples"
-        out.mkdir(exist_ok=True)
+        out = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "examples"
+        out.mkdir(parents=True, exist_ok=True)
         with sync_playwright() as p:
             browser = p.chromium.launch()
             ctx = browser.new_context(viewport={"width": 900, "height": 1200})
@@ -83,7 +83,7 @@ def main() -> int:
             page.pdf(path=str(out / "agreed-look-card.pdf"), format="A4", print_background=True,
                      margin={"top": "12mm", "bottom": "12mm", "left": "10mm", "right": "10mm"})
             browser.close()
-        print(f"card for {sid}: examples/agreed-look-card.pdf, .html, .json")
+        print(f"card for {sid}: {out}/agreed-look-card.pdf, .html, .json")
         return 0
     finally:
         proc.terminate()

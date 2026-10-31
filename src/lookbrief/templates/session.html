@@ -19,7 +19,7 @@
       <span class="badge hero-badge {{ mode }}" data-testid="mode-badge">{% if mode == 'replay' %}Replay · recorded real YouCam API results{% else %}Live · YouCam API{% endif %}</span>
       <div class="hero-frame">
         <div id="hero-img" class="hero-img">
-          <img id="img-hero" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+          <img id="img-hero" alt="Your look: the makeup recipe on your photo (YouCam Makeup VTO)">
           <svg id="outlines" class="outlines" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
           <div id="pins" class="pins" aria-hidden="true"></div>
         </div>
@@ -35,14 +35,13 @@
 
     <div class="sheet">
       <span class="handle" aria-hidden="true"></span>
-      <h2 class="sheet-title">Your makeup map</h2>
+      <h2 class="sheet-title">Your makeup</h2>
+      <div id="look-row" class="look-row" role="group" aria-label="Choose a look"></div>
       <div id="zone-tabs" class="zone-tabs" role="group" aria-label="Choose a zone"></div>
       <div id="zones" class="zones"></div>
       <div id="edit-msg" class="edit-msg" role="status" aria-live="polite"></div>
-      <p id="edit-tools" class="edit-tools" hidden><button id="undo" class="linkbtn" type="button">Undo last change</button> <button id="reset" class="linkbtn" type="button">Back to the transferred look</button></p>
-      <p id="accuracy" class="accuracy"></p>
+      <p id="edit-tools" class="edit-tools" hidden><button id="undo" class="linkbtn" type="button">Undo last change</button> <button id="reset" class="linkbtn" type="button">Back to my look</button></p>
       <button id="make-brief" class="btn primary block" type="button">Send brief to my makeup artist</button>
-      <p id="zone-extra" class="zone-extra"></p>
       <div id="brief-links" class="brief-links" hidden>
         <p>Your artist opens this link (no account), confirms each zone or suggests a swap, and you both agree. You get one agreed-look card.</p>
         <p><strong>Link for your artist:</strong> <a id="artist-link" data-testid="artist-link" href="#"></a> <button class="btn ghost small" type="button" data-copy="artist-link">Copy</button></p>
@@ -55,8 +54,8 @@
         <h2 id="ba-h">Before and after</h2>
         <figure class="ba">
           <div class="ba-frame">
-            <img id="img-before" alt="Your bare-faced selfie">
-            <img id="img-after" class="after" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+            <img id="img-before" alt="Your photo before makeup">
+            <img id="img-after" class="after" alt="Your look: the makeup recipe on your photo (YouCam Makeup VTO)">
           </div>
           <label class="ba-slider">Before / after <input id="ba" type="range" min="0" max="100" value="50"></label>
           <figcaption id="cap-after"></figcaption>
@@ -64,20 +63,28 @@
       </section>
 
       <details class="fold">
-        <summary>Inspiration, hair and the measured map</summary>
+        <summary>How we read your inspiration</summary>
+        <p class="note">YouCam Makeup Transfer puts the makeup from your inspiration photo on your face. We read the colours it leaves in each zone, then build your look from ready-made shades of your palette. The look above is that recipe, rendered by YouCam Makeup VTO.</p>
         <div class="grid2">
           <figure><img id="img-inspo" alt="Your inspiration photo"><figcaption>Inspiration</figcaption></figure>
-          <figure><img id="img-hair" alt="Makeup and hair preview (YouCam Hair Transfer)"><figcaption id="cap-hair">Makeup + hair</figcaption></figure>
-          <figure><img id="img-layer" alt="Heat map of where makeup is added"><figcaption>What the artist adds (measured)</figcaption></figure>
-          <figure><img id="img-render" alt="Your recipe re-rendered with YouCam Makeup VTO"><figcaption id="cap-render">Recipe re-rendered (Makeup VTO)</figcaption></figure>
+          <figure><img id="img-look" alt="The inspiration makeup on your photo (YouCam Makeup Transfer)"><figcaption id="cap-look">Inspiration read by Makeup Transfer</figcaption></figure>
+          <figure><img id="img-layer" alt="Heat map of where the transfer changed your photo"><figcaption>Where the transfer added makeup</figcaption></figure>
+          <figure><img id="img-hair" alt="Your look with the inspiration hair (YouCam Hair Transfer)"><figcaption id="cap-hair">Makeup + hair</figcaption></figure>
         </div>
       </details>
 
       <details class="fold">
-        <summary>How close is the editable recipe to the transfer?</summary>
+        <summary>The numbers behind your look</summary>
+        <table id="zone-numbers" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade</th><th scope="col">Colour</th><th scope="col">Intensity</th></tr></thead><tbody></tbody></table>
+        <p id="measure-note" class="note"></p>
+      </details>
+
+      <details class="fold">
+        <summary>How far is the recipe from your inspiration?</summary>
+        <p class="note">Your look is a recipe of ready-made shades, chosen to look good on your skin. It is not a copy of the transfer, so a difference here is expected. We show it so you can see how far the recipe moved from the photo you love.</p>
         <p id="gaps-ref" class="note"></p>
-        <p class="note">Measured on the pixels the transfer changed. ΔE2000 below ~2 is hard to see; re-renders of one recipe can differ by up to ~2 ΔE on eyelids and lips (see docs/CALIBRATION.md).</p>
-        <table id="gaps" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade gap ΔE2000</th><th scope="col">Coverage: transfer → recipe</th></tr></thead><tbody></tbody></table>
+        <p class="note">Measured on the pixels the transfer changed. ΔE2000 below ~2 is hard to see.</p>
+        <table id="gaps" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade difference ΔE2000</th><th scope="col">Coverage: transfer → recipe</th></tr></thead><tbody></tbody></table>
         <p id="skin-note" class="note"></p>
       </details>
 

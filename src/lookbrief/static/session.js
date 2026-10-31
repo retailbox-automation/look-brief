@@ -8,11 +8,10 @@
   let state = null;
   let busy = false;
   let selZone = null;     // zone open in the sheet
-  let heroView = "makeup"; // "makeup" | "hair" | "even"
-  let heroInit = false; // hair-first looks open on "Even out redness": that is her look, and edits show there
+  let heroView = "makeup"; // "makeup" | "hair"
   let zonesShown = true; // zone outlines show once; the first zone or edit tap hides them so the face change is visible
 
-  // Where the zone labels sit around each outline (px from the anchor point).
+  // Where the zone labels sit around each outline (px from the anchor point). Only zones with an outline have a pin.
   const PIN = {
     eyes: { side: "left", dx: 34, dy: -26 },
     cheeks: { side: "left", dx: 30, dy: 0 },
@@ -115,43 +114,26 @@
     $("zones-btn").textContent = on ? "Hide zones" : "Show zones"; // the label says the action (no pressed state)
   }
 
+  const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
+  const lookCaption = () => `${(state.edits || []).length ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO${state.even_out ? " with foundation in your shade" : ""}`;
+
   function renderHero() {
     const im = state.images || {};
-    const edited = (state.edits || []).length > 0;
+    const v = state.views || {};
     const st = state.steps || {};
-    const hairFirst = state.order === "hair_first";
-    let src = im.look, alt = hairFirst ? "You with the inspiration hair and makeup (YouCam Hair Transfer, then Makeup Transfer)"
-      : "You wearing the inspiration makeup (YouCam Makeup Transfer)";
-    let cap = [st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer"];
-    const renderStep = st["render:" + (state.edits || []).map((e) => e.join(":")).join("+")];
+    const edited = (state.edits || []).length > 0;
+    let src = im[v.hero], alt = "Your look: the makeup recipe on your photo (YouCam Makeup VTO)";
+    let cap = [st[renderKey()], lookCaption()];
     if (heroView === "hair" && im.hair) {
-      src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)";
-      cap = [st.hair_transfer, edited ? "Hair Transfer (your look before your changes; tap Makeup to see them)" : "Hair Transfer"];
-    }
-    else if (heroView === "even" && im.even && edited && im.render) {
-      src = im.render; alt = "Your adjusted look: your edits re-rendered with YouCam Makeup VTO, with foundation in her shade";
-      cap = [renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade"];
-    }
-    else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = [st.even_out, "Even out redness: foundation in her shade over the transfer"]; }
-    else if (edited && im.render && (!hairFirst || !im.even)) { // hair first without even-out: no toggle, show the edit
-      src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO";
-      cap = [renderStep, "Makeup VTO re-render"];
+      src = im.hair; alt = "Your look with the inspiration hair (YouCam Hair Transfer)";
+      cap = [st.hair_transfer, edited ? "Hair Transfer (your look before your changes; tap Makeup to see them)" : "Hair Transfer on your look"];
     }
     setCaption($("hero-cap"), ...cap);
     const hero = $("img-hero");
     if (src && hero.getAttribute("src") !== src) hero.src = src;
     hero.alt = alt;
     $("strip-inspo").src = im.inspiration; $("strip-you").src = im.bride;
-    const tg = $("hero-toggle"), [b1, b2] = tg.querySelectorAll("button");
-    if (hairFirst) {
-      b1.dataset.view = "makeup"; b1.textContent = "Transfer";
-      b2.dataset.view = "even"; b2.textContent = "Even out redness";
-      tg.hidden = !im.even;
-    } else {
-      b1.dataset.view = "makeup"; b1.textContent = "Makeup";
-      b2.dataset.view = "hair"; b2.textContent = "Makeup + hair";
-      tg.hidden = !im.hair;
-    }
+    $("hero-toggle").hidden = !im.hair; // hair first: the render already wears the new hair
     const chk = state.checks && state.checks.bride; // local photo check (older servers don't send it)
     if (chk && chk.ok) {
       const codes = (chk.issues || []).map((i) => i.code);
@@ -166,60 +148,89 @@
     $("hero-toggle").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === heroView)));
   }
 
-  // ---------- sheet: zone tabs + zone panels ----------
+  // ---------- sheet: looks, zone tabs, zone panels ----------
   function selectZone(z, byUser) {
     if (!z) return;
     if (byUser && zonesShown) showZones(false); // she started choosing: let the face show
     selZone = z;
-    $("zone-tabs").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.zone === z)));
+    const tabs = $("zone-tabs");
+    tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.zone === z)));
     $("zones").querySelectorAll(".zone").forEach((p) => { p.hidden = p.dataset.zone !== z; });
     document.querySelectorAll("#outlines .zone-outline, #pins .pin").forEach((el) => el.classList.toggle("on", el.dataset.zone === z));
+    const tab = tabs.querySelector('button[aria-pressed="true"]'); // the row scrolls sideways: keep her tab in view
+    if (!tab) return;
+    const r = tab.getBoundingClientRect(), box = tabs.getBoundingClientRect(), pad = 17;
+    if (r.left < box.left + pad) tabs.scrollLeft -= box.left + pad - r.left;
+    else if (r.right > box.right - pad) tabs.scrollLeft += r.right - box.right + pad;
+  }
+
+  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${esc(colors[0])} 55%, ${esc(colors[1])} 55%)` : esc(colors[0]);
+
+  function circleHtml(o, label) {
+    const dot = o.colors.length ? `<span class="dot" style="background:${dotFill(o.colors)}" aria-hidden="true"></span>` : '<span class="dot none" aria-hidden="true"></span>';
+    return `<button type="button" class="circle" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" aria-pressed="${o.selected}" aria-label="${esc(label)}: ${esc(o.name)}" ${o.available || o.selected ? "" : "disabled"}>${dot}<span class="circle-name">${esc(o.name)}</span></button>`;
+  }
+
+  function chipHtml(o, label) {
+    return `<button type="button" class="chip" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" ${o.available ? "" : "disabled"} aria-label="${esc(label)}: ${esc(o.label)}">${esc(cap(o.op))}</button>`;
+  }
+
+  function finishHtml(o, label) {
+    return `<button type="button" class="chip" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" aria-pressed="${o.selected}" aria-label="${esc(label)} finish: ${esc(o.label)}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.label)}</button>`;
+  }
+
+  function renderLooks() {
+    const opts = (state.edit_options || []).filter((o) => o.zone === "look");
+    $("look-row").innerHTML = opts.map((o) => `<button type="button" class="look-btn" data-zone="look" data-op="${esc(o.op)}" aria-pressed="${o.selected}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.label)}</button>`).join("");
+  }
+
+  function zonePanel(z, label) {
+    const opts = (state.edit_options || []).filter((o) => o.zone === z);
+    const r = state.recipe.zones[z];
+    const steps = opts.filter((o) => o.op === "softer" || o.op === "bolder");
+    const finishes = opts.filter((o) => o.op.startsWith("finish:"));
+    const circles = opts.filter((o) => o.op.startsWith("shade:"));
+    const notes = [...new Set(steps.filter((o) => !o.available && o.note).map((o) => o.note))];
+    const finish = r.texture ? ` · ${esc(cap(r.texture))}` : "";
+    return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${esc(z)}" aria-labelledby="zone-h-${esc(z)}">
+      <div class="zone-head"><h3 id="zone-h-${esc(z)}">${esc(label)}</h3><p class="zone-shade" data-testid="shade-${esc(z)}">${esc(r.shade_name)}${finish}</p></div>
+      <div class="circles" role="group" aria-label="${esc(label)} shades">${circles.map((o) => circleHtml(o, label)).join("")}</div>
+      ${steps.length ? `<div class="chips" role="group" aria-label="Adjust ${esc(label)}">${steps.map((o) => chipHtml(o, label)).join("")}</div>` : ""}
+      ${notes.map((n) => `<p class="chip-note" data-testid="note-${esc(z)}">${esc(n)}</p>`).join("")}
+      ${finishes.length ? `<div class="finish" role="group" aria-label="${esc(label)} finish"><span class="finish-name">Finish</span>${finishes.map((o) => finishHtml(o, label)).join("")}</div>` : ""}
+    </article>`;
   }
 
   function renderZones() {
-    const opts = state.edit_options || [];
+    const groups = state.zone_groups || [];
     const zones = (state.recipe && state.recipe.zones) || {};
-    const map = state.map.zones;
-    const keys = Object.keys(zones);
+    const keys = groups.flatMap((g) => g.zones.map((z) => z.zone)).filter((z) => z in zones);
     if (!keys.includes(selZone)) selZone = keys[0] || null;
-    $("zone-tabs").innerHTML = keys.map((z) =>
-      `<button type="button" class="tab" data-zone="${esc(z)}" aria-pressed="false">${esc((map[z] || {}).label || z)}</button>`).join("");
-    const html = keys.map((z) => {
-      const r = zones[z];
-      const m = map[z] || {};
-      const g = ((state.gaps && state.gaps.zones) || {})[z] || {};
-      const face = g.color_render || m.color_after || r.color; // measured on the current render
-      const light = opts.some((o) => o.zone === z && o.reason === "light");
-      const buttons = opts.filter((o) => o.zone === z).map((o) => {
-        const why = o.reason === "light" ? ` aria-describedby="light-${esc(z)}"` : "";
-        return `<button type="button" class="chip" data-zone="${z}" data-op="${o.op}" ${o.available ? "" : "disabled"}${why} aria-label="${esc(m.label)}: ${esc(o.label)}">${esc(cap(o.op))}</button>`;
-      }).join("");
-      const lightNote = light ? `<p class="chip-note" id="light-${esc(z)}" data-testid="light-${esc(z)}">Softer: already close to your bare skin.</p>` : "";
-      return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${z}" aria-labelledby="zone-h-${esc(z)}">
-        <div class="zone-head">
-          <span class="zone-swatch" style="background:${esc(face)}" aria-hidden="true"></span>
-          <div>
-            <h3 id="zone-h-${esc(z)}">${esc(m.label || z)}</h3>
-            <p class="zone-measure">Coverage ${Math.round((m.coverage || 0) * 100)}% · Strength ΔE ${Math.round(Number(m.strength_de) || 0)}</p>
-            <p class="zone-product">On face ${esc(String(face).toUpperCase())} · product <code>${esc(String(r.color).toUpperCase())}</code> · intensity ${esc(r.intensity)}</p>
-          </div>
-        </div>
-        <div class="chips" role="group" aria-label="Adjust ${esc(m.label)}">${buttons}</div>
-        ${lightNote}
-      </article>`;
-    }).join("");
-    $("zones").innerHTML = html;
-    const extra = map.nose && map.nose.changed_px > 200 && map.nose.coverage >= 0.05 // 1% reads like a false warning
-      ? `Also changed: nose &amp; contour (${Math.round(map.nose.coverage * 100)}% of that area) — not re-rendered, flag it with your artist.` : "";
-    $("zone-extra").innerHTML = extra;
+    const scroll = $("zone-tabs").scrollLeft;
+    $("zone-tabs").innerHTML = groups.map((g) => `<div class="tab-group"><span class="tab-group-name">${esc(g.label)}</span><div class="tab-row">${g.zones.filter((z) => z.zone in zones).map((z) => `<button type="button" class="tab" data-zone="${esc(z.zone)}" aria-pressed="false">${esc(z.label)}</button>`).join("")}</div></div>`).join("");
+    $("zone-tabs").scrollLeft = scroll;
+    $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label)).join("");
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone, true)));
-    $("zones").querySelectorAll("button.chip").forEach((b) => b.addEventListener("click", () => doEdit({ zone: b.dataset.zone, op: b.dataset.op })));
+    document.querySelectorAll("#zones button[data-op], #look-row button[data-op]").forEach((b) => b.addEventListener("click", () => {
+      if (b.getAttribute("aria-pressed") !== "true") doEdit({ zone: b.dataset.zone, op: b.dataset.op });
+    }));
     const ed = state.edits || [];
     $("undo").disabled = ed.length === 0;
     $("reset").disabled = ed.length === 0;
     $("edit-tools").hidden = ed.length === 0;
-    $("reset").textContent = state.order === "hair_first" && (state.images || {}).even ? "Back to my look" : "Back to the transferred look";
     selectZone(selZone);
+  }
+
+  function renderNumbers() {
+    const map = state.map.zones || {};
+    const shades = state.shades || [];
+    document.querySelector("#zone-numbers tbody").innerHTML = shades.map((r) =>
+      `<tr><th scope="row">${esc(r.label)}</th><td>${esc(r.shade_name)}</td><td>${esc(r.palette.join(" / ").toUpperCase())}</td><td>${esc(r.intensity)}</td></tr>`).join("");
+    const measured = shades.filter((r) => map[r.zone]).map((r) => {
+      const m = map[r.zone];
+      return `${esc(r.label)} ${Math.round((m.coverage || 0) * 100)}% coverage, strength ΔE ${Math.round(Number(m.strength_de) || 0)}`;
+    });
+    $("measure-note").textContent = measured.length ? `What the transfer changed: ${measured.join(" · ")}.` : "";
   }
 
   function renderGaps() {
@@ -228,30 +239,25 @@
       `<tr><th scope="row">${esc(g.label)}</th><td>${g.color_gap_de2000.toFixed(1)}</td><td>${Math.round(g.coverage_transfer * 100)}% → ${Math.round(g.coverage_render * 100)}%</td></tr>`).join("");
     document.querySelector("#gaps tbody").innerHTML = rows;
     const evened = state.gaps && state.gaps.reference === "even";
-    $("gaps-ref").textContent = evened ? "Hair-first look: compared with the evened look (transfer + foundation in her shade), because every re-render carries the same foundation." : "";
+    $("gaps-ref").textContent = evened ? "Hair-first look: compared with the transfer under foundation in your shade, because the recipe carries the same foundation." : "";
     $("skin-note").textContent = evened
-      ? `Skin control (forehead): the transfer changes it by ΔE76 ${state.map.skin_control_de}; the re-render, with foundation in her shade (coverage 30, no smoothing), by ${state.gaps.skin_control_render_de76}.`
-      : `Skin control (forehead, no makeup): transfer changes it by ΔE76 ${state.map.skin_control_de}, recipe render by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
-    const parts = Object.values(gz).map((g) => `${esc(g.label)} ${g.color_gap_de2000.toFixed(1)}`);
-    $("accuracy").innerHTML = parts.length ? `Re-render accuracy (ΔE2000, lower is closer): ${parts.join(" · ")}` : "";
+      ? `Skin control (forehead): the transfer changes it by ΔE76 ${state.map.skin_control_de}; the recipe, with foundation in your shade, by ${state.gaps.skin_control_render_de76}.`
+      : `Skin control (forehead, no makeup): the transfer changes it by ΔE76 ${state.map.skin_control_de}, the recipe by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
   }
 
   function render() {
     const im = state.images || {};
-    const evenAfter = state.order === "hair_first" && im.even; // her look is the evened one
-    $("img-before").src = im.bride; $("img-after").src = evenAfter ? im.even : im.look;
-    $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-render").src = im.render;
+    const v = state.views || {};
+    $("img-before").src = im[v.before]; $("img-after").src = im[v.after];
+    $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-look").src = im.look;
     const hairImg = im.hair || (state.order === "hair_first" && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
     if (hairImg) { $("img-hair").src = hairImg; } else { $("img-hair").closest("figure").hidden = true; }
     if (!im.hair && hairImg) $("img-hair").alt = "Your selfie with the inspiration hair (YouCam Hair Transfer)";
     const st = state.steps || {};
-    if (evenAfter) setCaption($("cap-after"), st.even_out, "Hair Transfer + Makeup Transfer, then even out redness (foundation in her shade, Makeup VTO)");
-    else setCaption($("cap-after"), st.mu_transfer, "Makeup Transfer");
-    setCaption($("cap-hair"), st.hair_transfer, im.hair ? "Hair Transfer" : "Hair (YouCam Hair Transfer on your selfie)", "Hair preview unavailable");
-    const key = (state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base";
-    setCaption($("cap-render"), st[key], "Makeup VTO re-render");
-    if (!heroInit) { heroInit = true; if (state.order === "hair_first" && im.even) heroView = "even"; }
-    renderHero(); renderPhoto(); renderZones(); renderGaps();
+    setCaption($("cap-after"), st[renderKey()], lookCaption());
+    setCaption($("cap-look"), st.mu_transfer, "Inspiration read by Makeup Transfer");
+    setCaption($("cap-hair"), st.hair_transfer, im.hair ? "Hair Transfer on your look" : "Hair (YouCam Hair Transfer on your selfie)", "Hair preview unavailable");
+    renderHero(); renderPhoto(); renderLooks(); renderZones(); renderNumbers(); renderGaps();
     $("tech").textContent = JSON.stringify({ steps: state.steps, recipe: state.recipe, vto_effects: state.vto_effects, map: state.map }, null, 2);
     $("look").hidden = false;
   }
@@ -271,31 +277,32 @@
       $("status").innerHTML = `<strong>${esc(h.title)}.</strong> ${esc(h.fix)} <a href="/">Back</a>`;
       return;
     }
-    $("status").textContent = body.mode === "replay" ? "Loading the recorded results…" : "Calling YouCam: hair transfer → makeup transfer → re-render → even out redness (about 30 seconds)…";
+    $("status").textContent = body.mode === "replay" ? "Loading the recorded results…" : "Calling YouCam: reading your inspiration and rendering your look (about 30 seconds)…";
     setTimeout(poll, 1200);
   }
 
   async function doEdit(payload) {
     if (busy) return;
     const a = document.activeElement;
-    const refocus = a && a.dataset ? (a.dataset.op ? `button.chip[data-zone="${a.dataset.zone}"][data-op="${a.dataset.op}"]` : (a.id ? `#${a.id}` : "")) : "";
-    busy = true; $("edit-msg").textContent = "Re-rendering with YouCam Makeup VTO…";
+    const refocus = a && a.dataset ? (a.dataset.op ? `button[data-zone="${a.dataset.zone}"][data-op="${a.dataset.op}"]` : (a.id ? `#${a.id}` : "")) : "";
+    busy = true; $("edit-msg").textContent = state.mode === "replay" ? "One moment…" : "Rendering with YouCam Makeup VTO…";
     const { ok, body } = await api(`/api/sessions/${sid}/edits`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     busy = false;
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
-    const before = (state.edits || []).length;
+    const was = state.edits || [];
     state = body;
-    // the photo that carries the change: over her even tone (hair first), else the Makeup VTO view, never the hair preview
-    heroView = state.order === "hair_first" && (state.images || {}).even ? "even" : "makeup";
+    heroView = "makeup"; // the view that carries the change, never the hair preview
     if (payload.zone && zonesShown) showZones(false);
     const opts = state.edit_options || [];
-    const after = (state.edits || []).length;
-    const replaced = state.mode === "replay" && payload.zone && before > 0 && after === before;
-    const heldOne = state.mode === "replay" && after > 0 && opts.length > 0 && !opts.some((o) => o.available);
+    const now = state.edits || [];
+    // a change in the same zone is the next choice there; in another zone it took the place of the earlier change
+    const replaced = state.mode === "replay" && payload.zone && now.length > 0 && was.length === now.length
+      && was[0][0] !== now[0][0] && was[0][0] !== "look" && now[0][0] !== "look";
+    const heldOne = state.mode === "replay" && now.length > 0 && opts.length > 0 && !opts.some((o) => o.available);
     $("edit-msg").textContent = replaced ? "Updated. Samples hold one recorded change at a time — this replaced your previous change."
       : heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another."
       : payload.action === "undo" ? "Undone."
-      : payload.action === "reset" ? (state.order === "hair_first" && (state.images || {}).even ? "Back to your look." : "Back to the transferred look.")
+      : payload.action === "reset" ? "Back to your look."
       : "Updated.";
     render();
     const hr = $("img-hero").getBoundingClientRect(); // after a zone change, show the photo if less than half is on screen
