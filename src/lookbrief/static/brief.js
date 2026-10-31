@@ -16,7 +16,7 @@
     return { ok: r.ok, body };
   }
 
-  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${esc(colors[0])} 55%, ${esc(colors[1])} 55%)` : esc(colors[0]);
+  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${colors.map((c, i) => `${esc(c)} ${Math.round(100 * i / colors.length)}% ${Math.round(100 * (i + 1) / colors.length)}%`).join(", ")})` : esc(colors[0]);
   const finishText = (zi) => zi.texture ? `${esc(zi.texture)} · ` : "";
 
   function zoneInfo(z) { return view.snapshot.zones.find((x) => x.zone === z) || { zone: z, label: "Hair" }; }
@@ -41,7 +41,7 @@
       const zi = zoneInfo(z), r = view.reviews[z] || {};
       const dots = (zi.palette || []).map((c) => `<span class="swatch" style="background:${esc(c)}" aria-hidden="true"></span>`).join(" ");
       const detail = z === "skin"
-        ? `${dots} ${esc(zi.shade_name)} ${esc(zi.product_hex)} · coverage ${esc(zi.intensity)} — evens redness under the makeup`
+        ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))}${zi.intensity === null ? "" : ` · coverage ${esc(zi.intensity)}`}`
         : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
         : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {

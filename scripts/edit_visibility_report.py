@@ -38,7 +38,7 @@ def main() -> int:
         r = vis.edit_visibility(sd)
         for key, e in r["edits"].items():
             zone = key.split(":", 1)[0]
-            kind = "thin" if zone in palettes.THIN_ZONES or zone in ("brows", "lashes") else "wide"
+            kind = "thin" if zone in palettes.STYLE_ZONES else "wide"
             rows.append(f"| {sd.name} | {kind} | `{key}` | {e['mean']:.2f} | {e['share']:.0%} | "
                         f"{'shows' if e['ok'] else 'quiet'} |")
         totals.append(f"| {sd.name} | {len(r['edits'])} | {len(r['quiet'])} | {len(r['missing'])} |")
@@ -54,12 +54,12 @@ units then showed why strength cannot be the button: intensity +-8-10 moves a zo
 64 on the cheeks by 1.3-2.9.
 
 ## The edit rule (`src/lookbrief/recipe.py`, `src/lookbrief/palettes.py`)
-- **Softer / Bolder:** the neighbour shade in the order of distance to her skin (CIEDE2000; lids: the lid colour). The
-  same render as tapping that circle. The ends of the order turn the button off.
-- **Circles:** every shade of the zone. Bronzer, highlighter, liner and lip liner also have "none" (the zone leaves the
-  request) and steps that differ in strength too.
-- **Finish:** lips matte / satin / gloss, lids matte / shimmer / metallic, on the current shade.
-No colour is computed: every colour sent is a step of the palette.
+- **Softer / Bolder** (lids, cheeks, lips): the next shade of the same colour family in the order of distance to her
+  skin (CIEDE2000; lids: the lid colour). The same render as tapping that circle. The end of the way turns the button off.
+- **Circles:** every shade of lids, cheeks and lips, gloss and metallic among them.
+- **Styles:** liner, lashes, brows, bronzer, highlighter and lip liner offer named steps with their own pattern and
+  strength; liner, highlighter and lip liner can be left out.
+No colour is computed: every colour sent is a shade of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
 Inside the zone (open eye and mouth left out), against the render without edits, or between the two shades of a step:

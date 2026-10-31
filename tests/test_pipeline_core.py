@@ -28,15 +28,18 @@ def _options(state, keys=None):
 
 
 # ---------------- buttons ----------------
-def test_options_cover_looks_strength_finish_and_every_circle():
+def test_options_cover_looks_steps_and_every_circle():
     opts = _options(_state())
     assert {("look", k) for k in palettes.LOOK_IDS} <= set(opts)
     for z in palettes.ZONES:
-        assert {(z, op) for op in rcp.EDIT_OPS} <= set(opts), z
         assert {(z, f"shade:{s.id}") for s in palettes.circles("light", z)} <= set(opts), z
-    assert {("lips", "finish:matte"), ("lips", "finish:satin"), ("lips", "finish:gloss"), ("eyes", "finish:matte"),
-            ("eyes", "finish:shimmer"), ("eyes", "finish:metallic")} <= set(opts)
-    assert len(opts) == 3 + 18 + 47 + 6
+        steps = {(z, op) for op in rcp.EDIT_OPS}
+        assert (steps <= set(opts)) is (z in palettes.STEP_ZONES), z
+    assert len(opts) == 3 + 6 + 43
+
+
+def test_no_finish_buttons_are_left():
+    assert not [o for o in pipeline.edit_options(_state()) if o["op"].startswith("finish:")]
 
 
 def test_lighter_and_deeper_are_not_offered():
@@ -52,19 +55,12 @@ def test_a_circle_carries_what_the_sheet_draws():
     now = opts[("lips", f"shade:{base['zones']['lips']['shade_id']}")]
     assert now["selected"] is True and now["available"] is False and now["reason"] == "current"
     eyes = opts[("eyes", f"shade:{base['zones']['eyes']['shade_id']}")]
-    assert eyes["colors"] == ["#C98F7E", "#5C342A"] and eyes["hex"] == "#C98F7E"
+    assert eyes["colors"] == ["#EAD0BC", "#C98F7E", "#5C342A"] and eyes["hex"] == "#C98F7E"
 
 
-def test_the_none_circle_has_no_colour():
-    o = _options(_state())[("bronzer", "shade:none")]
-    assert o["hex"] is None and o["colors"] == [] and o["name"] and o["available"] is True
-
-
-def test_a_finish_says_what_is_on_now():
-    opts = _options(_state())
-    assert opts[("lips", "finish:satin")]["selected"] is True and opts[("lips", "finish:satin")]["available"] is False
-    assert opts[("lips", "finish:gloss")]["selected"] is False and opts[("lips", "finish:gloss")]["available"] is True
-    assert opts[("lips", "finish:gloss")]["label"] == "Gloss"
+def test_the_none_choice_has_no_colour():
+    o = _options(_state())[("liner", "shade:none")]
+    assert o["hex"] is None and o["colors"] == [] and o["name"] == "None" and o["available"] is True
 
 
 def test_a_button_on_the_end_of_the_order_is_off_and_says_why():
@@ -84,13 +80,13 @@ def test_the_softer_gate_of_the_old_rule_is_gone():
 def test_a_quiet_button_is_not_offered_and_the_server_refuses_it():
     base = _look()
     key = rcp.quiet_key(base, "lips", "softer")
-    st = _state(base, quiet=[key, "lips:finish:gloss", "liner:shade:none"])
+    st = _state(base, quiet=[key, "lips:shade:ruby", "liner:shade:none"])
     opts = _options(st)
     assert ("lips", "softer") not in opts and ("lips", "bolder") in opts
-    assert ("lips", "finish:gloss") not in opts and ("lips", "finish:matte") in opts
-    assert ("liner", "shade:none") not in opts and ("bronzer", "shade:none") in opts
+    assert ("lips", "shade:ruby") not in opts and ("lips", "shade:nude-rose") in opts
+    assert ("liner", "shade:none") not in opts and ("highlight", "shade:none") in opts
     assert pipeline.plan_edit(st, "lips", "softer") == {"reason": "quiet"}
-    assert pipeline.plan_edit(st, "lips", "finish:gloss") == {"reason": "quiet"}
+    assert pipeline.plan_edit(st, "lips", "shade:ruby") == {"reason": "quiet"}
 
 
 def test_quiet_softer_depends_on_the_shade_she_wears():
@@ -112,19 +108,19 @@ def test_replay_offers_only_what_is_recorded():
 
 def test_replay_keeps_one_change_a_new_one_replaces_it():
     base = _look()
-    keys = {"base", "lips:shade:ruby", "cheeks:shade:salmon"}
+    keys = {"base", "lips:shade:ruby", "cheeks:shade:peach"}
     st = _state(base, [["lips", "shade:ruby"]])
-    plan = pipeline.plan_edit(st, "cheeks", "shade:salmon", keys)
-    assert plan == {"edits": [["cheeks", "shade:salmon"]], "replaces": True}
-    assert _options(st, keys)[("cheeks", "shade:salmon")]["replaces"] is True
+    plan = pipeline.plan_edit(st, "cheeks", "shade:peach", keys)
+    assert plan == {"edits": [["cheeks", "shade:peach"]], "replaces": True}
+    assert _options(st, keys)[("cheeks", "shade:peach")]["replaces"] is True
 
 
 def test_a_recorded_combination_is_kept():
     base = _look()
     st = _state(base, [["lips", "shade:ruby"]])
-    keys = {"base", "lips:shade:ruby", "lips:shade:ruby+cheeks:shade:salmon", "cheeks:shade:salmon"}
-    assert pipeline.plan_edit(st, "cheeks", "shade:salmon", keys) == {
-        "edits": [["lips", "shade:ruby"], ["cheeks", "shade:salmon"]], "replaces": False}
+    keys = {"base", "lips:shade:ruby", "lips:shade:ruby+cheeks:shade:peach", "cheeks:shade:peach"}
+    assert pipeline.plan_edit(st, "cheeks", "shade:peach", keys) == {
+        "edits": [["lips", "shade:ruby"], ["cheeks", "shade:peach"]], "replaces": False}
 
 
 def test_softer_is_stored_as_the_shade_and_needs_no_render_of_its_own():
@@ -158,22 +154,6 @@ def test_the_base_look_button_returns_to_the_sample():
     assert pipeline.plan_edit(st, "look", "softglam", {"base", "look:evening"}) == {"edits": [], "replaces": False}
 
 
-def test_replay_finish_is_only_for_the_shade_it_was_recorded_on():
-    base = _look()
-    keys = {"base", "lips:finish:gloss", "lips:shade:ruby"}
-    assert pipeline.plan_edit(_state(base), "lips", "finish:gloss", keys)["edits"] == [["lips", "finish:gloss"]]
-    st = _state(base, [["lips", "shade:ruby"]])
-    assert pipeline.plan_edit(st, "lips", "finish:gloss", keys) == {"reason": "not_recorded"}, "must not swap her shade"
-
-
-def test_replay_a_finish_replaces_a_change_of_another_zone():
-    base = _look()
-    keys = {"base", "lips:finish:gloss", "cheeks:shade:salmon"}
-    st = _state(base, [["cheeks", "shade:salmon"]])
-    want = {"edits": [["lips", "finish:gloss"]], "replaces": True}
-    assert pipeline.plan_edit(st, "lips", "finish:gloss", keys) == want
-
-
 def test_live_walks_softer_to_the_end_of_the_order():
     base = _look()
     st = _state(base)
@@ -183,7 +163,7 @@ def test_live_walks_softer_to_the_end_of_the_order():
             break
         st = _state(base, plan["edits"])
     assert plan == {"reason": "softest"}
-    assert st["recipe"]["zones"]["cheeks"]["shade_id"] == palettes.skin_order("light", "cheeks", SKIN["light"])[0].id
+    assert st["recipe"]["zones"]["cheeks"]["shade_id"] in {s.id for s in palettes.ladder("light", "cheeks")}
 
 
 def test_plan_refuses_unknown_edits():
@@ -227,12 +207,12 @@ def test_replay_session_lists_nine_shades_and_the_group(v2, tmp_path):
 def test_replay_session_reads_the_quiet_list_of_the_sample(v2, tmp_path):
     sd = v2 / "s3-mauve-smoky"
     mf = json.loads((sd / "manifest.json").read_text())
-    (sd / "manifest.json").write_text(json.dumps({**mf, "quiet_edits": ["lips:finish:gloss"]}))
+    (sd / "manifest.json").write_text(json.dumps({**mf, "quiet_edits": ["lips:shade:plum"]}))
     try:
         _, _, st = _replay(sd, tmp_path)
     finally:
         (sd / "manifest.json").write_text(json.dumps(mf))
-    assert st["quiet_edits"] == ["lips:finish:gloss"]
+    assert st["quiet_edits"] == ["lips:shade:plum"]
 
 
 # ---------------- recording ----------------

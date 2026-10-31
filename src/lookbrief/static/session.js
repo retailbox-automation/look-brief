@@ -164,7 +164,7 @@
     else if (r.right > box.right - pad) tabs.scrollLeft += r.right - box.right + pad;
   }
 
-  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${esc(colors[0])} 55%, ${esc(colors[1])} 55%)` : esc(colors[0]);
+  const dotFill = (colors) => colors.length > 1 ? `linear-gradient(135deg, ${colors.map((c, i) => `${esc(c)} ${Math.round(100 * i / colors.length)}% ${Math.round(100 * (i + 1) / colors.length)}%`).join(", ")})` : esc(colors[0]);
 
   function circleHtml(o, label) {
     const dot = o.colors.length ? `<span class="dot" style="background:${dotFill(o.colors)}" aria-hidden="true"></span>` : '<span class="dot none" aria-hidden="true"></span>';
@@ -175,8 +175,8 @@
     return `<button type="button" class="chip" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" ${o.available ? "" : "disabled"} aria-label="${esc(label)}: ${esc(o.label)}">${esc(cap(o.op))}</button>`;
   }
 
-  function finishHtml(o, label) {
-    return `<button type="button" class="chip" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" aria-pressed="${o.selected}" aria-label="${esc(label)} finish: ${esc(o.label)}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.label)}</button>`;
+  function styleHtml(o, label) { // thin zones: the step is a style with a name, not a colour
+    return `<button type="button" class="chip" data-zone="${esc(o.zone)}" data-op="${esc(o.op)}" aria-pressed="${o.selected}" aria-label="${esc(label)}: ${esc(o.name)}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.name)}</button>`;
   }
 
   function renderLooks() {
@@ -184,20 +184,21 @@
     $("look-row").innerHTML = opts.map((o) => `<button type="button" class="look-btn" data-zone="look" data-op="${esc(o.op)}" aria-pressed="${o.selected}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.label)}</button>`).join("");
   }
 
-  function zonePanel(z, label) {
+  function zonePanel(z, label, style) {
     const opts = (state.edit_options || []).filter((o) => o.zone === z);
     const r = state.recipe.zones[z];
     const steps = opts.filter((o) => o.op === "softer" || o.op === "bolder");
-    const finishes = opts.filter((o) => o.op.startsWith("finish:"));
-    const circles = opts.filter((o) => o.op.startsWith("shade:"));
+    const shades = opts.filter((o) => o.op.startsWith("shade:"));
     const notes = [...new Set(steps.filter((o) => !o.available && o.note).map((o) => o.note))];
-    const finish = r.texture ? ` · ${esc(cap(r.texture))}` : "";
+    const finish = !style && r.texture ? ` · ${esc(cap(r.texture))}` : "";
+    const choice = style
+      ? `<div class="styles" role="group" aria-label="${esc(label)} styles">${shades.map((o) => styleHtml(o, label)).join("")}</div>`
+      : `<div class="circles" role="group" aria-label="${esc(label)} shades">${shades.map((o) => circleHtml(o, label)).join("")}</div>`;
     return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${esc(z)}" aria-labelledby="zone-h-${esc(z)}">
       <div class="zone-head"><h3 id="zone-h-${esc(z)}">${esc(label)}</h3><p class="zone-shade" data-testid="shade-${esc(z)}">${esc(r.shade_name)}${finish}</p></div>
-      <div class="circles" role="group" aria-label="${esc(label)} shades">${circles.map((o) => circleHtml(o, label)).join("")}</div>
+      ${choice}
       ${steps.length ? `<div class="chips" role="group" aria-label="Adjust ${esc(label)}">${steps.map((o) => chipHtml(o, label)).join("")}</div>` : ""}
       ${notes.map((n) => `<p class="chip-note" data-testid="note-${esc(z)}">${esc(n)}</p>`).join("")}
-      ${finishes.length ? `<div class="finish" role="group" aria-label="${esc(label)} finish"><span class="finish-name">Finish</span>${finishes.map((o) => finishHtml(o, label)).join("")}</div>` : ""}
     </article>`;
   }
 
@@ -209,7 +210,7 @@
     const scroll = $("zone-tabs").scrollLeft;
     $("zone-tabs").innerHTML = groups.map((g) => `<div class="tab-group"><span class="tab-group-name">${esc(g.label)}</span><div class="tab-row">${g.zones.filter((z) => z.zone in zones).map((z) => `<button type="button" class="tab" data-zone="${esc(z.zone)}" aria-pressed="false">${esc(z.label)}</button>`).join("")}</div></div>`).join("");
     $("zone-tabs").scrollLeft = scroll;
-    $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label)).join("");
+    $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label, z.style)).join("");
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone, true)));
     document.querySelectorAll("#zones button[data-op], #look-row button[data-op]").forEach((b) => b.addEventListener("click", () => {
       if (b.getAttribute("aria-pressed") !== "true") doEdit({ zone: b.dataset.zone, op: b.dataset.op });

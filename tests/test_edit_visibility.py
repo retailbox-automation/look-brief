@@ -1,5 +1,5 @@
 """Every button must visibly change the face (Nadya on an iPhone, 31.10: "I tap lips, pick a strength, nothing
-changes"). Measured on the recorded renders inside the zone (thresholds in lookbrief.visibility): a circle or a finish
+changes"). Measured on the recorded renders inside the zone (thresholds in lookbrief.visibility): a circle or a style
 against the base render, Softer and Bolder as the pair of shade renders they step between. A step that does not show
 goes to `quiet_edits` in the manifest and gets no button (scripts/edit_visibility_report.py --write)."""
 
@@ -7,7 +7,7 @@ import json
 
 import numpy as np
 import pytest
-from helpers import SAMPLES, SKIN, make_v2_samples, parse_edit_key, recorded_samples
+from helpers import SAMPLES, make_v2_samples, parse_edit_key, recorded_samples
 from PIL import Image
 
 from lookbrief import landmarks, palettes, visibility
@@ -104,7 +104,6 @@ def test_a_painted_circle_shows_and_its_neighbours_steps_show_with_it(synthetic)
     assert f"lips:shade:{next_}" not in rep["quiet"]
     assert f"lips:bolder@{start}" not in rep["quiet"] and f"lips:softer@{next_}" not in rep["quiet"]
     assert f"lips:softer@{start}" in rep["quiet"], "the other way nothing changed"
-    assert "lips:finish:gloss" in rep["quiet"]
 
 
 def test_a_strong_change_on_a_small_part_of_the_zone_stays_quiet(synthetic):
@@ -117,36 +116,27 @@ def test_a_strong_change_on_a_small_part_of_the_zone_stays_quiet(synthetic):
     assert e["mean"] >= visibility.MIN_MEAN and e["share"] < visibility.MIN_SHARE and not e["ok"], e
 
 
-def test_a_finish_is_measured_against_the_base(synthetic):
+def test_a_style_is_read_inside_its_own_mask(synthetic):
     sd, steps = synthetic
-    _paint(sd, steps, "render:lips:finish:gloss", "lips")
+    _paint(sd, steps, "render:bronzer:shade:sculpted", "bronzer")
     rep = visibility.edit_visibility(sd)
-    assert "lips:finish:gloss" not in rep["quiet"] and "lips:finish:matte" in rep["quiet"]
-
-
-def test_a_thin_zone_is_read_inside_its_own_mask(synthetic):
-    sd, steps = synthetic
-    _paint(sd, steps, "render:bronzer:shade:none", "bronzer")
-    rep = visibility.edit_visibility(sd)
-    assert "bronzer:shade:none" not in rep["quiet"]
-    assert rep["edits"]["bronzer:shade:none"]["share"] > 0.9
+    assert "bronzer:shade:sculpted" not in rep["quiet"]
+    assert rep["edits"]["bronzer:shade:sculpted"]["share"] > 0.9
     assert "highlight:shade:none" in rep["quiet"]
 
 
-def test_bolder_from_none_is_measured_but_softer_never_lands_on_none(synthetic):
+def test_softer_and_bolder_are_measured_on_lids_cheeks_and_lips_only(synthetic):
     sd, _ = synthetic
-    rep = visibility.edit_visibility(sd)
-    assert "bronzer:bolder@none" in rep["edits"]
-    nearest = palettes.skin_order("deep", "bronzer", SKIN["deep"])[0].id
-    assert f"bronzer:softer@{nearest}" not in rep["edits"]
+    zones = {k.split(":")[0] for k in visibility.edit_visibility(sd)["edits"] if "@" in k}
+    assert zones == {"eyes", "cheeks", "lips"}
 
 
 def test_a_missing_render_is_reported(synthetic):
     sd, steps = synthetic
-    steps.pop("render:lips:finish:gloss")
+    steps.pop("render:lips:shade:rose-gloss", steps.pop("render:lips:shade:berry-gloss", None))
     (sd / "manifest.json").unlink()
     (sd / "manifest.json").write_text(json.dumps({"steps": steps, "order": "transfer_first"}))
-    assert "lips:finish:gloss" in visibility.edit_visibility(sd)["missing"]
+    assert "lips:shade:berry-gloss" in visibility.edit_visibility(sd)["missing"]
 
 
 def test_the_metric_sees_a_real_change_and_ignores_none():
@@ -198,5 +188,5 @@ def test_report_writes_the_quiet_list_into_the_manifest(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["edit_visibility_report.py", "--write"])
     assert mod.main() == 0
     mf = json.loads((tmp_path / "samples" / "s3-mauve-smoky" / "manifest.json").read_text())
-    assert "lips:finish:gloss" in mf["quiet_edits"] and "render:base" in mf["steps"], "the rest of the manifest stays"
+    assert "lips:shade:plum" in mf["quiet_edits"] and "render:base" in mf["steps"], "the rest of the manifest stays"
     assert "quiet_edits" not in json.loads((SAMPLES / "s3-mauve-smoky" / "manifest.json").read_text())

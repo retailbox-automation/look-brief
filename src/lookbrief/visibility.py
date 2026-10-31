@@ -1,6 +1,6 @@
 """Does every button visibly change the face? Measured on the recorded renders of a sample.
 
-Inside the zone, mean dE2000 and the share of pixels above the just-noticeable 2.3: a circle or a finish against the
+Inside the zone, mean dE2000 and the share of pixels above the just-noticeable 2.3: a circle or a style against the
 render without edits (render:base); Softer and Bolder as the pair of shade renders they step between, from every
 shade. Thresholds (visible at a glance on a phone, checked by eye on 1:1 zone crops, decision 31.10):
 mean >= 3.5 with >= 60 % of pixels over 2.3. A step below them is `quiet`: the sample lists it in `quiet_edits` and
@@ -68,7 +68,7 @@ def _stat(a: np.ndarray, b: np.ndarray) -> dict:
 
 def edit_visibility(sample_dir: Path) -> dict:
     """{'edits': {key: {'mean', 'share', 'ok'}}, 'quiet': [keys below the thresholds], 'missing': [keys, no render]}.
-    Keys are recipe.quiet_key: 'lips:shade:ruby', 'lips:finish:gloss', 'lips:softer@dusty-rose'."""
+    Keys are recipe.quiet_key: 'lips:shade:ruby', 'lips:softer@dusty-rose'."""
     mf = json.loads((sample_dir / "manifest.json").read_text())
     steps = mf["steps"]
     bare_name = steps["hair_transfer"]["image"] if mf.get("order") == "hair_first" else "bride.jpg"
@@ -104,7 +104,7 @@ def edit_visibility(sample_dir: Path) -> dict:
         def render_of(shade: str, zone: str = zone, start: str = z["shade_id"]) -> str:
             return "render:base" if shade == start else f"render:{zone}:shade:{shade}"
 
-        for s in palettes.circles(recipe["group"], zone):
+        for s in palettes.ladder(recipe["group"], zone) if zone in palettes.STEP_ZONES else ():
             for op in EDIT_OPS:
                 target = palettes.step_from(recipe["group"], zone, recipe["skin_hex"], s.id, op)
                 if target:

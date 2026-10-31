@@ -1,5 +1,5 @@
 {
- "_source": "Request bodies YouCam accepted on 2026-10-31 and Nadya approved by eye (probes v1, v2 C1, v3 B2/C3). light = heroine s0, deep = s3. foundation in light is shown as sent: colorIntensity 50; the recipe sends 40 (forehead L* within 1.5).",
+ "_source": "Request bodies approved after the critic of the s0 recording (PALETTE-V2, 2026-10-31): softglam light p7 B-open, softglam deep p8 B-gold, evening p7 C-open; fresh is v1 A-fresh with the concealer layer and foundation 40. light = heroine s0, deep = s3.",
  "light": {
   "fresh": [
    {
@@ -12,9 +12,20 @@
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 50,
+      "colorIntensity": 40,
       "glowIntensity": 20,
       "coverageIntensity": 30
+     }
+    ]
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#E8B79C",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
      }
     ]
    },
@@ -148,29 +159,47 @@
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 50,
+      "colorIntensity": 40,
       "glowIntensity": 20,
       "coverageIntensity": 30
      }
     ]
    },
    {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#E8B79C",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
+     }
+    ]
+   },
+   {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors168"
+     "name": "3colors1"
     },
     "palettes": [
+     {
+      "color": "#EAD0BC",
+      "texture": "shimmer",
+      "shimmerColor": "#EAD0BC",
+      "shimmerIntensity": 60,
+      "colorIntensity": 70
+     },
      {
       "color": "#C98F7E",
       "texture": "shimmer",
       "shimmerColor": "#C98F7E",
       "shimmerIntensity": 60,
-      "colorIntensity": 80
+      "colorIntensity": 85
      },
      {
       "color": "#5C342A",
       "texture": "matte",
-      "colorIntensity": 78
+      "colorIntensity": 85
      }
     ]
    },
@@ -207,8 +236,8 @@
     "palettes": [
      {
       "color": "#5A4034",
-      "colorIntensity": 35,
-      "texture": "matte"
+      "texture": "matte",
+      "colorIntensity": 35
      }
     ]
    },
@@ -297,29 +326,47 @@
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 50,
+      "colorIntensity": 40,
       "glowIntensity": 20,
       "coverageIntensity": 30
      }
     ]
    },
    {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#E8B79C",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
+     }
+    ]
+   },
+   {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors168"
+     "name": "3colors8"
     },
     "palettes": [
+     {
+      "color": "#EAD0BC",
+      "texture": "shimmer",
+      "shimmerColor": "#EAD0BC",
+      "shimmerIntensity": 60,
+      "colorIntensity": 72
+     },
      {
       "color": "#A8613A",
       "texture": "shimmer",
       "shimmerColor": "#A8613A",
-      "shimmerIntensity": 70,
+      "shimmerIntensity": 60,
       "colorIntensity": 85
      },
      {
       "color": "#3F2620",
       "texture": "matte",
-      "colorIntensity": 85
+      "colorIntensity": 88
      }
     ]
    },
@@ -356,8 +403,8 @@
     "palettes": [
      {
       "color": "#5A4034",
-      "colorIntensity": 42,
-      "texture": "matte"
+      "texture": "matte",
+      "colorIntensity": 42
      }
     ]
    },
@@ -442,6 +489,17 @@
     "category": "skin_smooth",
     "skinSmoothStrength": 0,
     "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#C88F6E",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
+     }
+    ]
    },
    {
     "category": "eye_shadow",
@@ -582,22 +640,40 @@
     "skinSmoothColorIntensity": 0
    },
    {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#C88F6E",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
+     }
+    ]
+   },
+   {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors168"
+     "name": "3colors1"
     },
     "palettes": [
      {
-      "color": "#B98A4E",
+      "color": "#E8C070",
       "texture": "shimmer",
-      "shimmerColor": "#B98A4E",
-      "shimmerIntensity": 65,
-      "colorIntensity": 82
+      "shimmerColor": "#E8C070",
+      "shimmerIntensity": 80,
+      "colorIntensity": 85
+     },
+     {
+      "color": "#C99A50",
+      "texture": "shimmer",
+      "shimmerColor": "#C99A50",
+      "shimmerIntensity": 80,
+      "colorIntensity": 92
      },
      {
       "color": "#3F1F14",
       "texture": "matte",
-      "colorIntensity": 80
+      "colorIntensity": 85
      }
     ]
    },
@@ -634,8 +710,8 @@
     "palettes": [
      {
       "color": "#33241E",
-      "colorIntensity": 40,
-      "texture": "matte"
+      "texture": "matte",
+      "colorIntensity": 40
      }
     ]
    },
@@ -720,22 +796,40 @@
     "skinSmoothColorIntensity": 0
    },
    {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#C88F6E",
+      "colorIntensity": 45,
+      "colorUnderEyeIntensity": 55,
+      "coverageLevel": 45
+     }
+    ]
+   },
+   {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors168"
+     "name": "3colors8"
     },
     "palettes": [
      {
-      "color": "#B98A4E",
+      "color": "#D4A94E",
       "texture": "shimmer",
-      "shimmerColor": "#B98A4E",
-      "shimmerIntensity": 75,
+      "shimmerColor": "#D4A94E",
+      "shimmerIntensity": 72,
+      "colorIntensity": 80
+     },
+     {
+      "color": "#A8683F",
+      "texture": "shimmer",
+      "shimmerColor": "#A8683F",
+      "shimmerIntensity": 65,
       "colorIntensity": 88
      },
      {
       "color": "#2F1710",
       "texture": "matte",
-      "colorIntensity": 85
+      "colorIntensity": 88
      }
     ]
    },
@@ -772,8 +866,8 @@
     "palettes": [
      {
       "color": "#2B1B17",
-      "colorIntensity": 42,
-      "texture": "matte"
+      "texture": "matte",
+      "colorIntensity": 42
      }
     ]
    },

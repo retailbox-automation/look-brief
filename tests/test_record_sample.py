@@ -37,16 +37,17 @@ def dry(*args):
 
 
 @pytest.mark.parametrize(("sample", "renders", "units", "hair"), [
-    ("s0-champagne-rose", 45, 45, False), ("s2-classic-red", 45, 47, True), ("s3-mauve-smoky", 46, 48, True)])
+    ("s0-champagne-rose", 37, 37, False), ("s2-classic-red", 38, 40, True), ("s3-mauve-smoky", 35, 37, True)])
 def test_dry_lists_the_grid_without_a_key(sample, renders, units, hair, tmp_path):
     r = dry(str(before_the_grid(sample, tmp_path / sample)), "--max-units", "230")
     assert r.returncode == 0, r.stderr
     assert f"renders {renders}" in r.stdout and f"units {units}" in r.stdout
     assert ("  hair_transfer" in r.stdout) is hair
-    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:lips:finish:gloss",
-                 "render:eyes:finish:metallic", "render:bronzer:shade:none"):
+    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:liner:shade:none",
+                 "render:lashes:shade:wispy", "render:bronzer:shade:sculpted"):
         assert must in r.stdout
     assert ":softer" not in r.stdout and ":bolder" not in r.stdout, "Softer and Bolder are renders of circles"
+    assert "finish" not in r.stdout and "bronzer:shade:none" not in r.stdout
     assert "mu_transfer" not in r.stdout, "the transfer is paid for"
     assert "even_out" not in r.stdout
 
@@ -66,7 +67,7 @@ def test_skin_of_the_samples_for_a_run_without_a_measured_map():
 
 def test_dry_says_where_the_ceiling_stops_it(tmp_path):
     r = dry(str(before_the_grid("s3-mauve-smoky", tmp_path / "s3")), "--max-units", "25")
-    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 48 units" in r.stdout
+    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 37 units" in r.stdout
 
 
 def test_dry_without_pins_says_it_cannot_plan(tmp_path):
@@ -132,21 +133,21 @@ def test_the_base_render_of_a_sample_is_the_approved_request(script, monkeypatch
     sd = before_the_grid(sample, tmp_path / sample)
     assert _record(script, monkeypatch, sd, 1) == 4
     want = json.loads((ROOT / "tests" / "fixtures" / "approved_looks.json").read_text())[group]["softglam"]
-    for e in want:
-        if e["category"] == "foundation":
-            e["palettes"][0]["colorIntensity"] = 40
     assert rcp.canonical(FakeClient.bodies[0]["effects"]) == rcp.canonical(want)
     assert FakeClient.bodies[0]["src_file_id"] == f"file-{src}"
 
 
-def test_the_classic_red_sample_is_the_soft_glam_with_a_ruby_lip(script, monkeypatch, tmp_path):
+def test_the_classic_red_sample_is_the_soft_glam_with_a_ruby_lip_and_the_red_liner(script, monkeypatch, tmp_path):
     sd = before_the_grid("s2-classic-red", tmp_path / "s2-classic-red")
     assert _record(script, monkeypatch, sd, 1) == 4
-    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam", SKIN["light"]))
+    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam", "#e4b29c"))
     got = FakeClient.bodies[0]["effects"]
-    lips = next(e for e in got if e["category"] == "lip_color")
-    assert lips["palettes"][0]["color"] == "#B0102E"
-    assert [e for e in got if e["category"] != "lip_color"] == [e for e in want if e["category"] != "lip_color"]
+    by = {e["category"]: e for e in got}
+    assert by["lip_color"]["palettes"][0]["color"] == "#B0102E"
+    liner = by["lip_liner"]["palettes"][0]
+    assert liner["color"] == "#8E0F1A" and liner["colorIntensity"] == 45
+    rest = ("lip_color", "lip_liner")
+    assert [e for e in got if e["category"] not in rest] == [e for e in want if e["category"] not in rest]
 
 
 def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, monkeypatch, tmp_path):
@@ -172,14 +173,14 @@ def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, mon
     assert not old.exists() and not (sd / "fixtures" / "render__old.json").exists(), "old files go with their steps"
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 48, "the second run only pays for what the first one did not record"
+    assert _spent() == 37, "the second run only pays for what the first one did not record"
     assert FakeClient.tasks.count("mu-transfer") == 0 and FakeClient.tasks.count("hair-transfer") == 1
     assert (sd / "results" / "mu_transfer.jpg").read_bytes() == old_transfer
     keys = set(ReplayEngine(sd).recorded_render_keys())
     assert keys == {"base", *(rcp.edit_key(e) for e in rcp.record_grid(base))}
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 48, "a finished grid spends nothing"
+    assert _spent() == 37, "a finished grid spends nothing"
 
 
 def test_a_changed_shade_is_recorded_again_alone(script, monkeypatch, tmp_path):
@@ -198,5 +199,5 @@ def test_a_hair_first_sample_keeps_its_transfer_hair_and_even_out(script, monkey
     sd = before_the_grid("s0-champagne-rose", tmp_path / "s0-champagne-rose")
     kept = {n: (sd / "results" / n).read_bytes() for n in ("hair_transfer.jpg", "mu_transfer.jpg")}
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 45
+    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 37
     assert {n: (sd / "results" / n).read_bytes() for n in kept} == kept

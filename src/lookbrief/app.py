@@ -37,7 +37,7 @@ LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-v
 
 class EditIn(BaseModel):
     zone: str | None = None  # a zone, or "look" for the look buttons
-    op: str | None = None  # softer | bolder | shade:<id> | finish:<texture>; zone "look": fresh | softglam | evening
+    op: str | None = None  # softer | bolder | shade:<id>; zone "look": fresh | softglam | evening
     action: str = "add"  # add | undo | reset
 
 
@@ -212,7 +212,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
                                                 "checks", "order", "even_out", "map_reference", "views")})
-            out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z]} for z in zs]}
+            out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z],
+                                                              "style": z in palettes.STYLE_ZONES} for z in zs]}
                                   for label, zs in palettes.ZONE_GROUPS]
             if sess["mode"] == "replay":
                 out["edit_options"] = pipeline.edit_options(st, replay_keys(sess))
@@ -508,12 +509,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         review_zones = [z["zone"] for z in zones]
         if "hair" in st["images"] or st.get("order") == "hair_first":
             review_zones.append("hair")
+        concealer = palettes.concealer_hex(st["recipe"]["skin_hex"])
+        skin_name, skin_palette, skin_coverage = "Concealer a touch lighter than her skin", [concealer], None
         if st.get("even_out") and "even" in st["images"]:
             ev = st["even_out"]
-            zones.append({"zone": "skin", "label": "Skin", "shade_name": "Foundation in her own shade",
-                          "palette": [ev["skin_hex"]], "texture": "", "product_hex": ev["skin_hex"],
-                          "intensity": ev["coverage"], "on_face_hex": None, "coverage": None})
-            review_zones.append("skin")
+            skin_name, skin_palette = "Foundation in her own shade, concealer a touch lighter", [ev["skin_hex"], concealer]
+            skin_coverage = ev["coverage"]
+        zones.append({"zone": "skin", "label": "Skin", "shade_name": skin_name, "palette": skin_palette, "texture": "",
+                      "product_hex": skin_palette[0], "intensity": skin_coverage, "on_face_hex": None, "coverage": None})
+        review_zones.append("skin")
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),
             "images": images, "target": st["views"]["after"], "before": st["views"]["before"],

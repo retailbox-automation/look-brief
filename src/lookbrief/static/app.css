@@ -166,9 +166,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .chip { font: 14px/1.2 var(--sans); color: var(--ink); background: #f4eee9; border: 1px solid #e6ded6; border-radius: 999px; padding: 6px 8px; min-height: 44px; cursor: pointer; }
 .chip:hover:not(:disabled):not([aria-pressed=true]) { border-color: var(--line-2); background: #efe7e0; }
 .chip[aria-pressed=true] { background: var(--rose); border-color: var(--rose); color: #fff; cursor: default; }
-.finish { display: grid; grid-template-columns: auto repeat(3, 1fr); align-items: center; gap: 6px; margin-top: 10px; }
-.finish-name { padding-right: 4px; font-size: 13.5px; color: var(--ink-2); }
-.finish .chip { min-width: 0; padding: 6px 2px; font-size: 13px; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 7px; margin-top: 12px; }
 .edit-msg { font-size: .85rem; color: var(--ink-2); margin-top: 8px; }
 .edit-msg:empty { margin: 0; }
 .edit-tools { margin: 2px 0 0; display: flex; gap: 14px; flex-wrap: wrap; }

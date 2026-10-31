@@ -267,7 +267,7 @@ TOUCH_JS = """() => {
   const small = [...document.querySelectorAll('.look-btn, .tab, .circle, .chip')]
     .filter((b) => { const r = b.getBoundingClientRect(); return r.width > 0 && (r.height < 44 || r.width < 44); })
     .map((b) => [b.textContent, b.getBoundingClientRect().width, b.getBoundingClientRect().height]);
-  const cut = [...document.querySelectorAll('.look-btn, .tab, .chip, .circle-name, .finish-name')]
+  const cut = [...document.querySelectorAll('.look-btn, .tab, .chip, .circle-name')]
     .filter((b) => b.getClientRects().length && b.scrollWidth > b.clientWidth + 1).map((b) => b.textContent);
   return {small, cut, overflow: document.documentElement.scrollWidth - innerWidth};
 }"""

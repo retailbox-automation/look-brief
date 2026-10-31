@@ -23,6 +23,7 @@ REQUIRED = {
     "highlighter": ("color", "glowIntensity", "shimmerIntensity", "shimmerDensity", "shimmerSize", "colorIntensity"),
     "lip_color": ("color", "texture", "colorIntensity"),
     "lip_liner": ("color", "texture", "colorIntensity", "thickness", "smoothness"),
+    "concealer": ("color", "colorIntensity", "colorUnderEyeIntensity", "coverageLevel"),
 }
 TEXTURES = {"eye_shadow": {"matte", "shimmer", "metallic"}, "eye_liner": {"matte", "shimmer", "metallic"},
             "eyebrows": {"matte", "shimmer"}, "blush": {"matte", "satin", "shimmer"},
@@ -51,15 +52,16 @@ def _recipes(group):
         for z in r["zones"]:
             for s in palettes.circles(group, z):
                 yield rcp.apply_edit(r, z, f"shade:{s.id}")
+        for z in palettes.STEP_ZONES:
             for op in rcp.EDIT_OPS:
                 if not rcp.blocked(r, z, op):
                     yield rcp.apply_edit(r, z, op)
-            for t in rcp.FINISHES.get(z, ()):
-                yield rcp.apply_edit(r, z, f"finish:{t}")
 
 
 def _distance(r, zone):
-    return [hex_delta_e2000(c, r["skin_hex"]) for c in r["zones"][zone]["palette"]]
+    z = r["zones"][zone]
+    main = palettes.shade(r["group"], zone, z["shade_id"]).main
+    return hex_delta_e2000(main, r["skin_hex"])
 
 
 def test_recipe_v2_describes_every_zone():
@@ -70,7 +72,8 @@ def test_recipe_v2_describes_every_zone():
     assert {"category", "shade_id", "shade_name", "palette", "texture", "pattern", "intensity"} <= set(lips)
     assert lips["shade_id"] == "dusty-rose" and lips["palette"] == ["#B96F78"] and lips["texture"] == "satin"
     assert lips["pattern"] == "original" and lips["intensity"] == 68
-    assert r["zones"]["eyes"]["palette"] == ["#C98F7E", "#5C342A"]
+    assert r["zones"]["eyes"]["palette"] == ["#EAD0BC", "#C98F7E", "#5C342A"]
+    assert r["zones"]["eyes"]["pattern"] == "3colors1" and r["zones"]["eyes"]["intensity"] == 85
 
 
 def test_the_old_colour_formula_and_strength_steps_are_gone():
@@ -80,6 +83,7 @@ def test_the_old_colour_formula_and_strength_steps_are_gone():
     assert not hasattr(palettes, "RANGES") and not hasattr(palettes, "INTENSITY_STEP")
     assert rcp.EDIT_OPS == ("softer", "bolder"), "Lighter and Deeper are gone"
     assert not {"lightest", "deepest"} & set(rcp.BLOCK_NOTES)
+    assert not hasattr(rcp, "FINISHES") and not hasattr(rcp, "FINISH_PREFIX"), "Finish is gone: gloss is a circle"
 
 
 def test_pinned_recipe_is_the_look_itself():
@@ -91,9 +95,22 @@ def test_pin_overrides_a_shade_and_keeps_the_look():
     plain = _look()
     assert r["zones"]["lips"]["palette"] == ["#B0102E"] and r["zones"]["lips"]["texture"] == "matte"
     assert r["zones"]["lips"]["intensity"] == plain["zones"]["lips"]["intensity"]
-    r["zones"].pop("lips")
-    plain["zones"].pop("lips")
+    for recipe in (r, plain):
+        recipe["zones"].pop("lips")
+        recipe["zones"].pop("lip_line")
     assert r["zones"] == plain["zones"]
+
+
+def test_a_ruby_lip_takes_the_red_liner_under_it():
+    r = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
+    assert r["zones"]["lip_line"]["palette"] == ["#8E0F1A"] and r["zones"]["lip_line"]["intensity"] == 45
+    effects = {e["category"]: e for e in rcp.to_vto_effects(r)}
+    assert effects["lip_liner"]["palettes"][0]["color"] == "#8E0F1A"
+
+
+def test_an_explicit_lip_liner_wins_over_the_one_under_ruby():
+    r = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby", "lip_line": "defined"})
+    assert r["zones"]["lip_line"]["shade_id"] == "defined"
 
 
 def test_a_pin_outside_the_ladder_is_refused():
@@ -104,7 +121,7 @@ def test_a_pin_outside_the_ladder_is_refused():
 def test_the_inspiration_picks_the_colour_family_from_the_ladder():
     assert rcp.base_recipe(_map(lips="#a52b2d"), "light", SKIN["light"])["zones"]["lips"]["shade_id"] == "ruby"
     assert rcp.base_recipe(_map(lips="#d98f9f"), "light", SKIN["light"])["zones"]["lips"]["shade_id"] != "ruby"
-    assert rcp.base_recipe(_map(lips="#a03070"), "light", SKIN["light"])["zones"]["lips"]["shade_id"] == "orchid-berry"
+    assert rcp.base_recipe(_map(lips="#a83050"), "light", SKIN["light"])["zones"]["lips"]["shade_id"] == "raspberry"
 
 
 def test_cheeks_and_lids_follow_the_inspiration_too():
@@ -139,9 +156,7 @@ def test_unknown_group_or_look_is_refused():
 @pytest.mark.parametrize("group", palettes.GROUPS)
 def test_softer_goes_closer_to_her_skin_and_bolder_further(group):
     base = _look(group)
-    for zone in base["zones"]:
-        if base["zones"][zone]["shade_id"] == palettes.NONE_ID:
-            continue
+    for zone in palettes.STEP_ZONES:
         d0 = _distance(base, zone)
         if not rcp.blocked(base, zone, "softer"):
             assert _distance(rcp.apply_edit(base, zone, "softer"), zone) < d0, (group, zone)
@@ -151,30 +166,20 @@ def test_softer_goes_closer_to_her_skin_and_bolder_further(group):
 
 def test_softer_and_bolder_are_the_next_shades_of_her_order_within_the_family():
     base = _look()
-    start = base["zones"]["lips"]["shade_id"]
+    start = palettes.shade("light", "lips", base["zones"]["lips"]["shade_id"])
     order = palettes.skin_order("light", "lips", SKIN["light"])
-    i = [s.id for s in order].index(start)
-    family = [palettes.same_family(order[i].colors[0], s.colors[0]) for s in order]
-    softer = next(order[j].id for j in range(i - 1, -1, -1) if family[j])
-    bolder = next(order[j].id for j in range(i + 1, len(order)) if family[j])
+    i = order.index(start)
+    fits = [s.main != start.main and palettes.same_family(start.main, s.main) for s in order]
+    softer = next(order[j].id for j in range(i - 1, -1, -1) if fits[j])
+    bolder = next(order[j].id for j in range(i + 1, len(order)) if fits[j])
     assert rcp.resolve_edit(base, "lips", "softer") == ["lips", f"shade:{softer}"]
     assert rcp.resolve_edit(base, "lips", "bolder") == ["lips", f"shade:{bolder}"]
 
 
-def test_berry_rose_on_s3_does_not_lead_to_fuchsia():
-    base = _look("deep")
-    assert base["zones"]["lips"]["shade_id"] == "berry-rose"
-    assert palettes.skin_order("deep", "lips", SKIN["deep"])[3].id == "fuchsia", "the raw order would land on it"
-    assert rcp.apply_edit(base, "lips", "softer")["zones"]["lips"]["shade_id"] != "fuchsia"
-    assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "fuchsia"
-
-
-def test_dusty_rose_on_s0_does_not_lead_to_candy_pink():
+def test_a_step_never_lands_on_the_same_colour_with_another_finish():
     base = _look()
-    assert base["zones"]["lips"]["shade_id"] == "dusty-rose"
-    order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
-    assert order[order.index("dusty-rose") + 1] == "candy-pink", "the raw order would land on it"
-    assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "candy-pink"
+    assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "rose-gloss"
+    assert rcp.apply_edit(base, "lips", "softer")["zones"]["lips"]["shade_id"] != "rose-gloss"
 
 
 @pytest.mark.parametrize(("a", "b", "same"), [
@@ -196,13 +201,13 @@ def test_a_hue_across_zero_is_measured_the_short_way():
 
 def test_no_family_shade_on_the_way_turns_the_button_off():
     r = _look()
-    r["zones"]["lips"].update(shade_id="ruby", shade_name="Ruby", palette=["#B0102E"])
-    order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
-    assert order[-1] == "orchid-berry" and order[-2] == "ruby"
-    assert not palettes.same_family("#B0102E", "#A32A6B"), "precondition: the farther shade is another family"
-    assert rcp.blocked(r, "lips", "bolder") == "boldest"
+    order = palettes.skin_order("light", "lips", SKIN["light"])
+    cut = next(s for s in order[:-1] if palettes.step_from("light", "lips", SKIN["light"], s.id, "bolder") is None)
+    assert order.index(cut) < len(order) - 1, "precondition: farther shades exist, of other families"
+    edge = rcp.apply_edit(r, "lips", f"shade:{cut.id}")
+    assert rcp.blocked(edge, "lips", "bolder") == "boldest"
     with pytest.raises(ValueError):
-        rcp.apply_edit(r, "lips", "bolder")
+        rcp.apply_edit(edge, "lips", "bolder")
 
 
 def test_the_order_is_her_skin_not_a_fixed_one():
@@ -213,10 +218,8 @@ def test_the_order_is_her_skin_not_a_fixed_one():
 
 def test_lids_are_ordered_by_the_lid_colour_and_the_crease_breaks_a_tie():
     order = palettes.skin_order("light", "eyes", SKIN["light"])
-    d = [hex_delta_e2000(s.colors[0], SKIN["light"]) for s in order]
+    d = [hex_delta_e2000(s.main, SKIN["light"]) for s in order]
     assert d == sorted(d)
-    deep = [s.id for s in palettes.skin_order("deep", "eyes", SKIN["deep"])]
-    assert deep.index("bronze-smoke") < deep.index("bronze-night"), "one lid colour, a deeper crease is further"
 
 
 def test_softer_is_the_same_render_as_tapping_that_circle():
@@ -235,9 +238,11 @@ def test_softer_and_bolder_leave_the_other_zones_alone():
     assert base == _look(), "no mutation"
 
 
-def test_softer_and_bolder_keep_the_strength_of_a_zone_without_a_strength_of_its_own():
+def test_a_lip_step_keeps_the_strength_of_the_look_and_a_blush_step_brings_its_own():
     base = _look()
     assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["intensity"] == base["zones"]["lips"]["intensity"]
+    target = rcp.apply_edit(base, "cheeks", "bolder")["zones"]["cheeks"]
+    assert target["intensity"] == palettes.shade("light", "cheeks", target["shade_id"]).intensity
 
 
 def test_the_ends_of_the_order_block_the_step():
@@ -245,8 +250,8 @@ def test_the_ends_of_the_order_block_the_step():
     order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
     nearest = rcp.apply_edit(base, "lips", f"shade:{order[0]}")
     farthest = rcp.apply_edit(base, "lips", f"shade:{order[-1]}")
-    assert rcp.blocked(nearest, "lips", "softer") == "softest" and rcp.blocked(nearest, "lips", "bolder") is None
-    assert rcp.blocked(farthest, "lips", "bolder") == "boldest" and rcp.blocked(farthest, "lips", "softer") is None
+    assert rcp.blocked(nearest, "lips", "softer") == "softest"
+    assert rcp.blocked(farthest, "lips", "bolder") == "boldest"
     with pytest.raises(ValueError):
         rcp.apply_edit(nearest, "lips", "softer")
 
@@ -258,105 +263,55 @@ def test_the_steps_next_to_the_ends_still_work():
     assert rcp.apply_edit(second, "cheeks", "softer")["zones"]["cheeks"]["shade_id"] == order[0]
 
 
-def test_a_zone_without_makeup_has_nothing_to_soften_and_bolder_starts_at_the_nearest_shade():
-    base = rcp.apply_edit(_look(), "bronzer", "shade:none")
-    assert rcp.blocked(base, "bronzer", "softer") == "softest"
-    nearest = palettes.skin_order("light", "bronzer", SKIN["light"])[0].id
-    assert rcp.resolve_edit(base, "bronzer", "bolder") == ["bronzer", f"shade:{nearest}"]
+@pytest.mark.parametrize("zone", ["liner", "lashes", "brows", "bronzer", "highlight", "lip_line"])
+def test_thin_zones_have_no_softer_or_bolder(zone):
+    with pytest.raises(ValueError):
+        rcp.apply_edit(_look(), zone, "softer")
 
 
-def test_softer_never_removes_a_product():
-    base = _look()
-    nearest = palettes.skin_order("light", "bronzer", SKIN["light"])[0].id
-    r = rcp.apply_edit(base, "bronzer", f"shade:{nearest}")
-    assert rcp.blocked(r, "bronzer", "softer") == "softest"
+def test_softer_and_bolder_start_from_a_look_of_its_own_shade():
+    r = _look("light", "evening")
+    assert r["zones"]["eyes"]["shade_id"] == "copper-umber", "a shade only the look wears"
+    target = rcp.apply_edit(r, "eyes", "softer")["zones"]["eyes"]["shade_id"]
+    assert target in {s.id for s in palettes.ladder("light", "eyes")}
 
 
-# ---------------- thin zones: shades with a strength of their own, a circle without the product ----------------
-@pytest.mark.parametrize("zone", ["bronzer", "highlight", "liner", "lip_line"])
-def test_a_thin_zone_can_be_left_out_of_the_request(zone):
-    base = _look()
-    out = rcp.apply_edit(base, zone, "shade:none")
+def test_a_shade_only_a_look_wears_cannot_be_picked():
+    with pytest.raises(ValueError):
+        rcp.apply_edit(_look(), "eyes", "shade:copper-umber")
+
+
+# ---------------- thin zones: styles with their own pattern and strength, "none" where it shows ----------------
+@pytest.mark.parametrize("zone", ["highlight", "liner", "lip_line"])
+def test_a_product_can_be_left_out_of_the_request(zone):
+    out = rcp.apply_edit(_look(), zone, "shade:none")
     assert out["zones"][zone]["shade_id"] == "none" and out["zones"][zone]["palette"] == []
     cats = [e["category"] for e in rcp.to_vto_effects(out)]
-    assert palettes.ZONES[zone] not in cats and len(cats) == 9, "skin_smooth + eight zones"
+    assert palettes.ZONES[zone] not in cats and len(cats) == 10, "skin_smooth, concealer, eight zones"
     assert zone not in [x["zone"] for x in rcp.shade_list(out, _map())], "the artist has nothing to bring"
 
 
-@pytest.mark.parametrize("zone", ["eyes", "lips", "cheeks", "brows", "lashes"])
+@pytest.mark.parametrize("zone", ["eyes", "lips", "cheeks", "brows", "lashes", "bronzer"])
 def test_other_zones_cannot_be_left_out(zone):
     with pytest.raises(ValueError):
         rcp.apply_edit(_look(), zone, "shade:none")
 
 
-def test_a_thin_zone_step_brings_its_own_strength():
-    base = _look()
-    step = next(s for s in palettes.ladder("light", "bronzer") if s.id != base["zones"]["bronzer"]["shade_id"])
-    out = rcp.apply_edit(base, "bronzer", f"shade:{step.id}")
-    assert out["zones"]["bronzer"]["intensity"] == step.intensity != base["zones"]["bronzer"]["intensity"]
+def test_a_style_brings_its_own_pattern_and_strength():
+    z = rcp.apply_edit(_look(), "liner", "shade:smudge")["zones"]["liner"]
+    assert z["pattern"] == "Upper283" and z["intensity"] == 72 and z["palette"] == ["#3A2A24"]
+    lashes = rcp.apply_edit(_look(), "lashes", "shade:wispy")["zones"]["lashes"]
+    assert lashes["pattern"] == "Wispies37" and lashes["intensity"] == 82 and lashes["palette"] == ["#17110f"]
 
 
-def test_back_from_none_the_zone_gets_the_strength_of_the_shade():
-    base = rcp.apply_edit(_look(), "bronzer", "shade:none")
-    step = palettes.ladder("light", "bronzer")[0]
-    assert rcp.apply_edit(base, "bronzer", f"shade:{step.id}")["zones"]["bronzer"]["intensity"] == step.intensity
+def test_a_look_keeps_its_own_strength_on_a_shared_style():
+    assert _look("light", "evening")["zones"]["liner"]["intensity"] == 70, "wing at 75 as a choice, 70 in the look"
 
 
 def test_light_fresh_shows_nine_zones_and_sends_no_lip_liner_as_approved():
     r = _look("light", "fresh")
     assert len(r["zones"]) == 9 and r["zones"]["lip_line"]["shade_id"] == "none"
     assert "lip_liner" not in [e["category"] for e in rcp.to_vto_effects(r)]
-
-
-# ---------------- finish ----------------
-def test_finish_list():
-    assert rcp.FINISHES == {"lips": ("matte", "satin", "gloss"), "eyes": ("matte", "shimmer", "metallic")}
-
-
-def test_gloss_lips_follow_the_schema():
-    lips = next(e for e in rcp.to_vto_effects(rcp.apply_edit(_look(), "lips", "finish:gloss"))
-                if e["category"] == "lip_color")
-    assert lips["palettes"] == [{"color": "#B96F78", "texture": "gloss", "colorIntensity": 68, "gloss": 50,
-                                 "transparencyIntensity": 30}]
-
-
-def test_matte_lips_carry_no_gloss_fields():
-    lips = next(e for e in rcp.to_vto_effects(rcp.apply_edit(_look(), "lips", "finish:matte"))
-                if e["category"] == "lip_color")
-    assert lips["palettes"] == [{"color": "#B96F78", "texture": "matte", "colorIntensity": 68}]
-
-
-def test_metallic_lids_follow_the_schema():
-    eyes = rcp.to_vto_effects(rcp.apply_edit(_look(), "eyes", "finish:metallic"))[1]
-    assert eyes["palettes"][0] == {"color": "#C98F7E", "texture": "metallic", "shimmerColor": "#C98F7E",
-                                   "shimmerIntensity": 60, "metallicIntensity": 60, "colorIntensity": 80}
-    assert eyes["palettes"][1] == {"color": "#5C342A", "texture": "matte", "colorIntensity": 78}
-
-
-def test_matte_lids_send_no_shimmer():
-    eyes = rcp.to_vto_effects(rcp.apply_edit(_look(), "eyes", "finish:matte"))[1]
-    assert all(p["texture"] == "matte" and "shimmerIntensity" not in p for p in eyes["palettes"])
-
-
-def test_finish_keeps_the_shade_and_the_strength():
-    base = _look()
-    z = rcp.apply_edit(base, "lips", "finish:gloss")["zones"]["lips"]
-    assert z == {**base["zones"]["lips"], "texture": "gloss"}
-
-
-def test_the_current_finish_is_not_a_change():
-    base = _look()
-    assert rcp.blocked(base, "lips", "finish:satin") == "current"
-    assert rcp.blocked(base, "eyes", "finish:shimmer") == "current"
-    assert rcp.blocked(base, "lips", "finish:gloss") is None
-
-
-@pytest.mark.parametrize(("zone", "op"), [
-    ("lips", "finish:metallic"), ("eyes", "finish:gloss"), ("cheeks", "finish:matte"), ("lips", "finish:"),
-    ("look", "finish:matte")])
-def test_a_finish_outside_the_list_is_refused(zone, op):
-    with pytest.raises(ValueError):
-        rcp.blocked(_look(), zone, op)
 
 
 # ---------------- edits as a list ----------------
@@ -374,7 +329,7 @@ def test_a_look_replaces_the_whole_recipe():
 @pytest.mark.parametrize(("zone", "op"), [
     ("nose", "softer"), ("lips", "glossier"), ("lips", "lighter"), ("lips", "deeper"), ("lips", "shade:no-such-shade"),
     ("lips", "shade:"), ("look", "party"), (None, "softer"), ("lips", None), ("lips", "shade:../../etc/passwd"),
-    ("look", "shade:ruby")])
+    ("look", "shade:ruby"), ("lips", "finish:gloss")])
 def test_unknown_edits_are_rejected(zone, op):
     r = _look()
     with pytest.raises(ValueError):
@@ -385,8 +340,8 @@ def test_unknown_edits_are_rejected(zone, op):
 
 def test_edit_keys_are_stable_for_every_kind_of_edit():
     assert rcp.edit_key([]) == "base"
-    two = [["cheeks", "shade:salmon"], ["lips", "finish:gloss"]]
-    assert rcp.edit_key(two) == "cheeks:shade:salmon+lips:finish:gloss"
+    two = [["cheeks", "shade:peach"], ["lips", "shade:ruby"]]
+    assert rcp.edit_key(two) == "cheeks:shade:peach+lips:shade:ruby"
     assert rcp.edit_key([["look", "evening"]]) == "look:evening"
     r = _look()
     assert rcp.recipe_sha256(r) == rcp.recipe_sha256(json.loads(json.dumps(r)))
@@ -396,7 +351,6 @@ def test_quiet_keys_name_where_a_step_starts():
     base = _look()
     start = base["zones"]["lips"]["shade_id"]
     assert rcp.quiet_key(base, "lips", "softer") == f"lips:softer@{start}"
-    assert rcp.quiet_key(base, "lips", "finish:gloss") == "lips:finish:gloss"
     assert rcp.quiet_key(base, "lips", "shade:ruby") == "lips:shade:ruby"
 
 
@@ -413,42 +367,38 @@ def test_add_edit_back_to_the_starting_shade_drops_the_edit():
     assert rcp.add_edit(base, edits, "lips", f"shade:{base['zones']['lips']['shade_id']}") == []
 
 
-def test_add_edit_keeps_one_finish_and_a_new_shade_drops_it():
-    base = _look()
-    edits = rcp.add_edit(base, [], "lips", "finish:gloss")
-    assert edits == [["lips", "finish:gloss"]]
-    assert rcp.add_edit(base, edits, "lips", "finish:matte") == [["lips", "finish:matte"]]
-    assert rcp.add_edit(base, edits, "lips", "finish:satin") == [], "the shade's own finish is no edit"
-    assert rcp.add_edit(base, edits, "lips", "shade:ruby") == [["lips", "shade:ruby"]], "a finish belongs to its shade"
-
-
 def test_add_edit_of_a_look_clears_the_rest_and_the_base_look_means_no_edit():
     base = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
-    edits = [["cheeks", "shade:salmon"], ["lips", "shade:peach-pink"]]
+    edits = [["cheeks", "shade:peach"], ["lips", "shade:peach-pink"]]
     assert rcp.add_edit(base, edits, "look", "evening") == [["look", "evening"]]
     assert rcp.add_edit(base, [["look", "evening"]], "look", "softglam") == []
 
 
-def test_the_recorded_grid_is_every_circle_every_finish_and_two_looks():
+def test_the_recorded_grid_is_every_circle_and_style_and_two_looks():
     base = _look()
     keys = [rcp.edit_key(e) for e in rcp.record_grid(base)]
-    assert len(keys) == len(set(keys)) == 38 + 4 + 2
-    assert {"look:fresh", "look:evening", "lips:finish:gloss", "lips:finish:matte", "eyes:finish:matte",
-            "eyes:finish:metallic", "bronzer:shade:none", "liner:shade:none"} <= set(keys)
+    assert len(keys) == len(set(keys)) == 34 + 2
+    assert {"look:fresh", "look:evening", "lips:shade:rose-gloss", "eyes:shade:copper", "liner:shade:none",
+            "liner:shade:wing", "lashes:shade:wispy", "bronzer:shade:sculpted", "highlight:shade:none"} <= set(keys)
     assert f"lips:shade:{base['zones']['lips']['shade_id']}" not in keys, "the base shade is the base render"
-    assert "lips:finish:satin" not in keys and "eyes:finish:shimmer" not in keys, "the base finish is the base render"
-    assert not [k for k in keys if "softer" in k or "bolder" in k], "Softer and Bolder are renders of circles"
+    assert "bronzer:shade:none" not in keys
+    assert not [k for k in keys if "softer" in k or "bolder" in k or "finish" in k]
 
 
-def test_the_deep_grid_has_the_fourth_liner_step():
-    keys = [rcp.edit_key(e) for e in rcp.record_grid(_look("deep"))]
-    assert len(keys) == 39 + 4 + 2 and "liner:shade:bronze" in keys
+def test_the_deep_grid_has_fewer_blushes_and_lips():
+    assert len(rcp.record_grid(_look("deep"))) == 32 + 2
+
+
+def test_a_sample_with_a_liner_outside_the_ladder_records_the_natural_one_too():
+    base = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
+    keys = [rcp.edit_key(e) for e in rcp.record_grid(base)]
+    assert len(keys) == 35 + 2 and "lip_line:shade:natural" in keys
 
 
 # ---------------- the body ----------------
 def test_body_on_nine_zones_follows_the_schema():
     effects = rcp.to_vto_effects(_look("deep"))
-    assert [e["category"] for e in effects] == ["skin_smooth", *palettes.ZONES.values()]
+    assert [e["category"] for e in effects] == ["skin_smooth", "concealer", *palettes.ZONES.values()]
     assert effects[0] == {"category": "skin_smooth", "skinSmoothStrength": 0, "skinSmoothColorIntensity": 0}
     for e in effects[1:]:
         cat = e["category"]
@@ -468,6 +418,14 @@ def test_body_on_nine_zones_follows_the_schema():
     assert by["eyebrows"]["pattern"] == {"type": "color"}
     assert by["eye_shadow"]["pattern"]["name"] in DOCS["pattern_labels"]["eyeshadow"]
     assert by["blush"]["pattern"]["name"] in DOCS["pattern_labels"]["blush"]
+    assert "pattern" not in by["concealer"], "the schema has no pattern for concealer"
+
+
+def test_every_look_sends_the_concealer_under_the_tones():
+    for group in palettes.GROUPS:
+        for look in palettes.LOOK_IDS:
+            cats = [e["category"] for e in rcp.to_vto_effects(_look(group, look), {"skin_hex": SKIN[group]})]
+            assert cats[:3] == ["skin_smooth", "foundation", "concealer"], (group, look)
 
 
 def test_sheer_lips_carry_gloss_and_transparency():
@@ -476,22 +434,42 @@ def test_sheer_lips_carry_gloss_and_transparency():
                                  "transparencyIntensity": 30}]
 
 
+def test_the_gloss_circle_follows_the_schema():
+    r = rcp.apply_edit(_look(), "lips", "shade:rose-gloss")
+    lips = next(e for e in rcp.to_vto_effects(r) if e["category"] == "lip_color")
+    assert lips["palettes"] == [{"color": "#B96F78", "texture": "gloss", "colorIntensity": 68, "gloss": 22,
+                                 "transparencyIntensity": 15}]
+
+
+def test_a_metallic_lid_shade_follows_the_schema():
+    eyes = next(e for e in rcp.to_vto_effects(rcp.apply_edit(_look(), "eyes", "shade:copper"))
+                if e["category"] == "eye_shadow")
+    assert eyes["palettes"][1] == {"color": "#B56E42", "texture": "metallic", "shimmerColor": "#B56E42",
+                                   "shimmerIntensity": 60, "metallicIntensity": 60, "colorIntensity": 85}
+    assert eyes["palettes"][2] == {"color": "#4A2A1E", "texture": "matte", "colorIntensity": 85}
+
+
 def test_a_matte_lid_shade_sends_no_shimmer():
-    r = _look()
-    matte = next(s for s in palettes.ladder("light", "eyes") if s.texture == "matte")
-    eyes = rcp.to_vto_effects(rcp.apply_edit(r, "eyes", f"shade:{matte.id}"))[1]
-    assert eyes["category"] == "eye_shadow"
+    eyes = next(e for e in rcp.to_vto_effects(rcp.apply_edit(_look(), "eyes", "shade:warm-taupe"))
+                if e["category"] == "eye_shadow")
     assert all(p["texture"] == "matte" and "shimmerIntensity" not in p for p in eyes["palettes"])
+
+
+def test_a_lid_circle_from_the_fresh_look_gets_three_slots():
+    r = rcp.apply_edit(_look("light", "fresh"), "eyes", "shade:copper")
+    eyes = next(e for e in rcp.to_vto_effects(r) if e["category"] == "eye_shadow")
+    assert eyes["pattern"] == {"name": "3colors1"} and len(eyes["palettes"]) == 3
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
 def test_no_colour_outside_the_palette_on_any_step(group):
     """The palette guarantees the beauty only if no path can send a colour of its own."""
-    allowed = {z: {c for s in palettes.ladder(group, z) for c in s.colors} for z in palettes.ZONES}
+    allowed = {z: {c for s in (*palettes.ladder(group, z), *palettes.LOOK_SHADES[group].get(z, ())) for c in s.colors}
+               for z in palettes.ZONES}
     by_cat = {cat: z for z, cat in palettes.ZONES.items()}
     n = 0
     for r in _recipes(group):
-        for e in rcp.to_vto_effects(r)[1:]:
+        for e in rcp.to_vto_effects(r)[2:]:  # after smoothing and the concealer, which comes from her skin
             for p in e["palettes"]:
                 assert p["color"] in allowed[by_cat[e["category"]]], (group, e["category"], p["color"])
                 n += 1
@@ -502,7 +480,7 @@ def test_even_out_foundation_rides_under_the_recipe():
     r = _look()
     assert "foundation" not in [x["category"] for x in rcp.to_vto_effects(r)], "transfer-first looks have no foundation"
     with_even = rcp.to_vto_effects(r, {"skin_hex": "#dfa588", "coverage": 30})
-    assert [x["category"] for x in with_even][:3] == ["skin_smooth", "foundation", "eye_shadow"]
+    assert [x["category"] for x in with_even][:4] == ["skin_smooth", "foundation", "concealer", "eye_shadow"]
     assert with_even[1] == rcp.even_out_effects("#dfa588", 30)[1], "the same foundation as the even-out step"
     assert with_even[1]["palettes"][0] == {"color": "#dfa588", "colorIntensity": 40, "glowIntensity": 20,
                                            "coverageIntensity": 30}
@@ -516,4 +494,5 @@ def test_shade_list_has_a_row_per_zone():
     assert lips["on_face_hex"] == "#a52b2d" and lips["coverage"] == 0.3 and lips["intensity"] == 68
     brows = next(x for x in rows if x["zone"] == "brows")
     assert brows["label"] == "Brows" and brows["on_face_hex"] is None and brows["coverage"] is None
-    assert next(x for x in rows if x["zone"] == "eyes")["palette"] == ["#C98F7E", "#5C342A"]
+    eyes = next(x for x in rows if x["zone"] == "eyes")
+    assert eyes["palette"] == ["#EAD0BC", "#C98F7E", "#5C342A"] and eyes["product_hex"] == "#C98F7E", "the lid colour"

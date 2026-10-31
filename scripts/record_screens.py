@@ -5,7 +5,7 @@
 
 One clip per step, phone viewport 390x844 @2x (MP4, 780x1688, 30 fps; frames from the DevTools screencast), plus a PNG per step at 1290x2796
 (430x932 @3x). Steps, all on ONE bride session: a-photos-check, b-before-after, c-zone-map, d-looks, e-shade-circle,
-e2-finish (when the sample offers a finish), f-artist-brief, g-agreed-card; plus h-samples (home page, two other
+e2-liner-style (when the sample offers it), f-artist-brief, g-agreed-card; plus h-samples (home page, two other
 looks) and h-home.png. Every frame shows real recorded YouCam results with their Replay labels.
 """
 
@@ -94,6 +94,7 @@ def pause(page, ms: int) -> None:
 
 # ---------- the seven steps, filmed in ONE session: the edit of (e) is what the artist (f) and the card (g) show ----------
 STORY_SHADE = ("Lips", "Lips: Ruby")  # the circle of (e); the most visible change on the heroine's lips
+STORY_STYLE = ("Eyeliner", "Eyeliner: Wing")  # a named style of a thin zone
 LOOKS = ("Fresh", "Evening", "Soft glam")
 
 
@@ -158,26 +159,23 @@ def step_e(page) -> None:  # a circle: ~1 s, tap, the photo comes back into view
     pause(page, 3400)
 
 
-def first_finish(page) -> dict | None:
-    """The finish the story shows: a sample's quiet list can leave none. Recorded on the base shade of a zone."""
-    sid = page.url.rsplit("/", 1)[1]
-    opts = page.evaluate(f"async () => (await (await fetch('/api/sessions/{sid}')).json()).edit_options")
-    return next((o for o in opts if o["op"].startswith("finish:") and not o["selected"]), None)
+def style_offered(page) -> bool:
+    """A sample's quiet list can hide the story's style."""
+    return page.get_by_role("button", name=STORY_STYLE[1], exact=True).count() > 0
 
 
-def prep_e2(page) -> None:  # a finish belongs to the base shade (Replay): back to it off camera
+def prep_e2(page) -> None:  # one recorded change at a time: back to her look off camera
     page.get_by_role("button", name="Undo last change").click()
     page.wait_for_selector("#edit-msg:has-text('Undone')", timeout=20_000)
     page.evaluate("window.scrollTo(0, 0)")
     pause(page, 300)
 
 
-def step_e2(page, finish: dict) -> None:  # Finish: the zone, the finish, hold the result
-    zone = {"lips": "Lips", "eyes": "Eyelids"}[finish["zone"]]
+def step_e2(page) -> None:  # a style by name: the zone, the style, hold the result
     pause(page, 800)
-    page.get_by_role("button", name=zone, exact=True).click()
+    page.get_by_role("button", name=STORY_STYLE[0], exact=True).click()
     pause(page, 700)
-    page.get_by_role("button", name=f"{zone} finish: {finish['label']}", exact=True).click()
+    page.get_by_role("button", name=STORY_STYLE[1], exact=True).click()
     page.wait_for_selector("#edit-msg:has-text('Updated')", timeout=20_000)
     pause(page, 3000)
 
@@ -274,13 +272,10 @@ def main() -> int:
                 film(look, "c-zone-map", step_c, prep_top)
                 film(look, "d-looks", step_d, prep_sheet)
                 film(look, "e-shade-circle", step_e, prep_e)
-                prep_e2(look)
-                finish = first_finish(look)
-                if finish:
-                    film(look, "e2-finish", lambda pg, f=finish: step_e2(pg, f))
-                else:  # no finish shows on this sample: the circle of (e) is the edit that goes on
-                    prep_e(look)
-                    step_e(look)
+                filmed_style = style_offered(look)
+                if filmed_style:
+                    prep_e2(look)
+                    film(look, "e2-liner-style", step_e2)
                 look.get_by_role("button", name="Send brief to my makeup artist").click()
                 look.wait_for_selector("[data-testid=artist-link][href^='/b/']", timeout=10_000)
                 artist_url = look.get_by_test_id("artist-link").get_attribute("href")
@@ -289,7 +284,7 @@ def main() -> int:
                     bride_url.split("t=")[1]
                 snap = ctx.request.get(f"{base}/api/briefs/{bid}?t={artist_t}").json()["snapshot"]
                 edits = snap.get("edits") or []
-                checks[kind] = {"edits": edits, "finish_filmed": bool(finish)}
+                checks[kind] = {"edits": edits, "style_filmed": filmed_style}
                 artist = ctx.new_page()
                 artist.goto(base + artist_url)
                 artist.wait_for_load_state("networkidle")
