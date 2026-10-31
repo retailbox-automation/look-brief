@@ -1,0 +1,31 @@
+{
+ "sample": "s3-mauve-smoky",
+ "task_id": "EograaYSAgCaC7fjJhuk_tN-mY7KFvfcEMhNKXEnHnTb46WQOMw-DWlJlfP-Bdcvd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T14:05:51Z",
+ "seconds": 6.9,
+ "units": 1,
+ "recipe": {
+  "version": 1,
+  "zones": {
+   "eyes": {
+    "category": "eye_shadow",
+    "pattern": "1color1",
+    "color": "#542f25",
+    "intensity": 100
+   },
+   "cheeks": {
+    "category": "blush",
+    "pattern": "1color1",
+    "color": "#f08e7c",
+    "intensity": 82
+   },
+   "lips": {
+    "category": "lip_color",
+    "pattern": "original",
+    "color": "#6d373c",
+    "intensity": 75
+   }
+  }
+ },
+ "image": "s3-mauve-smoky-v1-base.png"
+}

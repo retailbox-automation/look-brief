@@ -36,8 +36,11 @@ def main() -> int:
     ap.add_argument("--grid", choices=["single", "none"], default="single")
     ap.add_argument("--max-units", type=int, default=25)
     ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
-    ap.add_argument("--rerender", action="store_true",
-                    help="keep the recorded transfer and map; replace every recipe render (after a tuning change)")
+    ap.add_argument(
+        "--rerender",
+        action="store_true",
+        help="keep the recorded transfer and map; replace every recipe render (after a tuning change)",
+    )
     args = ap.parse_args()
     sd: Path = args.sample_dir
     key = youcam_key()
@@ -61,8 +64,14 @@ def main() -> int:
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
     def ledger(op: str, units: int, task_id: str, ok: bool) -> None:
-        rec = {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "sample": sd.name, "op": op,
-               "units": units, "task_id": task_id, "ok": ok}
+        rec = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "sample": sd.name,
+            "op": op,
+            "units": units,
+            "task_id": task_id,
+            "ok": ok,
+        }
         with ledger_path.open("a") as f:
             f.write(json.dumps(rec) + "\n")
         print(f"  {rec['ts']} {op} ok={ok} units={units} task={task_id}")
@@ -106,9 +115,15 @@ def main() -> int:
     (work / "state.json").write_text(json.dumps(state, indent=1))
     rec_path = sd / "recording.json"
     history = json.loads(rec_path.read_text()) if rec_path.exists() else []
-    history.append({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "credit_before": credit_before,
-                    "credit_after": credit_after, "units_spent": credit_before - credit_after,
-                    "photo_check": checks})
+    history.append(
+        {
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "credit_before": credit_before,
+            "credit_after": credit_after,
+            "units_spent": credit_before - credit_after,
+            "photo_check": checks,
+        }
+    )
     rec_path.write_text(json.dumps(history, indent=1))
     print(f"credit after: {credit_after} (spent {credit_before - credit_after})")
     print(json.dumps({"gaps": state["gaps"], "skin_control_de": state["map"]["skin_control_de"]}, indent=1))

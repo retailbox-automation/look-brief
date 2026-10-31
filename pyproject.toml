@@ -54,3 +54,6 @@ markers = ["e2e: browser smoke tests (Playwright)"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Query", "fastapi.Depends"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]  # report text templates

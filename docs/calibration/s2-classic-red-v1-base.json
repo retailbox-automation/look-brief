@@ -1,0 +1,31 @@
+{
+ "sample": "s2-classic-red",
+ "task_id": "CKSN2c5IdW1rvgKx_AmQBbcGo-M_5_DctMtV2xrEsC_5CYcZZOrRpzM8qMHPTX9ud-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T14:05:43Z",
+ "seconds": 6.7,
+ "units": 1,
+ "recipe": {
+  "version": 1,
+  "zones": {
+   "eyes": {
+    "category": "eye_shadow",
+    "pattern": "1color1",
+    "color": "#855745",
+    "intensity": 86
+   },
+   "cheeks": {
+    "category": "blush",
+    "pattern": "1color1",
+    "color": "#f4938f",
+    "intensity": 82
+   },
+   "lips": {
+    "category": "lip_color",
+    "pattern": "original",
+    "color": "#a31c25",
+    "intensity": 90
+   }
+  }
+ },
+ "image": "s2-classic-red-v1-base.png"
+}

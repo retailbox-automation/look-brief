@@ -1,0 +1,91 @@
+{
+ "source": "first recording pass 2026-10-31 13:23-13:30Z (dev-local analysis render_rows.json), v1 tuning",
+ "first_pass_gaps_de2000": {
+  "s1-soft-glam": {
+   "eyes": 2.84,
+   "cheeks": 2.17,
+   "lips": 6.95
+  },
+  "s2-classic-red": {
+   "eyes": 4.47,
+   "cheeks": 2.64,
+   "lips": 6.09
+  },
+  "s3-mauve-smoky": {
+   "eyes": 1.55,
+   "cheeks": 2.19,
+   "lips": 4.77
+  }
+ },
+ "recipes": {
+  "s1-soft-glam": {
+   "version": 1,
+   "zones": {
+    "eyes": {
+     "category": "eye_shadow",
+     "pattern": "1color1",
+     "color": "#7b503d",
+     "intensity": 100
+    },
+    "cheeks": {
+     "category": "blush",
+     "pattern": "1color1",
+     "color": "#fa9984",
+     "intensity": 80
+    },
+    "lips": {
+     "category": "lip_color",
+     "pattern": "original",
+     "color": "#b96a56",
+     "intensity": 61
+    }
+   }
+  },
+  "s2-classic-red": {
+   "version": 1,
+   "zones": {
+    "eyes": {
+     "category": "eye_shadow",
+     "pattern": "1color1",
+     "color": "#855745",
+     "intensity": 86
+    },
+    "cheeks": {
+     "category": "blush",
+     "pattern": "1color1",
+     "color": "#f4938f",
+     "intensity": 82
+    },
+    "lips": {
+     "category": "lip_color",
+     "pattern": "original",
+     "color": "#a31c25",
+     "intensity": 90
+    }
+   }
+  },
+  "s3-mauve-smoky": {
+   "version": 1,
+   "zones": {
+    "eyes": {
+     "category": "eye_shadow",
+     "pattern": "1color1",
+     "color": "#542f25",
+     "intensity": 100
+    },
+    "cheeks": {
+     "category": "blush",
+     "pattern": "1color1",
+     "color": "#f08e7c",
+     "intensity": 82
+    },
+    "lips": {
+     "category": "lip_color",
+     "pattern": "original",
+     "color": "#6d373c",
+     "intensity": 75
+    }
+   }
+  }
+ }
+}

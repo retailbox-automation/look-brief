@@ -1,0 +1,31 @@
+{
+ "sample": "s1-soft-glam",
+ "task_id": "qdK4IiaroopX9gAxzl3hBU_bNPxdmZSH4f8brXfe4iyEDpG5s11kPzeKDPN3vF4gd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T14:05:35Z",
+ "seconds": 6.6,
+ "units": 1,
+ "recipe": {
+  "version": 1,
+  "zones": {
+   "eyes": {
+    "category": "eye_shadow",
+    "pattern": "1color1",
+    "color": "#7b503d",
+    "intensity": 100
+   },
+   "cheeks": {
+    "category": "blush",
+    "pattern": "1color1",
+    "color": "#fa9984",
+    "intensity": 80
+   },
+   "lips": {
+    "category": "lip_color",
+    "pattern": "original",
+    "color": "#b96a56",
+    "intensity": 61
+   }
+  }
+ },
+ "image": "s1-soft-glam-v1-base.png"
+}
