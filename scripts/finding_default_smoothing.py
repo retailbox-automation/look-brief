@@ -16,7 +16,6 @@ import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
 from lookbrief import landmarks, makeup_map  # noqa: E402
-from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief.color import delta_e76, srgb_to_lab  # noqa: E402
 from lookbrief.config import youcam_key  # noqa: E402
 from lookbrief.engine import image_ext  # noqa: E402
@@ -35,8 +34,8 @@ def forehead_de(bare: np.ndarray, img_path: Path, face, size) -> float:
 def main() -> int:
     sd = ROOT / "samples" / SID
     mf = json.loads((sd / "manifest.json").read_text())
-    recipe = mf["steps"]["render:base"]["recipe"]
-    effects = [e for e in rcp.to_vto_effects(recipe) if e["category"] != "skin_smooth"]
+    sent = json.loads((sd / "fixtures" / "render__base.json").read_text())["request_without_file_ids"]["effects"]
+    effects = [e for e in sent if e["category"] != "skin_smooth"]
     out_img = next(OUT.glob(f"{SID}-default-smoothing.*"), None)
     if out_img is None:
         client = YouCamClient(youcam_key(), call_log=ROOT / "data" / "youcam-calls.jsonl")

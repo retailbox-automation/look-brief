@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Record a Replay sample from real YouCam API calls.
 
-    uv run python scripts/record_sample.py samples/<id> [--grid single|none] [--max-units 25]
+    uv run python scripts/record_sample.py samples/<id> [--grid palette|none] [--max-units 25] [--dry]
 
-The folder must contain bride.jpg and inspiration.jpg (rights-cleared: our own or generated faces).
-Runs: photo check -> Makeup Transfer -> Hair Transfer -> makeup map -> base re-render -> (optional)
-one re-render per single-zone edit. Writes results/, fixtures/ (signed URLs redacted, no file ids)
-and manifest.json. Credit is read before and after and saved in recording.json.
+The folder must contain bride.jpg and inspiration.jpg (rights-cleared: our own or generated faces); `recipe_pins` in
+sample.json pin the recipe to an approved look. Runs: photo check -> Makeup Transfer -> makeup map -> base render ->
+Hair Transfer (before the transfer in a hair-first sample, on the base render otherwise) -> the grid: every shade of
+every zone, Softer and Bolder where they are not on the edge, the other looks.
+
+What the sample already holds is kept and costs nothing: a transfer, a hair-first Hair Transfer, the even-out, any
+render with the same recipe. A render made under an older rule or palette is dropped. A run stopped by --max-units
+(exit code 4) resumes where it stopped. Writes results/, fixtures/ (signed URLs redacted, no file ids) and manifest.json.
+Credit is read before and after and saved in recording.json. --dry prints the paid steps and spends nothing, no key.
 Key: env YOUCAM_API_KEY, or LOOKBRIEF_KEYCHAIN=1 on macOS. Units are spent only on success.
 """
 
@@ -22,35 +27,75 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lookbrief import photo_check, pipeline, visibility  # noqa: E402
+from lookbrief import photo_check, pipeline  # noqa: E402
 from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief.config import youcam_key  # noqa: E402
-from lookbrief.engine import LiveEngine, Recorder, SessionCtx, StepMeta, StepResult  # noqa: E402
-from lookbrief.makeup_map import MakeupMap  # noqa: E402
+from lookbrief.engine import BudgetReached, GridEngine, Recorder, SessionCtx, hair_label  # noqa: E402
 from lookbrief.youcam import UNITS, YouCamClient  # noqa: E402
+
+VTO = UNITS["makeup-vto"]
+
+
+def wanted_renders(base: dict, grid: str) -> dict[str, dict]:
+    """Render step -> the recipe it must hold."""
+    edits = [[], *rcp.record_grid(base)] if grid == "palette" else [[]]
+    return {f"render:{rcp.edit_key(e)}": rcp.apply_edits(base, e) for e in edits}
+
+
+def paid_steps(steps: dict, base: dict, order: str, grid: str) -> list[tuple[str, int]]:
+    """What this run would pay for, in recording order: Hair Transfer of a transfer-first sample runs on the base render."""
+    costs = {"hair_transfer": UNITS["hair-transfer"], "mu_transfer": UNITS["mu-transfer"], "even_out": VTO}
+    first = ("hair_transfer", "mu_transfer", "even_out") if order == "hair_first" else ("mu_transfer",)
+    paid = [(k, costs[k]) for k in first if k not in steps]
+    renders = [(k, VTO) for k, recipe in wanted_renders(base, grid).items() if (steps.get(k) or {}).get("recipe") != recipe]
+    if order == "transfer_first" and (steps.get("hair_transfer") or {}).get("label") != hair_label(base):
+        at = 1 if renders[:1] == [("render:base", VTO)] else 0
+        renders.insert(at, ("hair_transfer", costs["hair_transfer"]))
+    return paid + renders
+
+
+def drop_stale_renders(recorder: Recorder, wanted: dict[str, dict]) -> None:
+    steps = recorder.manifest["steps"]
+    for key in [k for k in steps if k.startswith("render:") and steps[k].get("recipe") != wanted.get(k)]:
+        step = steps.pop(key)
+        (recorder.dir / step["image"]).unlink(missing_ok=True)
+        (recorder.dir / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
+    recorder.save()
+
+
+def dry_run(sd: Path, pins: dict | None, steps: dict, order: str, grid: str, max_units: int) -> int:
+    if not pins:
+        print("no recipe_pins in sample.json: the recipe comes from the photo, nothing to plan", file=sys.stderr)
+        return 2
+    base = rcp.base_recipe(None, pins["group"], pins["look"], pins.get("shades"))
+    paid = paid_steps(steps, base, order, grid)
+    print(f"{sd.name}: order {order}, group {base['group']}, look {base['look']}")
+    for key, units in paid:
+        print(f"  {key}  {units}")
+    total = sum(u for _, u in paid)
+    print(f"renders {sum(k.startswith('render:') for k, _ in paid)}, units {total}")
+    if total > max_units:
+        print(f"--max-units {max_units} stops it at {max_units} of {total} units")
+    return 0
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sample_dir", type=Path)
-    ap.add_argument("--grid", choices=["single", "none"], default="single")
+    ap.add_argument("--grid", choices=["palette", "none"], default="palette")
     ap.add_argument("--order", choices=["transfer_first", "hair_first"], default="transfer_first",
-                    help="hair_first: Hair Transfer on the selfie first, Makeup Transfer on that, plus the even-out step")
+                    help="for a new sample; hair_first: Hair Transfer on the selfie first, Makeup Transfer on that, "
+                         "plus the even-out step")
     ap.add_argument("--max-units", type=int, default=25)
-    ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
-    ap.add_argument("--redo-edits", action="store_true",
-                    help="with --only-edits: drop the recorded edit renders (render:base stays) and record them again "
-                         "under the current edit rule; softer is skipped where the zone is too light to soften")
-    ap.add_argument("--redo", default="", help="with --only-edits: re-record only these edits, e.g. eyes:softer,lips:bolder")
-    ap.add_argument("--reuse-transfer", type=Path, metavar="META_JSON",
-                    help="use an already paid Makeup Transfer result (JSON with task_id etc.; .jpg next to it)")
-    ap.add_argument(
-        "--rerender",
-        action="store_true",
-        help="keep the recorded transfer and map; replace every recipe render (after a tuning change)",
-    )
+    ap.add_argument("--dry", action="store_true", help="print the paid steps and their number; no key, no calls")
     args = ap.parse_args()
     sd: Path = args.sample_dir
+    meta = json.loads((sd / "sample.json").read_text()) if (sd / "sample.json").exists() else {}
+    pins = meta.get("recipe_pins")
+    manifest = json.loads((sd / "manifest.json").read_text()) if (sd / "manifest.json").exists() else {}
+    order = manifest.get("order") or (args.order if not manifest else "transfer_first")  # s2, s3 predate the field
+    if args.dry:
+        return dry_run(sd, pins, manifest.get("steps", {}), order, args.grid, args.max_units)
     key = youcam_key()
     if not key:
         print("no key: set YOUCAM_API_KEY or LOOKBRIEF_KEYCHAIN=1", file=sys.stderr)
@@ -67,9 +112,6 @@ def main() -> int:
             return 3
         jpegs[role] = photo_check.to_jpeg(img)
 
-    planned = 0 if args.only_edits else UNITS["mu-transfer"] + UNITS["hair-transfer"] + UNITS["makeup-vto"]
-    if args.order == "hair_first" and not args.only_edits:
-        planned += UNITS["makeup-vto"]  # even-out
     ledger_path = ROOT / "data" / "units-ledger.jsonl"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -88,74 +130,31 @@ def main() -> int:
 
     client = YouCamClient(key, call_log=ROOT / "data" / "youcam-calls.jsonl")
     recorder = Recorder(sd)
-    engine = LiveEngine(client, ledger=ledger, recorder=recorder)
+    engine = GridEngine(client, recorder, args.max_units, ledger=ledger)
     ctx = SessionCtx(jpegs["bride"], jpegs["inspiration"])
     work = ROOT / "data" / "record" / sd.name
     credit_before = client.credit()
     print(f"credit before: {credit_before}")
-    if args.reuse_transfer:
-        meta_in = json.loads(args.reuse_transfer.read_text())
-        img_path = args.reuse_transfer.with_suffix(".jpg")
-        reused = StepResult(img_path.read_bytes(), StepMeta("mu_transfer", "live", meta_in["task_id"], meta_in["seconds"],
-                                                            meta_in["units"], meta_in["recorded_at"]))
-
-        def reuse(ctx_: SessionCtx) -> StepResult:
-            ctx_.ids["mu_jpeg"] = reused.image
-            recorder.add("mu_transfer", reused.image, reused.meta, {"reused": str(args.reuse_transfer.name)},
-                         {"note": "recorded earlier by the same script family; see the source JSON"})
-            return reused
-
-        engine.makeup_transfer = reuse  # type: ignore[method-assign]
-        planned -= UNITS["mu-transfer"]
-    if args.rerender:
-        state = json.loads((work / "state.json").read_text())
-        if state.get("order") == "hair_first":  # re-renders run on her face with the new hair (and carry the even-out)
-            ctx.ids["base_jpeg"] = (work / state["images"]["base"]).read_bytes()
-        for key in [k for k in recorder.manifest["steps"] if k.startswith("render:")]:
-            step = recorder.manifest["steps"].pop(key)
-            (sd / step["image"]).unlink(missing_ok=True)
-            (sd / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
-        recorder.save()
-        # re-measure the map from the current reference (the evened look for hair first) before re-rendering
-        mmap = pipeline.measure_map(work, state, pipeline.face_of(work, state["bare"]))
-        recorder.set_map(mmap.to_dict())
-        state["recipe_base"] = rcp.base_recipe(MakeupMap.from_dict(recorder.manifest["map"]))
-        state = pipeline.rerender(engine, ctx, work, state, [])
-        planned = UNITS["makeup-vto"]
-    elif args.only_edits:
-        state = json.loads((work / "state.json").read_text())
-        if state.get("order") == "hair_first":  # edits render on her face with the new hair, with the even-out
-            ctx.ids["base_jpeg"] = (work / state["images"]["base"]).read_bytes()
-        redo = {f"render:{k.strip()}" for k in args.redo.split(",") if k.strip()}
-        if args.redo_edits or redo:
-            for key in [k for k in recorder.manifest["steps"] if k.startswith("render:") and k != "render:base"
-                        and (args.redo_edits or k in redo)]:
-                step = recorder.manifest["steps"].pop(key)
-                (sd / step["image"]).unlink(missing_ok=True)
-                (sd / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
-            recorder.save()
-    else:
-        state = pipeline.build_look(engine, ctx, work, recorder=recorder, order=args.order)
-    spent = planned
-    base_state = copy.deepcopy(state)
-    strength = visibility.edit_visibility(sd)["strength"] if "render:base" in recorder.manifest["steps"] else None
-    if args.grid == "single":
-        for zone in list(state["recipe_base"]["zones"]):
-            for op in rcp.EDIT_OPS:
-                edits = [[zone, op]]
-                if op == "softer" and not visibility.softer_offered(strength, zone):
-                    print(f"skip {zone}:softer — zone too light to soften visibly ({(strength or {}).get(zone)})")
-                    continue
-                if f"render:{rcp.edit_key(edits)}" in recorder.manifest["steps"]:
-                    continue
-                if spent + UNITS["makeup-vto"] > args.max_units:
-                    print(f"stop: --max-units {args.max_units} reached")
-                    break
+    finished = True
+    state = None
+    try:
+        state = pipeline.build_look(engine, ctx, work, recorder=recorder, order=order, pins=pins)
+        base = state["recipe_base"]
+        wanted = wanted_renders(base, args.grid)
+        drop_stale_renders(recorder, wanted)
+        steps = recorder.manifest["steps"]
+        base_state = copy.deepcopy(state)
+        for edits in rcp.record_grid(base) if args.grid == "palette" else []:
+            step = f"render:{rcp.edit_key(edits)}"
+            if (steps.get(step) or {}).get("recipe") != wanted[step]:
                 pipeline.rerender(engine, ctx, work, state, edits)
-                spent += UNITS["makeup-vto"]
         state = base_state
+    except BudgetReached as e:
+        print(f"stop: --max-units {args.max_units} reached before {e}")
+        finished = False
     credit_after = client.credit()
-    (work / "state.json").write_text(json.dumps(state, indent=1))
+    if finished:
+        (work / "state.json").write_text(json.dumps(state, indent=1))
     rec_path = sd / "recording.json"
     history = json.loads(rec_path.read_text()) if rec_path.exists() else []
     history.append(
@@ -168,7 +167,9 @@ def main() -> int:
         }
     )
     rec_path.write_text(json.dumps(history, indent=1))
-    print(f"credit after: {credit_after} (spent {credit_before - credit_after})")
+    print(f"credit after: {credit_after} (spent {credit_before - credit_after}, this run {engine.spent} units)")
+    if not finished:
+        return 4
     print(json.dumps({"gaps": state["gaps"], "skin_control_de": state["map"]["skin_control_de"]}, indent=1))
     return 0
 
