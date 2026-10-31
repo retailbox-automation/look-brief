@@ -1,0 +1,319 @@
+{
+ "per_sample": {
+  "s1-soft-glam": {
+   "title": "Soft glam",
+   "skin_control_transfer_de76": 0.37,
+   "skin_control_render_de76": 0.0,
+   "zones": {
+    "eyes": {
+     "zone": "eyes",
+     "label": "Eyelids",
+     "color_transfer": "#906551",
+     "color_render": "#916653",
+     "color_gap_de2000": 0.59,
+     "pixel_gap_de2000": 6.45,
+     "coverage_transfer": 0.2879,
+     "coverage_render": 0.3372
+    },
+    "cheeks": {
+     "zone": "cheeks",
+     "label": "Cheeks",
+     "color_transfer": "#eca18b",
+     "color_render": "#e4a58f",
+     "color_gap_de2000": 2.32,
+     "pixel_gap_de2000": 2.63,
+     "coverage_transfer": 0.0355,
+     "coverage_render": 0.0131
+    },
+    "lips": {
+     "zone": "lips",
+     "label": "Lips",
+     "color_transfer": "#b86958",
+     "color_render": "#b26356",
+     "color_gap_de2000": 2.82,
+     "pixel_gap_de2000": 4.71,
+     "coverage_transfer": 0.1832,
+     "coverage_render": 0.1727
+    }
+   },
+   "task_ids": {
+    "mu_transfer": "k-uiHOuju22YEieXPuTFHRG8Pu3OAfbOy_qflkmlPuhSXcrzXB7TFYW0DAGKu6x3L1tdL0WuaKpao2rhLgDDpA",
+    "render:base": "0c0bebJoDZVgL97JBxtpv7lZZQRnZppNc2D_vGV9VkxjSDYahRbrHL0iT7NaLbNFd-BTT-LvvMAmKHuvXEbI5Q"
+   },
+   "recordings": [
+    {
+     "at": "2026-10-31T13:25:30Z",
+     "credit_before": 981,
+     "credit_after": 964,
+     "units_spent": 17,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.3,
+       "pitch_deg": 8.3,
+       "roll_deg": 1.0,
+       "face_width_share": 0.56
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 8.0,
+       "roll_deg": 1.5,
+       "face_width_share": 0.574
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T13:34:09Z",
+     "credit_before": 927,
+     "credit_after": 914,
+     "units_spent": 13,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.3,
+       "pitch_deg": 8.3,
+       "roll_deg": 1.0,
+       "face_width_share": 0.56
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 8.0,
+       "roll_deg": 1.5,
+       "face_width_share": 0.574
+      }
+     }
+    }
+   ]
+  },
+  "s2-classic-red": {
+   "title": "Classic red lip",
+   "skin_control_transfer_de76": 0.44,
+   "skin_control_render_de76": 0.0,
+   "zones": {
+    "eyes": {
+     "zone": "eyes",
+     "label": "Eyelids",
+     "color_transfer": "#885d4b",
+     "color_render": "#835a48",
+     "color_gap_de2000": 1.46,
+     "pixel_gap_de2000": 7.58,
+     "coverage_transfer": 0.3252,
+     "coverage_render": 0.1896
+    },
+    "cheeks": {
+     "zone": "cheeks",
+     "label": "Cheeks",
+     "color_transfer": "#e79d8f",
+     "color_render": "#e0a18f",
+     "color_gap_de2000": 2.84,
+     "pixel_gap_de2000": 3.14,
+     "coverage_transfer": 0.0929,
+     "coverage_render": 0.1724
+    },
+    "lips": {
+     "zone": "lips",
+     "label": "Lips",
+     "color_transfer": "#a52b2d",
+     "color_render": "#a03432",
+     "color_gap_de2000": 1.75,
+     "pixel_gap_de2000": 4.45,
+     "coverage_transfer": 0.2103,
+     "coverage_render": 0.1989
+    }
+   },
+   "task_ids": {
+    "mu_transfer": "ygx_B9JwbbesH6d6YnOPlQyCg1ZdxRFvplay8BkAEQbqdwSc3E6MvTPC8ApWmK6WL1tdL0WuaKpao2rhLgDDpA",
+    "render:base": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeb9tq3Oqtx3WpmIfEU23QIWd-BTT-LvvMAmKHuvXEbI5Q"
+   },
+   "recordings": [
+    {
+     "at": "2026-10-31T13:27:26Z",
+     "credit_before": 964,
+     "credit_after": 947,
+     "units_spent": 17,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T13:35:52Z",
+     "credit_before": 914,
+     "credit_after": 901,
+     "units_spent": 13,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    }
+   ]
+  },
+  "s3-mauve-smoky": {
+   "title": "Mauve smoky eye",
+   "skin_control_transfer_de76": 0.73,
+   "skin_control_render_de76": 0.0,
+   "zones": {
+    "eyes": {
+     "zone": "eyes",
+     "label": "Eyelids",
+     "color_transfer": "#694335",
+     "color_render": "#694537",
+     "color_gap_de2000": 1.0,
+     "pixel_gap_de2000": 7.93,
+     "coverage_transfer": 0.4787,
+     "coverage_render": 0.3788
+    },
+    "cheeks": {
+     "zone": "cheeks",
+     "label": "Cheeks",
+     "color_transfer": "#d98d74",
+     "color_render": "#d08c71",
+     "color_gap_de2000": 2.49,
+     "pixel_gap_de2000": 3.53,
+     "coverage_transfer": 0.102,
+     "coverage_render": 0.152
+    },
+    "lips": {
+     "zone": "lips",
+     "label": "Lips",
+     "color_transfer": "#723c3f",
+     "color_render": "#6b3c3a",
+     "color_gap_de2000": 2.45,
+     "pixel_gap_de2000": 5.47,
+     "coverage_transfer": 0.2256,
+     "coverage_render": 0.2252
+    }
+   },
+   "task_ids": {
+    "mu_transfer": "xC7JVkORVg7bxvMF-md6ZqSsc0S965L--inp8SVZvPrsvGefm5xKHXXcb7avNH40L1tdL0WuaKpao2rhLgDDpA",
+    "render:base": "g1PmAQsiWztGOgPd_v-YyeiihCyDVnxX-Sy6dc6BBEMpPSalLVv9fnJ9umlc5YVdd-BTT-LvvMAmKHuvXEbI5Q"
+   },
+   "recordings": [
+    {
+     "at": "2026-10-31T13:29:53Z",
+     "credit_before": 947,
+     "credit_after": 930,
+     "units_spent": 17,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T13:37:42Z",
+     "credit_before": 901,
+     "credit_after": 888,
+     "units_spent": 13,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    }
+   ]
+  }
+ },
+ "mean_gap_de2000": {
+  "eyes": 1.02,
+  "cheeks": 2.55,
+  "lips": 2.34
+ },
+ "overall_mean_gap_de2000": 1.97
+}

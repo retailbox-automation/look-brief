@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from . import __version__, attest, photo_check, pipeline
+from . import __version__, attest, build_id, photo_check, pipeline
 from . import recipe as rcp
 from .config import Settings, youcam_key
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx
@@ -263,7 +263,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # ---------------- API ----------------
     @app.get("/healthz")
     def healthz():
-        return {"ok": True, "version": __version__, "samples": [k for k, m in samples.items() if m["recorded"]]}
+        return {"ok": True, "version": __version__, "build": build_id(),
+                "samples": [k for k, m in samples.items() if m["recorded"]]}
 
     @app.get("/api/limits")
     def limits(request: Request):
