@@ -1,0 +1,52 @@
+{
+ "sample": "s1-soft-glam",
+ "task_id": "UgsGcxnE_zoClx5IFxgLrycn3JjnJxdyXtR5XRUxG30VR_-L4l4sDiDZQz_i-OHmd-BTT-LvvMAmKHuvXEbI5Q",
+ "seconds": 6.8,
+ "units": 1,
+ "effects_sent": [
+  {
+   "category": "eye_shadow",
+   "pattern": {
+    "name": "1color1"
+   },
+   "palettes": [
+    {
+     "color": "#7b503d",
+     "texture": "matte",
+     "colorIntensity": 75
+    }
+   ]
+  },
+  {
+   "category": "blush",
+   "pattern": {
+    "name": "1color1"
+   },
+   "palettes": [
+    {
+     "color": "#fa9984",
+     "texture": "matte",
+     "colorIntensity": 60
+    }
+   ]
+  },
+  {
+   "category": "lip_color",
+   "shape": {
+    "name": "original"
+   },
+   "palettes": [
+    {
+     "color": "#d07e69",
+     "texture": "matte",
+     "colorIntensity": 61
+    }
+   ],
+   "style": {
+    "type": "full"
+   }
+  }
+ ],
+ "credit_before": 885,
+ "credit_after": 884
+}

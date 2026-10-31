@@ -1,0 +1,14 @@
+{
+ "method": "GET",
+ "path": "/s2s/v2.0/task/template/look-vto?page_size=50",
+ "code": 400,
+ "sec": 0.45,
+ "body": null,
+ "resp": {
+  "status": 400,
+  "error": "page_size is above the allowed maximum.",
+  "error_code": "InvalidParameters"
+ },
+ "ts": "2026-10-31T12:43:45Z",
+ "source": "spike/out/log.jsonl line 6 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+}

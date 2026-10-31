@@ -1,0 +1,59 @@
+{
+ "method": "POST",
+ "path": "/s2s/v2.0/task/makeup-vto",
+ "code": 400,
+ "sec": 0.45,
+ "body": {
+  "version": "1.0",
+  "effects": [
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "1color1"
+    },
+    "palettes": [
+     {
+      "color": "#a8795e",
+      "texture": "shimmer",
+      "shimmerColor": "#d9b26a",
+      "shimmerIntensity": 60,
+      "colorIntensity": 60
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color1"
+    },
+    "palettes": [
+     {
+      "color": "#e0a88e",
+      "texture": "matte",
+      "colorIntensity": 60
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "palettes": [
+     {
+      "color": "#9b5d50",
+      "texture": "matte",
+      "colorIntensity": 70
+     }
+    ]
+   }
+  ]
+ },
+ "resp": {
+  "status": 400,
+  "error": "category is not one of the accepted values., or pattern is required but wasn't included in your request., or colorUnderEyeIntensity, coverageLevel is required but wasn't included in your request., or coverageIntensity, glowIntensity is required but wasn't included in your request., or glowIntensity, shimmerDensity, shimmerIntensity, shimmerSize is required but wasn't included in your request., or style is required but wasn't included in your request., or smoothness, thickness is required but wasn't included in your request.",
+  "error_code": "InvalidParameters"
+ },
+ "ts": "2026-10-31T12:48:55Z",
+ "source": "spike/out/log.jsonl line 46 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+}

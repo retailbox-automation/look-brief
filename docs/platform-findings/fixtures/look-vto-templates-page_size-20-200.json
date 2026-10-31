@@ -1,0 +1,29 @@
+{
+ "method": "GET",
+ "path": "/s2s/v2.0/task/template/look-vto?page_size=20",
+ "code": 200,
+ "sec": 0.49,
+ "body": null,
+ "resp": {
+  "status": 200,
+  "data": {
+   "next_token": "625",
+   "templates": [
+    {
+     "id": "all_feline",
+     "thumb": "https://app-cdn.makeupar.com/makeupstore/MSR/PFA150608-0017/139/Art_thumb_1.jpg",
+     "title": "Feline",
+     "category_name": "Animals"
+    },
+    {
+     "id": "all_snow_paws",
+     "thumb": "https://app-cdn.makeupar.com/store/makeupstore/MSR/PFA230508-0004/6/Store_thumb_160421_funlook_animal_02.jpg",
+     "title": "Snow Paws",
+     "category_name": "Animals"
+    }
+   ]
+  }
+ },
+ "ts": "2026-10-31T12:43:55Z",
+ "source": "spike/out/log.jsonl line 9 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+}

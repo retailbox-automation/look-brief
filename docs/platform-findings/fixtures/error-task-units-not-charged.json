@@ -1,0 +1,25 @@
+{
+ "source": "spike/out/summary.json (2026-10-31): credit around the failing no-face task",
+ "credit_before_negative_task": [
+  954,
+  40
+ ],
+ "credit_after_negative_task": [
+  954,
+  40
+ ],
+ "negative_task": {
+  "ok": false,
+  "stage": "poll",
+  "code": 200,
+  "resp": {
+   "status": 200,
+   "data": {
+    "error": "error_ref_no_face",
+    "results": null,
+    "task_status": "error"
+   }
+  },
+  "sec": 3.6
+ }
+}

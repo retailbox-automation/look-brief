@@ -1,0 +1,17 @@
+{
+ "method": "GET",
+ "path": "/s2s/v2.0/task/mu-transfer/yym3HlrWhv2cMHWp6W2BktSmSMUmHMcaqI1mV6U4ZkV1lrLWJNyaKo1aTooaPteyL1tdL0WuaKpao2rhLgDDpA",
+ "code": 200,
+ "sec": 0.55,
+ "body": null,
+ "resp": {
+  "status": 200,
+  "data": {
+   "error": "error_ref_no_face",
+   "results": null,
+   "task_status": "error"
+  }
+ },
+ "ts": "2026-10-31T12:44:59Z",
+ "source": "spike/out/log.jsonl line 43 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+}

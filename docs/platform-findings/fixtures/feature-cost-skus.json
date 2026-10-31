@@ -1,0 +1,27 @@
+{
+ "source": "GET /s2s/v2.0/credit/feature-cost, spike 2026-10-31",
+ "sku_count": 20,
+ "skus": [
+  "AI Photo Enhance V1.0",
+  "AI Object Removal (Standard)",
+  "AI Object Removal (Professional)",
+  "AI Photo Background Removal V1.0",
+  "AI Photo Colorize V1.0",
+  "AI Image Generator V1.0",
+  "AI Image Generator V2.0 (Text to Image)",
+  "AI Image Generator V2.0 (Image to Image)",
+  "AI Hair Style Virtual Try-On V1.0",
+  "AI Hair Style Virtual Try-On V2.0 (Custom)",
+  "AI Hair Style Virtual Try-On V2.0 (Custom)",
+  "AI Hair Style Virtual Try-On V2.0 (Preset)",
+  "AI Hair Extension Virtual Try-On V1.0",
+  "AI Bangs Filter Virtual Try-On V1.0",
+  "AI Hair Volume Virtual Try-On V1.0",
+  "AI Wavy Hair Virtual Try-On V1.0",
+  "AI Image Extender V2.0",
+  "AI Photo Lighting V2.0",
+  "AI Replace V1.0",
+  "AI Photo Background Change V1.0"
+ ],
+ "makeup_skus_present": []
+}
