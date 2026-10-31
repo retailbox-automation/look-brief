@@ -1,0 +1,17 @@
+{
+ "step": "hair_transfer",
+ "task_id": "Hb14ihdbTL34SBRCFM1wVuDciXvhEY5MAI9P71OQ3xQRLtjkipdVCX5VPtimHiA-AO6h9Y273R6RR5V6m9KYNQ",
+ "recorded_at": "2026-10-31T14:37:25Z",
+ "seconds": 6.6,
+ "units": 2,
+ "request_without_file_ids": {
+  "hair_color": "ref"
+ },
+ "response": {
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
+ }
+}

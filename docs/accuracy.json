@@ -1,5 +1,78 @@
 {
  "per_sample": {
+  "s0-champagne-rose": {
+   "title": "Champagne & rose gold",
+   "skin_control_transfer_de76": 0.62,
+   "skin_control_render_de76": 0.0,
+   "zones": {
+    "eyes": {
+     "zone": "eyes",
+     "label": "Eyelids",
+     "color_transfer": "#93614d",
+     "color_render": "#95614c",
+     "color_gap_de2000": 0.55,
+     "pixel_gap_de2000": 7.78,
+     "coverage_transfer": 0.3315,
+     "coverage_render": 0.2888
+    },
+    "cheeks": {
+     "zone": "cheeks",
+     "label": "Cheeks",
+     "color_transfer": "#be6d55",
+     "color_render": "#b9775e",
+     "color_gap_de2000": 3.36,
+     "pixel_gap_de2000": 4.41,
+     "coverage_transfer": 0.3033,
+     "coverage_render": 0.2975
+    },
+    "lips": {
+     "zone": "lips",
+     "label": "Lips",
+     "color_transfer": "#974943",
+     "color_render": "#954a42",
+     "color_gap_de2000": 0.59,
+     "pixel_gap_de2000": 4.31,
+     "coverage_transfer": 0.1143,
+     "coverage_render": 0.1659
+    }
+   },
+   "task_ids": {
+    "mu_transfer": "JZkdTLqWfruHLdY7I6grDj3H87xxlFa_iqrpWz3OxwngWotkWzC2AqykWpCacmM4L1tdL0WuaKpao2rhLgDDpA",
+    "render:base": "JZkdTLqWfruHLdY7I6grDj3H87xxlFa_iqrpWz3OxwnhnKgywmIdap4t0dWJth9Pd-BTT-LvvMAmKHuvXEbI5Q"
+   },
+   "recordings": [
+    {
+     "at": "2026-10-31T14:39:04Z",
+     "credit_before": 878,
+     "credit_after": 861,
+     "units_spent": 17,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.8,
+       "pitch_deg": 6.0,
+       "roll_deg": 2.7,
+       "face_width_share": 0.626
+      }
+     }
+    }
+   ]
+  },
   "s1-soft-glam": {
    "title": "Soft glam",
    "skin_control_transfer_de76": 0.37,

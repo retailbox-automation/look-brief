@@ -12,5 +12,7 @@
    "sha256": "d7a4c2b4e15e893dd49d55b9897fa31c454742d2bd8f213c0686c9d3ec42da49",
    "source": "inspo2-classic-red"
   }
- }
+ },
+ "role": "calibration",
+ "hidden": false
 }

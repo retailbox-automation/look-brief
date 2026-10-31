@@ -35,6 +35,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lookbrief"]
+artifacts = ["src/lookbrief/BUILD"]  # git-ignored build stamp written at export time
 
 [tool.ruff]
 line-length = 120

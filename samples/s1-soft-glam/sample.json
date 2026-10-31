@@ -12,5 +12,7 @@
    "sha256": "06f892a801e6e1e9e6941ba13024313cc28fcb56ce1c76045fdf37a8480f0f37",
    "source": "inspo1-soft-glam"
   }
- }
+ },
+ "role": "calibration",
+ "hidden": false
 }

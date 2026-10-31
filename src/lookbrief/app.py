@@ -57,6 +57,7 @@ def load_samples(d: Path) -> dict[str, dict]:
     for sd in sorted(p for p in d.glob("*") if (p / "sample.json").exists()):
         meta = json.loads((sd / "sample.json").read_text())
         meta["recorded"] = (sd / "manifest.json").exists()
+        meta.setdefault("hidden", False)  # hidden samples stay as evidence but are not offered in the app
         meta["dir"] = sd
         out[meta["id"]] = meta
     return out
@@ -258,12 +259,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def index(request: Request):
         ip = client_ip(request)
         return templates.TemplateResponse(request, "index.html", {
-            "samples": [m for m in samples.values() if m["recorded"]], "live": live_status(ip)})
+            "samples": [m for m in samples.values() if m["recorded"] and not m["hidden"]], "live": live_status(ip)})
 
     @app.get("/try/{sample_id}")
     def try_sample(sample_id: str, request: Request, background: BackgroundTasks):
         m = samples.get(sample_id)
-        if m is None or not m["recorded"]:
+        if m is None or not m["recorded"] or m["hidden"]:
             raise HTTPException(404, "unknown sample")
         ip = client_ip(request)
         if store.ip_sessions_today(ip, "try") >= s.try_per_ip_day:
@@ -312,7 +313,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/healthz")
     def healthz():
         return {"ok": True, "version": __version__, "build": build_id(),
-                "samples": [k for k, m in samples.items() if m["recorded"]]}
+                "samples": [k for k, m in samples.items() if m["recorded"] and not m["hidden"]]}
 
     @app.get("/api/limits")
     def limits(request: Request):

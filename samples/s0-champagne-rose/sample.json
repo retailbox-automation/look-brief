@@ -1,0 +1,18 @@
+{
+ "id": "s0-champagne-rose",
+ "title": "Champagne & rose gold",
+ "description": "Light freckled skin; warm champagne and rose-gold inspiration with a low chignon",
+ "faces": "Fictional people, AI-generated with ChatGPT Images on 2026-10-31 for this project; no real person, no brand.",
+ "files": {
+  "bride.jpg": {
+   "sha256": "f960b1d6cfca9b50b6ebb93c6fac1a1060d907fd077ca33a2544becbae36637e",
+   "source": "hero-selfie"
+  },
+  "inspiration.jpg": {
+   "sha256": "6ca3b4a60d78360723a6b4b9b0f12f9a1be4a37baab3c761af75f030433365b9",
+   "source": "hero-inspo"
+  }
+ },
+ "role": "holdout",
+ "hidden": false
+}

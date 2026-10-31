@@ -1,0 +1,32 @@
+[
+ {
+  "at": "2026-10-31T14:39:04Z",
+  "credit_before": 878,
+  "credit_after": 861,
+  "units_spent": 17,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -2.8,
+    "pitch_deg": 6.0,
+    "roll_deg": 2.7,
+    "face_width_share": 0.626
+   }
+  }
+ }
+]
