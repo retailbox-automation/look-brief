@@ -8,7 +8,7 @@
   let state = null;
   let busy = false;
   let selZone = null;     // zone open in the sheet
-  let heroView = "makeup"; // "makeup" | "hair"
+  let heroView = "makeup"; // "makeup" | "hair" | "even"
 
   // Where the zone labels sit around each outline (px from the anchor point).
   const PIN = {
@@ -99,14 +99,32 @@
   function renderHero() {
     const im = state.images || {};
     const edited = (state.edits || []).length > 0;
-    let src = im.look, alt = "You wearing the inspiration makeup (YouCam Makeup Transfer)";
-    if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; }
-    else if (edited && im.render) { src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO"; }
+    const st = state.steps || {};
+    const hairFirst = state.order === "hair_first";
+    let src = im.look, alt = hairFirst ? "You with the inspiration hair and makeup (YouCam Hair Transfer, then Makeup Transfer)"
+      : "You wearing the inspiration makeup (YouCam Makeup Transfer)";
+    let cap = stepCaption(st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer");
+    if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; cap = stepCaption(st.hair_transfer, "Hair Transfer"); }
+    else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = stepCaption(st.even_out, "Even out redness: foundation in her shade over the transfer"); }
+    else if (edited && im.render) {
+      src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO";
+      cap = stepCaption(st["render:" + state.edits.map((e) => e.join(":")).join("+")], "Makeup VTO re-render");
+    }
+    $("hero-cap").textContent = cap;
     const hero = $("img-hero");
     if (src && hero.getAttribute("src") !== src) hero.src = src;
     hero.alt = alt;
     $("strip-inspo").src = im.inspiration; $("strip-you").src = im.bride;
-    $("hero-toggle").hidden = !im.hair;
+    const tg = $("hero-toggle"), [b1, b2] = tg.querySelectorAll("button");
+    if (hairFirst) {
+      b1.dataset.view = "makeup"; b1.textContent = "Transfer";
+      b2.dataset.view = "even"; b2.textContent = "Even out redness";
+      tg.hidden = !im.even;
+    } else {
+      b1.dataset.view = "makeup"; b1.textContent = "Makeup";
+      b2.dataset.view = "hair"; b2.textContent = "Makeup + hair";
+      tg.hidden = !im.hair;
+    }
     const chk = state.checks && state.checks.bride; // local photo check (older servers don't send it)
     if (chk && chk.ok) {
       const codes = (chk.issues || []).map((i) => i.code);

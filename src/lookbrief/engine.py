@@ -15,7 +15,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from .recipe import edit_key, vto_body
+from .recipe import EVEN_OUT_LABEL, edit_key, even_out_effects, vto_body
 from .youcam import YouCamClient, redact
 
 
@@ -85,24 +85,44 @@ class LiveEngine:
             self.recorder.add(step, img, meta, body, res.raw, recipe)
         return StepResult(img, meta)
 
-    def makeup_transfer(self, ctx: SessionCtx) -> StepResult:
-        src = self._file_id(ctx, "bride", ctx.bride_jpeg, "bride.jpg")
+    def _source(self, ctx: SessionCtx, on: str) -> str:
+        if on == "base":  # her face with the inspiration hair (hair_first order)
+            return self._file_id(ctx, "base", ctx.ids["base_jpeg"], "base.jpg")
+        return self._file_id(ctx, "bride", ctx.bride_jpeg, "bride.jpg")
+
+    def makeup_transfer(self, ctx: SessionCtx, on: str = "bride") -> StepResult:
+        src = self._source(ctx, on)
         ref = self._file_id(ctx, "inspiration", ctx.inspiration_jpeg, "inspiration.jpg")
         out = self._run("mu_transfer", "mu-transfer", {"src_file_id": src, "ref_file_id": ref})
         ctx.ids["mu_jpeg"] = out.image
         return out
 
-    def hair_transfer(self, ctx: SessionCtx) -> StepResult:
+    def hair_transfer(self, ctx: SessionCtx, on: str = "look") -> StepResult:
+        """on="look": hair on the makeup-transfer result (transfer_first); on="selfie": hair on the bare selfie,
+        which becomes the base for the makeup transfer (hair_first)."""
         ref = self._file_id(ctx, "inspiration", ctx.inspiration_jpeg, "inspiration.jpg")
+        if on == "selfie":
+            src = self._source(ctx, "bride")
+        else:
+            mu = ctx.ids.get("mu_jpeg")
+            if mu is None:
+                raise RuntimeError("hair transfer runs on the makeup-transfer result; run that first")
+            src = self._file_id(ctx, "mu_result", mu, "look.jpg")
+        out = self._run("hair_transfer", "hair-transfer", {"src_file_id": src, "ref_file_id": ref, "hair_color": "ref"})
+        if on == "selfie":
+            ctx.ids["base_jpeg"] = out.image
+        return out
+
+    def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
         mu = ctx.ids.get("mu_jpeg")
         if mu is None:
-            raise RuntimeError("hair transfer runs on the makeup-transfer result; run that first")
+            raise RuntimeError("even-out runs on the makeup-transfer result; run that first")
         src = self._file_id(ctx, "mu_result", mu, "look.jpg")
-        return self._run("hair_transfer", "hair-transfer", {"src_file_id": src, "ref_file_id": ref,
-                                                           "hair_color": "ref"})
+        body = {"src_file_id": src, "version": "1.0", "effects": even_out_effects(skin_hex, coverage)}
+        return self._run("even_out", "makeup-vto", body, label=EVEN_OUT_LABEL)
 
-    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]]) -> StepResult:
-        src = self._file_id(ctx, "bride", ctx.bride_jpeg, "bride.jpg")
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride") -> StepResult:
+        src = self._source(ctx, on)
         body = {"src_file_id": src, **vto_body(recipe)}
         return self._run(f"render:{edit_key(edits)}", "makeup-vto", body, label=edit_key(edits), recipe=recipe)
 
@@ -121,14 +141,20 @@ class ReplayEngine:
         meta = StepMeta(key, "replay", rec["task_id"], rec["seconds"], 0, rec["recorded_at"], rec.get("label", ""))
         return StepResult((self.dir / rec["image"]).read_bytes(), meta)
 
-    def makeup_transfer(self, ctx: SessionCtx) -> StepResult:
+    def makeup_transfer(self, ctx: SessionCtx, on: str = "bride") -> StepResult:
         return self._step("mu_transfer")
 
-    def hair_transfer(self, ctx: SessionCtx) -> StepResult:
+    def hair_transfer(self, ctx: SessionCtx, on: str = "look") -> StepResult:
         return self._step("hair_transfer")
 
-    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]]) -> StepResult:
+    def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
+        return self._step("even_out")
+
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride") -> StepResult:
         return self._step(f"render:{edit_key(edits)}")
+
+    def order(self) -> str:
+        return str(self.manifest.get("order", "transfer_first"))
 
     def recorded_map(self) -> dict | None:
         return self.manifest.get("map")
@@ -154,6 +180,10 @@ class Recorder:
 
     def set_map(self, map_dict: dict) -> None:
         self.manifest["map"] = map_dict
+        self.save()
+
+    def set_order(self, order: str) -> None:
+        self.manifest["order"] = order
         self.save()
 
     def add(self, step: str, image: bytes, meta: StepMeta, request: dict, response: dict,

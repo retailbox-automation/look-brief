@@ -34,6 +34,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sample_dir", type=Path)
     ap.add_argument("--grid", choices=["single", "none"], default="single")
+    ap.add_argument("--order", choices=["transfer_first", "hair_first"], default="transfer_first",
+                    help="hair_first: Hair Transfer on the selfie first, Makeup Transfer on that, plus the even-out step")
     ap.add_argument("--max-units", type=int, default=25)
     ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
     ap.add_argument("--reuse-transfer", type=Path, metavar="META_JSON",
@@ -62,6 +64,8 @@ def main() -> int:
         jpegs[role] = photo_check.to_jpeg(img)
 
     planned = 0 if args.only_edits else UNITS["mu-transfer"] + UNITS["hair-transfer"] + UNITS["makeup-vto"]
+    if args.order == "hair_first" and not args.only_edits:
+        planned += UNITS["makeup-vto"]  # even-out
     ledger_path = ROOT / "data" / "units-ledger.jsonl"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -112,7 +116,7 @@ def main() -> int:
     elif args.only_edits:
         state = json.loads((work / "state.json").read_text())
     else:
-        state = pipeline.build_look(engine, ctx, work, recorder=recorder)
+        state = pipeline.build_look(engine, ctx, work, recorder=recorder, order=args.order)
     spent = planned
     base_state = copy.deepcopy(state)
     if args.grid == "single":

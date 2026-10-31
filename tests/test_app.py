@@ -48,6 +48,7 @@ def test_replay_session_state(client):
     sid = _replay_session(client)
     st = client.get(f"/api/sessions/{sid}").json()
     assert st["mode"] == "replay" and st["units_spent"] == 0
+    assert st["order"] in ("transfer_first", "hair_first")
     assert set(st["images"]) >= {"bride", "inspiration", "look", "hair", "layer", "render"}
     assert st["steps"]["mu_transfer"]["mode"] == "replay" and st["steps"]["mu_transfer"]["task_id"]
     assert set(st["gaps"]["zones"]) == {"eyes", "cheeks", "lips"}
@@ -141,7 +142,7 @@ class FakeYouCam:
 def live_client(tmp_path, monkeypatch):
     monkeypatch.setattr(app_mod, "youcam_key", lambda: "sk-fake")
     monkeypatch.setattr(app_mod, "YouCamClient", FakeYouCam)
-    s = _settings(tmp_path, live_unit_budget=12, live_sessions_per_ip_day=2, live_session_unit_cap=7)
+    s = _settings(tmp_path, live_unit_budget=13, live_sessions_per_ip_day=2, live_session_unit_cap=8)
     return TestClient(app_mod.create_app(s))
 
 
@@ -164,22 +165,29 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     assert r.status_code == 200, r.text
     sid = r.json()["session_id"]
     st = live_client.get(f"/api/sessions/{sid}").json()
-    assert st["status"] == "ready" and st["mode"] == "live" and st["units_spent"] == 5
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
-    assert r.status_code == 200 and r.json()["units_spent"] == 6
-    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "eyes", "op": "softer"})
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "eyes", "op": "softer"})
+    # hair, transfer, render, even-out
+    assert st["status"] == "ready" and st["mode"] == "live" and st["units_spent"] == 6
+    assert st["order"] == "hair_first" and {"base", "look", "even", "render"} <= set(st["images"])
+    assert st["steps"]["even_out"]["label"] == "foundation in her shade over the transfer"
+    zone = next(iter(st["recipe_base"]["zones"]))  # the fake client's images decide which zones exist
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "lighter"})
+    assert r.status_code == 200 and r.json()["units_spent"] == 7
+    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
     assert r.status_code == 429 and r.json()["error"] == "session_cap"
     lim = live_client.get("/api/limits").json()
-    assert lim["budget_spent"] == 7 and lim["budget_left"] == 5 and lim["available"] is True
+    assert lim["budget_spent"] == 8 and lim["budget_left"] == 5 and lim["available"] is False
+    b = live_client.post(f"/api/sessions/{sid}/brief").json()
+    snap = live_client.get(f"/api/briefs/{b['brief_id']}?t={b['artist_url'].split('t=')[1]}").json()["snapshot"]
+    assert {"hair", "skin"} <= set(snap["review_zones"]), "hair and the even-out foundation are confirmed too"
+    skin = next(z for z in snap["zones"] if z["zone"] == "skin")
+    assert skin["label"] == "Skin: foundation in her shade" and skin["product_hex"].startswith("#")
     assert live_client.post(f"/api/sessions/{sid}/delete").json() == {"deleted": True}
     st = live_client.get(f"/api/sessions/{sid}").json()
     assert st["deleted"] and st["images"] == {}
     r2 = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
-    assert r2.status_code == 200  # 5 more units: budget 12 now fully spent
-    r3 = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
-    assert r3.status_code == 429 and "budget" in r3.json()["reason"], "falls back to recorded samples"
-    assert "Recorded samples still work" in r3.json()["reason"]
+    assert r2.status_code == 429 and "budget" in r2.json()["reason"], "5 units left, a look needs 6"
+    assert "Recorded samples still work" in r2.json()["reason"]
 
 
 def test_live_refused_when_credit_low(live_client, monkeypatch):
@@ -314,3 +322,11 @@ def test_hidden_samples_are_not_offered(client):
     for h in hidden:
         assert f"/try/{h}" not in html
         assert client.get(f"/try/{h}", follow_redirects=False).status_code == 404
+
+
+@pytest.mark.parametrize("sid", [s for s in VISIBLE_IDS if s in ("s2-classic-red", "s3-mauve-smoky")])
+def test_transfer_first_samples_keep_their_order(client, sid):
+    r = client.get(f"/try/{sid}", follow_redirects=False)
+    st = client.get(r.headers["location"].replace("/s/", "/api/sessions/")).json()
+    assert st["status"] == "ready" and st["order"] == "transfer_first"
+    assert "base" not in st["images"] and "even" not in st["images"] and "hair" in st["images"]

@@ -28,7 +28,9 @@ from .youcam import UNITS, YouCamClient, YouCamError
 HERE = Path(__file__).resolve().parent
 SAFE_NAME = re.compile(r"^[a-z0-9_.-]+\.(jpg|png)$")
 REVIEW_LABELS = {"do": "I'll do this", "swap": "I'll swap the product", "discuss": "Let's discuss"}
-LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + UNITS["makeup-vto"]
+LIVE_ORDER = "hair_first"
+# hair 2 + transfer 2 + base re-render 1 + even-out 1
+LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-vto"]
 
 
 class EditIn(BaseModel):
@@ -168,8 +170,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def ctx_for(sess: dict) -> SessionCtx:
         d = session_dir(sess["id"])
         ctx = SessionCtx((d / "bride.jpg").read_bytes(), (d / "inspiration.jpg").read_bytes())
-        ids = (sess.get("state") or {}).get("_ids") or {}
-        ctx.ids.update({k: v for k, v in ids.items() if k in ("bride", "inspiration")})
+        st = sess.get("state") or {}
+        ids = st.get("_ids") or {}
+        ctx.ids.update({k: v for k, v in ids.items() if k in ("bride", "inspiration", "base", "mu_result")})
+        images = st.get("images") or {}
+        if images.get("base") and (d / images["base"]).exists():
+            ctx.ids["base_jpeg"] = (d / images["base"]).read_bytes()
+        if images.get("look") and (d / images["look"]).exists():
+            ctx.ids["mu_jpeg"] = (d / images["look"]).read_bytes()
         return ctx
 
     def public_state(sess: dict) -> dict:
@@ -188,7 +196,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
-                                                "checks")})
+                                                "checks", "order", "even_out")})
             if sess["mode"] == "replay":
                 keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
                 out["edit_options"] = pipeline.edit_options(st, keys)
@@ -212,9 +220,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             else:  # sample: same local check, no units involved
                 checks = {role: photo_check.check(content, role)[0].to_dict()
                           for role, content in (("bride", ctx.bride_jpeg), ("inspiration", ctx.inspiration_jpeg))}
-            state = pipeline.build_look(engine, ctx, session_dir(sid))
+            order = engine.order() if isinstance(engine, ReplayEngine) else LIVE_ORDER
+            state = pipeline.build_look(engine, ctx, session_dir(sid), order=order)
             state["checks"] = checks
-            state["_ids"] = {k: v for k, v in ctx.ids.items() if k in ("bride", "inspiration")}
+            state["_ids"] = {k: v for k, v in ctx.ids.items() if k in ("bride", "inspiration", "base", "mu_result")}
             store.update_session(sid, status="ready", step="done", state=state)
         except YouCamError as e:
             store.update_session(sid, status="error", error=e.code)
@@ -462,10 +471,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                   "intensity": r["intensity"], "on_face_hex": r["on_face_hex"], "coverage": r["coverage"]}
                  for r in st["shades"]]
         review_zones = [z["zone"] for z in zones]
-        if "hair" in st["images"]:
+        if "hair" in st["images"] or st.get("order") == "hair_first":
             review_zones.append("hair")
+        if st.get("even_out") and "even" in st["images"]:
+            ev = st["even_out"]
+            zones.append({"zone": "skin", "label": "Skin: foundation in her shade", "product_hex": ev["skin_hex"],
+                          "intensity": ev["coverage"], "on_face_hex": None, "coverage": None})
+            review_zones.append("skin")
         return {
-            "mode": sess["mode"], "sample_id": sess["sample_id"],
+            "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),
             "images": images, "images_sha256": {k: attest.sha256_file(d / v) for k, v in images.items()},
             "zones": zones, "review_zones": review_zones, "recipe": st["recipe"],
             "recipe_sha256": st["recipe_sha256"], "edits": st["edits"], "gaps": st["gaps"],

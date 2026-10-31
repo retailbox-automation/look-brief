@@ -1,5 +1,10 @@
 """One bride session, end to end: transfer -> hair -> makeup map -> recipe -> re-render -> metric.
 
+Two orders. transfer_first (the recorded samples s2/s3): Makeup Transfer on the selfie, Hair Transfer on that.
+hair_first: Hair Transfer on the selfie gives the "base" (her face with the inspiration hair), Makeup Transfer runs
+on the base, and the map, metric and every re-render use the base, so Hair Transfer's relighting never reads as
+makeup. hair_first also records "Even out redness": a foundation in her own shade over the transfer.
+
 All files of a session live in one folder; the returned `state` dict is what the API serves.
 """
 
@@ -19,15 +24,18 @@ from .youcam import YouCamError
 type Engine = LiveEngine | ReplayEngine
 
 
-def _arrays(workdir: Path, look_name: str) -> tuple[np.ndarray, np.ndarray]:
-    bare_img = Image.open(workdir / "bride.jpg").convert("RGB")
+ORDERS = ("transfer_first", "hair_first")
+
+
+def _arrays(workdir: Path, look_name: str, bare_name: str = "bride.jpg") -> tuple[np.ndarray, np.ndarray]:
+    bare_img = Image.open(workdir / bare_name).convert("RGB")
     bare = makeup_map.to_rgb_array(bare_img)
     look = makeup_map.to_rgb_array(Image.open(workdir / look_name), size=bare_img.size)
     return bare, look
 
 
-def face_of(workdir: Path) -> landmarks.FaceGeometry:
-    bare = np.asarray(Image.open(workdir / "bride.jpg").convert("RGB"), dtype=np.uint8)
+def face_of(workdir: Path, bare_name: str = "bride.jpg") -> landmarks.FaceGeometry:
+    bare = np.asarray(Image.open(workdir / bare_name).convert("RGB"), dtype=np.uint8)
     face = landmarks.detect(bare)
     if face is None:
         raise ValueError("no face found on the bride selfie")
@@ -56,27 +64,50 @@ def zone_outlines(face: landmarks.FaceGeometry) -> dict[str, list[list[list[floa
     return out
 
 
-def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) -> dict:
+def skin_hex_of(workdir: Path, bare_name: str, face: landmarks.FaceGeometry) -> str:
+    """Her own skin shade: median colour of the forehead (no makeup) on the bare reference."""
+    from .color import lab_to_hex, srgb_to_lab
+
+    arr = np.asarray(Image.open(workdir / bare_name).convert("RGB"), dtype=np.uint8)
+    forehead = landmarks.zone_cells(face)["skin"]
+    return lab_to_hex(np.median(srgb_to_lab(arr[forehead].astype(np.float64) / 255.0), axis=0))
+
+
+def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, order: str = "transfer_first") -> dict:
+    if order not in ORDERS:
+        raise ValueError(f"unknown order {order}")
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "bride.jpg").write_bytes(ctx.bride_jpeg)
     (workdir / "inspiration.jpg").write_bytes(ctx.inspiration_jpeg)
-    state: dict = {"steps": {}, "images": {"bride": "bride.jpg", "inspiration": "inspiration.jpg"}, "notes": []}
+    state: dict = {"steps": {}, "images": {"bride": "bride.jpg", "inspiration": "inspiration.jpg"}, "notes": [],
+                   "order": order, "bare": "bride.jpg"}
+    if recorder is not None:
+        recorder.set_order(order)
 
-    mu = engine.makeup_transfer(ctx)
-    state["steps"]["mu_transfer"] = asdict(mu.meta)
-    state["images"]["look"] = _save(workdir, "look", mu)
-
-    try:
-        hair = engine.hair_transfer(ctx)
+    if order == "hair_first":
+        hair = engine.hair_transfer(ctx, on="selfie")  # no fallback: the base is required in this order
         state["steps"]["hair_transfer"] = asdict(hair.meta)
-        state["images"]["hair"] = _save(workdir, "hair", hair)
-    except (YouCamError, NotRecorded) as e:  # the hair preview is optional; the brief still works
-        code = getattr(e, "code", "not_recorded")
-        state["steps"]["hair_transfer"] = {"error": code}
-        state["notes"].append(f"Hair preview unavailable ({code}).")
+        state["images"]["base"] = state["bare"] = _save(workdir, "base", hair)
+        ctx.ids["base_jpeg"] = hair.image
+        mu = engine.makeup_transfer(ctx, on="base")
+        state["steps"]["mu_transfer"] = asdict(mu.meta)
+        state["images"]["look"] = _save(workdir, "look", mu)
+        ctx.ids["mu_jpeg"] = mu.image
+    else:
+        mu = engine.makeup_transfer(ctx)
+        state["steps"]["mu_transfer"] = asdict(mu.meta)
+        state["images"]["look"] = _save(workdir, "look", mu)
+        try:
+            hair = engine.hair_transfer(ctx)
+            state["steps"]["hair_transfer"] = asdict(hair.meta)
+            state["images"]["hair"] = _save(workdir, "hair", hair)
+        except (YouCamError, NotRecorded) as e:  # the hair preview is optional; the brief still works
+            code = getattr(e, "code", "not_recorded")
+            state["steps"]["hair_transfer"] = {"error": code}
+            state["notes"].append(f"Hair preview unavailable ({code}).")
 
-    face = face_of(workdir)
-    bare, look = _arrays(workdir, state["images"]["look"])
+    face = face_of(workdir, state["bare"])
+    bare, look = _arrays(workdir, state["images"]["look"], state["bare"])
     mmap = None
     recorded = engine.recorded_map() if isinstance(engine, ReplayEngine) else None
     if recorded:
@@ -89,6 +120,16 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) ->
     state["images"]["layer"] = "layer.png"
     state["map"] = mmap.to_dict()
     state["outlines"] = zone_outlines(face)
+
+    if order == "hair_first":
+        skin = skin_hex_of(workdir, state["bare"], face)
+        try:
+            ev = engine.even_out(ctx, skin)
+            state["steps"]["even_out"] = asdict(ev.meta)
+            state["images"]["even"] = _save(workdir, "even", ev)
+            state["even_out"] = {"skin_hex": skin, "coverage": 30, "label": rcp.EVEN_OUT_LABEL}
+        except (YouCamError, NotRecorded) as e:  # optional step
+            state["notes"].append(f"Even-out preview unavailable ({getattr(e, 'code', 'not_recorded')}).")
 
     base = engine.recorded_recipe([]) if isinstance(engine, ReplayEngine) else None
     base = base or rcp.base_recipe(mmap)
@@ -105,11 +146,12 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
         if recipe is None:
             raise NotRecorded(rcp.edit_key(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
-    res = engine.render(ctx, recipe, edits)
+    bare_name = state.get("bare", "bride.jpg")
+    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
     name = _save(workdir, render_name(edits), res)
-    face = face or face_of(workdir)
-    bare, transfer = _arrays(workdir, state["images"]["look"])
-    _, render = _arrays(workdir, name)
+    face = face or face_of(workdir, bare_name)
+    bare, transfer = _arrays(workdir, state["images"]["look"], bare_name)
+    _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name

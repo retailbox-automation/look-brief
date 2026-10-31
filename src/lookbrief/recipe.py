@@ -165,6 +165,16 @@ def to_vto_effects(recipe: dict) -> list[dict]:
     return effects
 
 
+EVEN_OUT_LABEL = "foundation in her shade over the transfer"
+
+
+def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:
+    """'Even out redness': a foundation in the bride's own shade, applied by Makeup VTO ON TOP of the
+    Makeup Transfer result (lips and eyes stay as transferred). No smoothing."""
+    return [dict(NO_SMOOTHING), {"category": "foundation", "palettes": [
+        {"color": skin_hex, "colorIntensity": 50, "glowIntensity": 0, "coverageIntensity": int(coverage)}]}]
+
+
 def vto_body(recipe: dict) -> dict:
     return {"version": "1.0", "effects": to_vto_effects(recipe)}
 

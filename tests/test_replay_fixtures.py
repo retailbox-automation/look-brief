@@ -17,6 +17,8 @@ def test_manifest_complete_and_files_present(sid):
     mf = json.loads((sd / "manifest.json").read_text())
     steps = mf["steps"]
     assert {"mu_transfer", "hair_transfer", "render:base"} <= set(steps)
+    if mf.get("order") == "hair_first":
+        assert "even_out" in steps, "hair_first samples record the even-out step"
     zones = list(steps["render:base"]["recipe"]["zones"])
     for z in zones:
         for op in rcp.EDIT_OPS:

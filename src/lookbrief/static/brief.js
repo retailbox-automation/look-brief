@@ -23,7 +23,9 @@
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
-      const detail = zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair as in the makeup + hair preview below";
+      const detail = z === "skin"
+        ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> Foundation in her own shade ${esc(zi.product_hex)} · coverage ${esc(zi.intensity)} — evens redness, applied over the transfer`
+        : zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
       }

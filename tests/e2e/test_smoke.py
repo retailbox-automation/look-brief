@@ -48,6 +48,11 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(page.locator(".zone")).to_have_count(3)
     expect(page.locator("#gaps tbody tr")).to_have_count(3)
     check_a11y(page, "your look")
+    even = page.get_by_role("button", name="Even out redness")
+    if even.count() and even.is_visible():  # hair_first samples
+        even.click()
+        expect(page.get_by_test_id("hero-caption")).to_contain_text("foundation in her shade over the transfer")
+        page.get_by_role("button", name="Transfer").click()
 
     page.get_by_role("button", name="Cheeks", exact=True).click()  # open the Cheeks zone in the sheet
     page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()
