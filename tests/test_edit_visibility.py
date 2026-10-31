@@ -60,7 +60,7 @@ def test_the_lip_ring_follows_the_edge_of_the_lips(s3_face):
 
 def test_bronzer_has_its_mask_away_from_the_highlight(s3_face):
     m = visibility.zone_masks(s3_face)
-    assert not (m["bronzer"] & m["highlight"]).any(), "probe r2: Bronzer1 is temples, hollows, chin; the cheekbone stays"
+    assert not (m["bronzer"] & m["highlight"]).any(), "probe r2: Bronzer1 is temples, hollows, chin, not the cheekbone"
 
 
 @pytest.fixture

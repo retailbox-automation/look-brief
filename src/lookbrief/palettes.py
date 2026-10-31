@@ -375,8 +375,8 @@ def shade(group: str, zone: str, shade_id: str) -> Shade:
 
 def skin_order(group: str, zone: str, skin_hex: str) -> list[Shade]:
     """The shades of a zone from the closest to her skin to the farthest (CIEDE2000; lids: the lid colour, the crease
-    breaks a tie). Softer and Bolder walk this order. The circle without the product is not on it: taking a product away is a choice
-    of its own, not a softer step."""
+    breaks a tie). Softer and Bolder walk this order. The circle without the product is not on it: taking a product
+    away is a choice of its own, not a softer step."""
 
     def distance(s: Shade) -> list[float]:
         return [float(hex_delta_e2000(c, skin_hex)) for c in s.colors]
