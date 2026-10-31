@@ -41,7 +41,6 @@ TONE_WEIGHTS = np.array([0.25, 1.0, 1.0])  # L*, a*, b*
 NO_SMOOTHING = {"category": "skin_smooth", "skinSmoothStrength": 0, "skinSmoothColorIntensity": 0}
 # Finish numbers accepted by the API in the probes of 2026-10-31 (the same in every look).
 LIP_FINISH = {"sheer": {"gloss": 45, "transparencyIntensity": 30}}  # texture gloss leaves drops of shine: not used
-LIP_LINE_FINISH = {"thickness": 30, "smoothness": 70}
 FOUNDATION_INTENSITY = 40  # 50 lifted the heroine's forehead L* by 1.7; the target is 1.5 at most
 FOUNDATION_GLOW = 20
 
@@ -54,7 +53,9 @@ def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None =
     if zone == "eyes":
         z |= {"slot_intensity": list(spec.slots), "shimmer": list(spec.shimmer)}
     elif zone == "highlight":
-        z["glow"] = dict(palettes.HIGHLIGHT_GLOW_MEDIUM if group == "medium" else palettes.HIGHLIGHT_GLOW)
+        z["glow"] = dict(palettes.HIGHLIGHT_GLOW_SOFT if group in palettes.SOFT_GROUPS else palettes.HIGHLIGHT_GLOW)
+    elif zone == "lip_line":
+        z["stroke"] = list(s.stroke)
     elif zone == "cheeks":
         z["glow"] = spec.glow
     return z
@@ -153,6 +154,8 @@ def apply_edit(recipe: dict, zone: str, op: str) -> dict:
     z = out["zones"][zone]
     s = palettes.shade(recipe["group"], zone, op.removeprefix(SHADE_PREFIX))
     z.update(shade_id=s.id, shade_name=s.name, palette=list(s.colors), texture=s.texture)
+    if zone == "lip_line":
+        z["stroke"] = list(s.stroke)
     if s.intensity is not None:
         z["intensity"] = s.intensity
     if s.pattern:
@@ -228,7 +231,8 @@ def _palettes(z: dict) -> list[dict]:
     if cat == "lip_color":
         return [{"color": color, "texture": z["texture"], "colorIntensity": i, **LIP_FINISH.get(z["texture"], {})}]
     if cat == "lip_liner":
-        return [{"color": color, "texture": z["texture"], "colorIntensity": i, **LIP_LINE_FINISH}]
+        return [{"color": color, "texture": z["texture"], "colorIntensity": i, "thickness": z["stroke"][0],
+                 "smoothness": z["stroke"][1]}]
     return [{"color": color, "texture": z["texture"], "colorIntensity": i}]  # eye_liner, eyebrows
 
 
@@ -241,15 +245,10 @@ def _effect(z: dict) -> dict:
     return {"category": z["category"], "pattern": {"name": z["pattern"]}, "palettes": pals}
 
 
-def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
-    """Recipe -> `effects` for POST /s2s/v2.0/task/makeup-vto (schema: makeup_vto.yaml).
-
-    `even_out` ({"skin_hex", "coverage"}): once the bride has the "Even out redness" step, every re-render carries
-    the same foundation in her shade under the recipe, so an edit never brings the redness back."""
-    effects: list[dict] = [dict(NO_SMOOTHING)]
-    if even_out:
-        effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
-    effects.append(concealer_effect(recipe["skin_hex"], recipe["group"]))
+def to_vto_effects(recipe: dict) -> list[dict]:
+    """Recipe -> `effects` for POST /s2s/v2.0/task/makeup-vto (schema: makeup_vto.yaml). No foundation: on the heroine
+    it left the cheek paler than her bare skin; the even-out step stays only as a record of the transfer."""
+    effects: list[dict] = [dict(NO_SMOOTHING), concealer_effect(recipe["skin_hex"], recipe["group"])]
     zones = recipe["zones"]
     effects += [_effect(zones[z]) for z in palettes.ZONES if z in zones and zones[z]["palette"]]  # "none": left out
     return effects
@@ -266,7 +265,7 @@ def foundation_effect(skin_hex: str, coverage: int = 30) -> dict:
 
 def concealer_effect(skin_hex: str, group: str) -> dict:
     """A layer under every look, not a zone: nothing to choose, the artist reads it in the Skin row of the brief."""
-    finish = palettes.CONCEALER_FINISH_MEDIUM if group == "medium" else palettes.CONCEALER_FINISH
+    finish = palettes.CONCEALER_FINISH_SOFT if group in palettes.SOFT_GROUPS else palettes.CONCEALER_FINISH
     return {"category": "concealer", "palettes": [{"color": skin_hex, **finish}]}
 
 
@@ -276,8 +275,8 @@ def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:
     return [dict(NO_SMOOTHING), foundation_effect(skin_hex, coverage)]
 
 
-def vto_body(recipe: dict, even_out: dict | None = None) -> dict:
-    return {"version": "1.0", "effects": to_vto_effects(recipe, even_out)}
+def vto_body(recipe: dict) -> dict:
+    return {"version": "1.0", "effects": to_vto_effects(recipe)}
 
 
 def canonical(obj: object) -> bytes:

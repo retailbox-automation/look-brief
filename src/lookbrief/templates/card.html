@@ -11,7 +11,7 @@
     {# the agreed look first: the render of her recipe, edited or not #}
     {% set hf = snap.order == 'hair_first' %}
     {% set items = [(snap.before, 'Bare face'),
-                    (snap.target, 'Agreed look: her recipe, rendered by Makeup VTO' ~ (' with foundation in her shade' if hf else '')),
+                    (snap.target, 'Agreed look: her recipe, rendered by Makeup VTO'),
                     ('inspiration', 'Inspiration'),
                     ('look', 'How we read the inspiration (Makeup Transfer)')] %}
     {% if not hf %}{% set items = items + [('hair', 'Makeup + hair')] %}{% endif %}

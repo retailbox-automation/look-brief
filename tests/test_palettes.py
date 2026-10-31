@@ -15,9 +15,9 @@ from lookbrief.color import hex_delta_e2000, hex_to_lab
 
 APPROVED = json.loads((Path(__file__).parent / "fixtures" / "approved_looks.json").read_text())
 DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.json").read_text())
-LIGHT_SIZES = {"eyes": 6, "liner": 3, "lashes": 3, "brows": 3, "cheeks": 5, "bronzer": 1, "highlight": 2, "lips": 10,
+LIGHT_SIZES = {"eyes": 6, "liner": 3, "lashes": 3, "brows": 3, "cheeks": 5, "bronzer": 1, "highlight": 1, "lips": 10,
                "lip_line": 2}
-DEEP_SIZES = {**LIGHT_SIZES, "cheeks": 4, "lips": 9}
+DEEP_SIZES = {**LIGHT_SIZES, "cheeks": 4, "highlight": 2, "lips": 9}
 ALL = [(g, z) for g in palettes.GROUPS for z in palettes.ZONES]
 
 
@@ -46,7 +46,7 @@ def test_ladders_have_the_steps_of_palette_v3(group, sizes):
 @pytest.mark.parametrize("group", ["medium", "olive"])
 def test_medium_and_olive_are_built_the_same_way(group):
     sizes = {z: len(palettes.ladder(group, z)) for z in palettes.ZONES}
-    want = {**{z: LIGHT_SIZES[z] for z in palettes.STYLE_ZONES}, **({"highlight": 1} if group == "medium" else {})}
+    want = {**{z: LIGHT_SIZES[z] for z in palettes.STYLE_ZONES}, **({"highlight": 2} if group == "olive" else {})}
     assert {z: sizes[z] for z in palettes.STYLE_ZONES} == want
     assert sizes["eyes"] == 6 and sizes["cheeks"] == 5 and sizes["lips"] >= 9 and sizes["bronzer"] == 1
 
@@ -63,6 +63,14 @@ def test_the_deep_steps_follow_the_final_looks():
     assert palettes.shade("deep", "lips", "deep-red").colors == ("#B01A30",)
     assert palettes.shade("deep", "lips", "caramel-nude").colors == ("#9A5A50",)
     assert palettes.shade("deep", "lip_line", "defined").colors == ("#6A3A34",)
+
+
+def test_the_steps_of_light_and_medium_follow_the_final_looks():
+    assert palettes.shade("light", "cheeks", "warm-rose").colors == ("#B85A68",)
+    assert "muted-rose" not in {s.id for s in palettes.ladder("light", "cheeks")}
+    assert palettes.shade("light", "highlight", "radiant").colors == ("#F0D0B0",)
+    assert palettes.shade("light", "lip_line", "natural").stroke == (12, 90)
+    assert palettes.shade("medium", "lips", "wine").colors == ("#7A1A2E",)
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
@@ -208,11 +216,7 @@ def test_patterns_are_in_the_youcam_catalogs():
 @pytest.mark.parametrize(("group", "look"), [(g, k) for g in ("light", "medium", "deep") for k in palettes.LOOK_IDS])
 def test_approved_looks_are_sent_byte_for_byte(group, look):
     want = APPROVED[group][look]
-    even = None
-    for e in want:
-        if e["category"] == "foundation":
-            even = {"skin_hex": e["palettes"][0]["color"], "coverage": e["palettes"][0]["coverageIntensity"]}
-    got = rcp.to_vto_effects(rcp.look_recipe(group, look, SKIN[group]), even)
+    got = rcp.to_vto_effects(rcp.look_recipe(group, look, SKIN[group]))
     assert rcp.canonical(got) == rcp.canonical(want)
 
 

@@ -145,10 +145,9 @@ class LiveEngine:
         body = {"src_file_id": src, "version": "1.0", "effects": even_out_effects(skin_hex, coverage)}
         return self._run("even_out", "makeup-vto", body, label=EVEN_OUT_LABEL)
 
-    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride",
-               even_out: dict | None = None) -> StepResult:
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride") -> StepResult:
         src = self._source(ctx, on)
-        body = {"src_file_id": src, **vto_body(recipe, even_out)}
+        body = {"src_file_id": src, **vto_body(recipe)}
         out = self._run(f"render:{edit_key(edits)}", "makeup-vto", body, label=edit_key(edits), recipe=recipe)
         if not edits:
             keep_base_render(ctx, out.image, recipe)
@@ -178,8 +177,7 @@ class ReplayEngine:
     def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
         return self._step("even_out")
 
-    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride",
-               even_out: dict | None = None) -> StepResult:
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride") -> StepResult:
         return self._step(f"render:{edit_key(edits)}")
 
     def order(self) -> str:
@@ -289,12 +287,11 @@ class GridEngine(LiveEngine):
     def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
         return self._recorded("even_out") or super().even_out(ctx, skin_hex, coverage)
 
-    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride",
-               even_out: dict | None = None) -> StepResult:
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride") -> StepResult:
         key = f"render:{edit_key(edits)}"
         got = self._recorded(key)
         if got is None or self.steps[key].get("recipe") != recipe:
-            return super().render(ctx, recipe, edits, on, even_out)
+            return super().render(ctx, recipe, edits, on)
         if not edits:
             keep_base_render(ctx, got.image, recipe)
         return got

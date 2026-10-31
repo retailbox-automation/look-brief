@@ -211,7 +211,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
-                                                "checks", "order", "even_out", "map_reference", "views")})
+                                                "checks", "order", "map_reference", "views")})
             out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z],
                                                               "style": z in palettes.STYLE_ZONES,
                                                               "note": palettes.FIXED_ZONES.get(z, "")} for z in zs]}
@@ -510,11 +510,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         review_zones = [z["zone"] for z in zones]
         if "hair" in st["images"] or st.get("order") == "hair_first":
             review_zones.append("hair")
-        skin_hex, skin_name, skin_coverage = st["recipe"]["skin_hex"], "Concealer in her own shade", None
-        if st.get("even_out") and "even" in st["images"]:
-            skin_name, skin_coverage = "Foundation and concealer in her own shade", st["even_out"]["coverage"]
-        zones.append({"zone": "skin", "label": "Skin", "shade_name": skin_name, "palette": [skin_hex], "texture": "",
-                      "product_hex": skin_hex, "intensity": skin_coverage, "on_face_hex": None, "coverage": None})
+        skin_hex = st["recipe"]["skin_hex"]
+        zones.append({"zone": "skin", "label": "Skin", "shade_name": "Concealer in her own shade",
+                      "palette": [skin_hex], "texture": "", "product_hex": skin_hex, "intensity": None,
+                      "on_face_hex": None, "coverage": None})
         review_zones.append("skin")
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),

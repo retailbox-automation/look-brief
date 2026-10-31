@@ -1,5 +1,5 @@
 {
- "_source": "Final request bodies (2026-10-31), colours frozen. light (s0): A, C p14-spec, B p12-spec. medium (s2): B p15-spec B2; A, C p14-spec with the concealer and bronzer of B2 and no highlighter. deep (s3): A p15-spec A2, B p12-spec, C p16-spec C2.",
+ "_source": "Final request bodies (2026-10-31), colours frozen. light (s0): B p19-spec c8-nohigh; A, C p14-spec without foundation and highlighter, concealer 8/70/35, blush #C87A6E 34 and #B85A68 40. medium (s2): B p15-spec B2, C p17-spec C-wine, A p14-spec with the concealer and bronzer of B2 and no highlighter. deep (s3): A p15-spec A2, B p12-spec, C p16-spec C2.",
  "light": {
   "fresh": [
    {
@@ -8,24 +8,13 @@
     "skinSmoothColorIntensity": 0
    },
    {
-    "category": "foundation",
-    "palettes": [
-     {
-      "color": "#dfa588",
-      "colorIntensity": 40,
-      "glowIntensity": 20,
-      "coverageIntensity": 30
-     }
-    ]
-   },
-   {
     "category": "concealer",
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 20,
-      "colorUnderEyeIntensity": 85,
-      "coverageLevel": 50
+      "colorIntensity": 8,
+      "colorUnderEyeIntensity": 70,
+      "coverageLevel": 35
      }
     ]
    },
@@ -94,10 +83,10 @@
     },
     "palettes": [
      {
-      "color": "#F0A090",
+      "color": "#C87A6E",
       "texture": "satin",
       "glowStrength": 30,
-      "colorIntensity": 30
+      "colorIntensity": 34
      }
     ]
    },
@@ -110,22 +99,6 @@
      {
       "color": "#C08A55",
       "colorIntensity": 20
-     }
-    ]
-   },
-   {
-    "category": "highlighter",
-    "pattern": {
-     "name": "OvalFace28"
-    },
-    "palettes": [
-     {
-      "color": "#F3E3D0",
-      "glowIntensity": 45,
-      "shimmerIntensity": 25,
-      "shimmerDensity": 35,
-      "shimmerSize": 25,
-      "colorIntensity": 40
      }
     ]
    },
@@ -155,24 +128,13 @@
     "skinSmoothColorIntensity": 0
    },
    {
-    "category": "foundation",
-    "palettes": [
-     {
-      "color": "#dfa588",
-      "colorIntensity": 40,
-      "glowIntensity": 20,
-      "coverageIntensity": 30
-     }
-    ]
-   },
-   {
     "category": "concealer",
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 20,
-      "colorUnderEyeIntensity": 85,
-      "coverageLevel": 50
+      "colorIntensity": 8,
+      "colorUnderEyeIntensity": 70,
+      "coverageLevel": 35
      }
     ]
    },
@@ -241,10 +203,10 @@
     },
     "palettes": [
      {
-      "color": "#D58C95",
+      "color": "#B85A68",
       "texture": "satin",
       "glowStrength": 30,
-      "colorIntensity": 36
+      "colorIntensity": 38
      }
     ]
    },
@@ -257,22 +219,6 @@
      {
       "color": "#C08A55",
       "colorIntensity": 20
-     }
-    ]
-   },
-   {
-    "category": "highlighter",
-    "pattern": {
-     "name": "OvalFace28"
-    },
-    "palettes": [
-     {
-      "color": "#F3E3D0",
-      "glowIntensity": 45,
-      "shimmerIntensity": 25,
-      "shimmerDensity": 35,
-      "shimmerSize": 25,
-      "colorIntensity": 40
      }
     ]
    },
@@ -299,11 +245,11 @@
     },
     "palettes": [
      {
-      "color": "#A63A50",
+      "color": "#B0606E",
       "texture": "matte",
-      "colorIntensity": 40,
-      "thickness": 30,
-      "smoothness": 70
+      "colorIntensity": 30,
+      "thickness": 12,
+      "smoothness": 90
      }
     ]
    }
@@ -315,24 +261,13 @@
     "skinSmoothColorIntensity": 0
    },
    {
-    "category": "foundation",
-    "palettes": [
-     {
-      "color": "#dfa588",
-      "colorIntensity": 40,
-      "glowIntensity": 20,
-      "coverageIntensity": 30
-     }
-    ]
-   },
-   {
     "category": "concealer",
     "palettes": [
      {
       "color": "#dfa588",
-      "colorIntensity": 20,
-      "colorUnderEyeIntensity": 85,
-      "coverageLevel": 50
+      "colorIntensity": 8,
+      "colorUnderEyeIntensity": 70,
+      "coverageLevel": 35
      }
     ]
    },
@@ -401,7 +336,7 @@
     },
     "palettes": [
      {
-      "color": "#D0707E",
+      "color": "#B85A68",
       "texture": "satin",
       "glowStrength": 30,
       "colorIntensity": 40
@@ -417,22 +352,6 @@
      {
       "color": "#C08A55",
       "colorIntensity": 26
-     }
-    ]
-   },
-   {
-    "category": "highlighter",
-    "pattern": {
-     "name": "OvalFace28"
-    },
-    "palettes": [
-     {
-      "color": "#F3E3D0",
-      "glowIntensity": 45,
-      "shimmerIntensity": 25,
-      "shimmerDensity": 35,
-      "shimmerSize": 25,
-      "colorIntensity": 45
      }
     ]
    },
@@ -805,7 +724,7 @@
     },
     "palettes": [
      {
-      "color": "#D0707E",
+      "color": "#D87A6A",
       "texture": "satin",
       "glowStrength": 30,
       "colorIntensity": 40
@@ -834,9 +753,9 @@
     },
     "palettes": [
      {
-      "color": "#B0102E",
+      "color": "#7A1A2E",
       "texture": "matte",
-      "colorIntensity": 80
+      "colorIntensity": 86
      }
     ]
    },
@@ -847,7 +766,7 @@
     },
     "palettes": [
      {
-      "color": "#A01028",
+      "color": "#5A1424",
       "texture": "matte",
       "colorIntensity": 40,
       "thickness": 30,

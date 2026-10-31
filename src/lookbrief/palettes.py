@@ -61,7 +61,7 @@ NEUTRAL_CHROMA = 6.0  # below this a colour has no hue to keep
 # Concealer: a layer under every look, not a zone, in her own colour. colorIntensity lands on the whole face (at 45 a
 # lighter colour made s2's face lighter than her neck), so the strength sits under the eyes.
 CONCEALER_FINISH = {"colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
-CONCEALER_FINISH_MEDIUM = {"colorIntensity": 8, "colorUnderEyeIntensity": 70, "coverageLevel": 35}
+CONCEALER_FINISH_SOFT = {"colorIntensity": 8, "colorUnderEyeIntensity": 70, "coverageLevel": 35}  # light, medium
 # A red lip takes the lip liner under it: shade of the lips -> (lip liner, strength).
 LIP_LINE_UNDER = {"ruby": ("red", 45)}
 # Strength and shimmer of the two lid colours (lid, outer corner) on the ladder shades.
@@ -69,9 +69,10 @@ EYE_SLOTS = {"light": ((92, 88), (70, 0)), "medium": ((92, 88), (70, 0)), "olive
              "deep": ((95, 90), (80, 0))}
 EYE_PATTERN = "2colors279"
 LASH_COLOR = "#17110f"
-# Glow of the highlighter; numbers accepted by the API in the probes. Medium skin takes a quieter shine.
+# Glow of the highlighter; numbers accepted by the API in the probes. Light and medium skin take a quieter shine.
 HIGHLIGHT_GLOW = {"glowIntensity": 45, "shimmerIntensity": 25, "shimmerDensity": 35, "shimmerSize": 25}
-HIGHLIGHT_GLOW_MEDIUM = {"glowIntensity": 35, "shimmerIntensity": 15, "shimmerDensity": 35, "shimmerSize": 25}
+HIGHLIGHT_GLOW_SOFT = {"glowIntensity": 35, "shimmerIntensity": 15, "shimmerDensity": 35, "shimmerSize": 25}
+SOFT_GROUPS = ("light", "medium")
 ZONE_PATTERNS = {"eyes": EYE_PATTERN, "brows": "color", "bronzer": "Bronzer1", "highlight": "OvalFace28",
                  "lips": "original", "lip_line": "Natural1"}
 
@@ -85,6 +86,7 @@ class Shade:
     intensity: int | None = None  # the strength this shade brings; None: the look keeps its own
     pattern: str = ""  # the pattern this shade brings; "": the zone's
     step: bool = True  # False: a circle of its own, never where Softer or Bolder lands
+    stroke: tuple[int, int] = (30, 70)  # lip liner: thickness, smoothness
 
     @property
     def main(self) -> str:
@@ -126,8 +128,9 @@ def _gloss(id_: str, name: str, color: str) -> Shade:
     return Shade(id_, name, (color,), "sheer", step=False)
 
 
-def _style(id_: str, name: str, color: str, intensity: int | None = None, pattern: str = "") -> Shade:
-    return Shade(id_, name, (color,), "matte", intensity, pattern)
+def _style(id_: str, name: str, color: str, intensity: int | None = None, pattern: str = "",
+           stroke: tuple[int, int] = (30, 70)) -> Shade:
+    return Shade(id_, name, (color,), "matte", intensity, pattern, stroke=stroke)
 
 
 def _bare(id_: str, name: str, color: str, intensity: int | None = None, pattern: str = "") -> Shade:
@@ -159,13 +162,13 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
         "brows": (_style("natural", "Natural", "#5A4034", 35), _style("soft", "Soft", "#8A6A5C", 18),
                   _style("defined", "Defined", "#3B2A22", 85)),
         "cheeks": _ladder(
-            _blush("muted-rose", "Muted rose", "#D58C95", 36),
+            _blush("warm-rose", "Warm rose", "#B85A68", 38),
             _blush("peach", "Peach", "#EE8F6A", 50),
             _blush("terracotta", "Terracotta", "#C8603C", 50),
             _blush("rose", "Rose", "#DE6A72", 46),
             _blush("plum-rose", "Plum rose", "#A84868", 44)),
         "bronzer": (_bare("natural", "Natural", "#C08A55", 20),),
-        "highlight": (_bare("natural", "Natural", "#F3E3D0", 40), _bare("radiant", "Radiant", "#F3D3B5", 78)),
+        "highlight": (_bare("radiant", "Radiant", "#F0D0B0", 22),),
         "lips": _ladder(
             _lip("dusty-rose", "Dusty rose", "#B96F78"),
             _lip("light-pink", "Light pink", "#E8A0A8", "sheer"),
@@ -177,7 +180,8 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _lip("raspberry", "Raspberry", "#B03050"),
             _lip("ruby", "Ruby", "#B0102E", "matte"),
             _gloss("rose-gloss", "Rose gloss", "#B96F78")),
-        "lip_line": (_style("natural", "Natural", "#A63A50", 40), _style("defined", "Defined", "#A85A62", 55)),
+        "lip_line": (_style("natural", "Natural", "#B0606E", 30, stroke=(12, 90)),
+                     _style("defined", "Defined", "#A85A62", 55)),
     },
     "medium": {  # the ladders of the light group around the warm base of s2
         "eyes": _ladder(
@@ -209,6 +213,7 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _lip("warm-coral", "Warm coral", "#D9705F"),
             _lip("warm-rose", "Warm rose", "#B0605C"),
             _lip("raspberry", "Raspberry", "#B03050"),
+            _lip("wine", "Wine", "#7A1A2E", "matte"),
             _gloss("rose-gloss", "Rose gloss", "#B96F78")),
         "lip_line": (_style("natural", "Natural", "#A63A50", 40), _style("defined", "Defined", "#A85A62", 55)),
     },
@@ -283,15 +288,15 @@ LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
         "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D9B08C", "#8A6450"),
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
         "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
-        "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"), _blush("deep-rose", "Deep rose", "#D0707E")),
+        "cheeks": (_blush("soft-peach", "Soft peach", "#C87A6E"),),
         "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
     },
     "medium": {
         "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D9B08C", "#8A6450"),
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
         "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
-        "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"), _blush("deep-rose", "Deep rose", "#D0707E")),
-        "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
+        "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"),),
+        "lip_line": (_style("red", "Red", "#8E0F1A"), _style("wine-line", "Wine", "#5A1424")),
     },
     "olive": {
         "eyes": (_eye("warm-gold-taupe", "Warm gold taupe", "#C9A24A", "#8A5A3A"),
@@ -329,12 +334,12 @@ def _look(eyes: tuple[str, tuple[int, ...], tuple[int, ...]], liner: tuple[str, 
 LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
     "light": {
         "fresh": _look(("sunlit-taupe", (70, 62), (60, 0)), ("taupe-brown", 50), ("natural", 60), ("natural", 35),
-                       ("soft-peach", 30, "1color2", 30), ("natural", 20), ("natural", 40), ("rosy-peach", 55)),
+                       ("soft-peach", 34, "1color2", 30), ("natural", 20), (NONE_ID, 0), ("rosy-peach", 55)),
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
-                          ("muted-rose", 36, "1color2", 30), ("natural", 20), ("natural", 40), ("dusty-rose", 68),
-                          ("natural", 40)),
+                          ("warm-rose", 38, "1color2", 30), ("natural", 20), (NONE_ID, 0), ("dusty-rose", 68),
+                          ("natural", 30)),
         "evening": _look(("copper-umber", (94, 92), (75, 0)), ("wing", 76), ("volume", 80), ("natural", 42),
-                         ("deep-rose", 40, "1color2", 30), ("natural", 26), ("natural", 45), ("ruby", 80),
+                         ("warm-rose", 40, "1color2", 30), ("natural", 26), (NONE_ID, 0), ("ruby", 80),
                          ("ruby-line", 40)),
     },
     "medium": {
@@ -343,8 +348,8 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
                           ("soft-coral", 38, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80), ("red", 45)),
         "evening": _look(("copper-umber", (94, 92), (75, 0)), ("wing", 76), ("volume", 80), ("natural", 42),
-                         ("deep-rose", 40, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80),
-                         ("ruby-line", 40)),
+                         ("soft-coral", 40, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("wine", 86),
+                         ("wine-line", 40)),
     },
     "olive": {
         "fresh": _look(("warm-gold-taupe", (74, 66), (62, 0)), ("plum-brown", 55), ("natural", 66), ("natural", 36),

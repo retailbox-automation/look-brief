@@ -141,12 +141,12 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     artist.goto(base_url + artist_url)
     expect(artist.get_by_text("For your makeup artist · no account needed")).to_be_visible()
     reviews = artist.locator("fieldset.review")
-    expect(reviews).to_have_count(11)  # nine zones of the recipe, the hair, the foundation under it
+    expect(reviews).to_have_count(10)  # eight zones of the recipe (no highlighter in the base), the hair, the skin
     snap = artist.request.get(base_url + artist_url.replace("/b/", "/api/briefs/")).json()["snapshot"]
     cheeks = next(z for z in snap["zones"] if z["zone"] == "cheeks")
     expect(artist.get_by_test_id("review-cheeks")).to_contain_text(cheeks["product_hex"])
     expect(artist.get_by_test_id("review-cheeks")).to_contain_text(cheeks["shade_name"])
-    expect(artist.get_by_test_id("review-skin")).to_contain_text("Foundation in her own shade")
+    expect(artist.get_by_test_id("review-skin")).to_contain_text("Concealer in her own shade")
     for i in range(reviews.count()):
         fs = reviews.nth(i)
         is_cheeks = fs.get_attribute("data-testid") == "review-cheeks"
@@ -194,6 +194,7 @@ def test_hair_first_sample_by_link(base_url, browser_ctx):
     expect(page.locator("#img-before")).to_have_attribute("src", re.compile(r"/base\."))
     body = page.locator("body").inner_text()
     assert "Even out" not in body and "transferred look" not in body, "the recipe is the main path"
+    assert "foundation" not in body.lower(), "no render carries one"
     # an iPhone status bar: the page keeps a safe-area padding at the top (Chromium has none, so fake one)
     page.evaluate("document.body.style.paddingTop = '47px'")
     open_zone(page, "eyes")

@@ -41,7 +41,7 @@
       const zi = zoneInfo(z), r = view.reviews[z] || {};
       const dots = (zi.palette || []).map((c) => `<span class="swatch" style="background:${esc(c)}" aria-hidden="true"></span>`).join(" ");
       const detail = z === "skin"
-        ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))}${zi.intensity === null ? "" : ` · coverage ${esc(zi.intensity)}`}`
+        ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))}`
         : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
         : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {

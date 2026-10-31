@@ -115,7 +115,7 @@
   }
 
   const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
-  const lookCaption = () => `${(state.edits || []).length ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO${state.even_out ? " with foundation in your shade" : ""}`;
+  const lookCaption = () => `${(state.edits || []).length ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
 
   // ---------- photo: close up on the chosen zone ----------
   // zone -> [outline it centres on, scale]. Brows, liner and lashes live around the eyes.
@@ -266,11 +266,7 @@
     const rows = Object.values(gz).map((g) =>
       `<tr><th scope="row">${esc(g.label)}</th><td>${g.color_gap_de2000.toFixed(1)}</td><td>${Math.round(g.coverage_transfer * 100)}% → ${Math.round(g.coverage_render * 100)}%</td></tr>`).join("");
     document.querySelector("#gaps tbody").innerHTML = rows;
-    const evened = state.gaps && state.gaps.reference === "even";
-    $("gaps-ref").textContent = evened ? "Hair-first look: compared with the transfer under foundation in your shade, because the recipe carries the same foundation." : "";
-    $("skin-note").textContent = evened
-      ? `Skin control (forehead): the transfer changes it by ΔE76 ${state.map.skin_control_de}; the recipe, with foundation in your shade, by ${state.gaps.skin_control_render_de76}.`
-      : `Skin control (forehead, no makeup): the transfer changes it by ΔE76 ${state.map.skin_control_de}, the recipe by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
+    $("skin-note").textContent = `Skin control (forehead, no makeup): the transfer changes it by ΔE76 ${state.map.skin_control_de}, the recipe by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
   }
 
   function render() {

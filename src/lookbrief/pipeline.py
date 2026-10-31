@@ -3,8 +3,8 @@
 Two orders. transfer_first (the recorded samples s2/s3): Makeup Transfer on the selfie, then the recipe's base render,
 then Hair Transfer on that render, so the hair preview wears the new look. hair_first: Hair Transfer on the selfie
 gives the "base" (her face with the inspiration hair), Makeup Transfer runs on the base, and the map, metric and every
-re-render use the base, so Hair Transfer's relighting never reads as makeup. hair_first also records "Even out
-redness": a foundation in her own shade over the transfer.
+re-render use the base, so Hair Transfer's relighting never reads as makeup. hair_first also records a foundation in
+her own shade over the transfer: the map reads that evened transfer, the renders do not carry it.
 
 The look she is shown is the recipe's render (`views`), not the transfer: the transfer only gives the map and the
 colour family, and stays visible further down the page.
@@ -164,7 +164,7 @@ def measure_map(workdir: Path, state: dict, face: landmarks.FaceGeometry,
 
 
 def even_out_of(state: dict) -> dict | None:
-    """The foundation every re-render carries once the even-out step exists (hair-first looks)."""
+    """The even-out step of a hair-first look: the transfer the map is read from. Renders do not carry it."""
     ev = state.get("even_out")
     if ev and "even" in state.get("images", {}):
         return {"skin_hex": ev["skin_hex"], "coverage": int(ev.get("coverage", 30))}
@@ -180,23 +180,18 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
             raise NotRecorded(rcp.edit_key(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
     bare_name = state.get("bare", "bride.jpg")
-    # After "Even out redness" every re-render carries the same foundation, and accuracy is measured against the
-    # evened look the bride is shown (otherwise an edit brings the redness back and is compared to the patchy transfer).
-    even = even_out_of(state)
-    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride", even_out=even)
+    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
     name = _save(workdir, render_name(edits), res)
     face = face or face_of(workdir, bare_name)
-    reference = state["images"]["even"] if even else state["images"]["look"]
-    bare, transfer = _arrays(workdir, reference, bare_name)
+    bare, transfer = _arrays(workdir, state["images"]["look"], bare_name)
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
-    gaps["reference"] = "even" if even else "transfer"
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name
     state["edits"] = edits
     state["recipe"] = recipe
     state["recipe_sha256"] = rcp.recipe_sha256(recipe)
-    state["vto_effects"] = rcp.to_vto_effects(recipe, even)
+    state["vto_effects"] = rcp.to_vto_effects(recipe)
     state["gaps"] = gaps
     if not edits:
         state["gaps_base"] = gaps

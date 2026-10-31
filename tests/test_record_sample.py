@@ -37,13 +37,13 @@ def dry(*args):
 
 
 @pytest.mark.parametrize(("sample", "renders", "units", "hair"), [
-    ("s0-champagne-rose", 31, 31, False), ("s2-classic-red", 31, 33, True), ("s3-mauve-smoky", 29, 31, True)])
+    ("s0-champagne-rose", 30, 30, False), ("s2-classic-red", 32, 34, True), ("s3-mauve-smoky", 29, 31, True)])
 def test_dry_lists_the_grid_without_a_key(sample, renders, units, hair, tmp_path):
     r = dry(str(before_the_grid(sample, tmp_path / sample)), "--max-units", "230")
     assert r.returncode == 0, r.stderr
     assert f"renders {renders}" in r.stdout and f"units {units}" in r.stdout
     assert ("  hair_transfer" in r.stdout) is hair
-    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:highlight:shade:none",
+    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:highlight:shade:radiant",
                  "render:lashes:shade:fluttery", "render:liner:shade:wing"):
         assert must in r.stdout
     assert ":softer" not in r.stdout and ":bolder" not in r.stdout, "Softer and Bolder are renders of circles"
@@ -187,5 +187,5 @@ def test_a_hair_first_sample_keeps_its_transfer_hair_and_even_out(script, monkey
     sd = before_the_grid("s0-champagne-rose", tmp_path / "s0-champagne-rose")
     kept = {n: (sd / "results" / n).read_bytes() for n in ("hair_transfer.jpg", "mu_transfer.jpg")}
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 31
+    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 30
     assert {n: (sd / "results" / n).read_bytes() for n in kept} == kept
