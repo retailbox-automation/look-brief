@@ -136,19 +136,20 @@ def test_softer_is_stored_as_the_shade_and_needs_no_render_of_its_own():
 
 def test_softer_starts_from_the_shade_on_her_face_not_the_base():
     base = _look()
-    order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
     st = _state(base, [["lips", "shade:ruby"]])
-    expected = order[order.index("ruby") - 1]
+    expected = palettes.step_from("light", "lips", SKIN["light"], "ruby", "softer")
+    assert expected != palettes.step_from("light", "lips", SKIN["light"], "dusty-rose", "softer")
     plan = pipeline.plan_edit(st, "lips", "softer", {"base", f"lips:shade:{expected}", "lips:shade:ruby"})
     assert plan["edits"] == [["lips", f"shade:{expected}"]]
 
 
 def test_stepping_back_to_the_base_shade_is_the_base_render():
     base = _look()
-    order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
-    i = order.index(base["zones"]["lips"]["shade_id"])
-    st = _state(base, [["lips", f"shade:{order[i + 1]}"]])
-    assert pipeline.plan_edit(st, "lips", "softer", {"base"}) == {"edits": [], "replaces": False}
+    start = base["zones"]["lips"]["shade_id"]
+    softer = palettes.step_from("light", "lips", SKIN["light"], start, "softer")
+    assert palettes.step_from("light", "lips", SKIN["light"], softer, "bolder") == start
+    st = _state(base, [["lips", f"shade:{softer}"]])
+    assert pipeline.plan_edit(st, "lips", "bolder", {"base"}) == {"edits": [], "replaces": False}
 
 
 def test_the_base_look_button_returns_to_the_sample():

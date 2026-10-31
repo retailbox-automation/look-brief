@@ -126,8 +126,16 @@ def test_ruby_is_a_step_of_the_light_lips_for_the_classic_red_sample():
 def test_deep_blush_stays_warm():
     """Probes r1/v3: pinks and berries turn to mud on deep skin, warm deep shades are beautiful (#8E3A3C, #7E2A38)."""
     for s in palettes.ladder("deep", "cheeks"):
-        assert 15 <= _hue(s.colors[0]) <= 60, (s.id, _hue(s.colors[0]))
+        assert 12 <= _hue(s.colors[0]) <= 60, (s.id, _hue(s.colors[0]))
         assert _chroma(s.colors[0]) >= 30, s.id
+
+
+def test_deep_blush_has_no_orange_and_nothing_loud():
+    """Nadya's complaint about orange cheeks; the matte red shouted. Warm deep shades took their place."""
+    colors = {s.colors[0] for s in palettes.ladder("deep", "cheeks")}
+    assert not colors & {"#D9785E", "#C86A5A", "#C0262C"}
+    assert {"#A8553F", "#8C3A4A", "#94503F"} <= colors
+    assert palettes.LOOKS["deep"]["softglam"]["cheeks"].shade == "mulled-rose"
 
 
 def test_no_pastel_or_white_on_deep_skin():

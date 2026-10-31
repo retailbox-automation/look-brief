@@ -44,6 +44,10 @@ OLIVE_MIN_HUE = 60.0  # h* of the forehead; above this the middle band reads yel
 # Few steps on a thin line of product: a step differs in colour and in strength, and the product can be left out.
 THIN_ZONES = ("bronzer", "highlight", "liner", "lip_line")
 NONE_ID = "none"
+# Softer / Bolder stay in the colour family: the raw order of distance to her skin jumped from berry rose to fuchsia.
+FAMILY_HUE = 30.0  # the next shade differs by at most this much of hue h* ...
+FAMILY_CHROMA_RISE = 15.0  # ... and gains at most this much chroma C*
+NEUTRAL_CHROMA = 6.0  # below this a colour has no hue to keep (black liner, black lashes)
 
 
 @dataclass(frozen=True)
@@ -251,10 +255,10 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
                          _s("dark-brown", "Dark brown", "#33241E"), _s("espresso", "Espresso", "#2B1B17")),
         # warm deep shades only: pinks and berries turn to mud on deep skin (probes r1, v3)
         "cheeks": _ladder(
-            _satin("rose-orange", "Rose orange", "#D9785E"),
-            _satin("copper-sunset", "Copper sunset", "#C86A5A"),
+            _satin("terracotta-rose", "Terracotta rose", "#A8553F"),
+            _satin("soft-sienna", "Soft sienna", "#94503F"),
             _satin("warm-rose", "Warm rose", "#B5535A"),
-            _satin("matte-red", "Warm red", "#C0262C"),
+            _satin("warm-berry", "Warm berry", "#8C3A4A"),
             _satin("brick", "Brick", "#A8412F"),
             _satin("mulled-rose", "Mulled rose", "#8E3A3C"),
             _satin("dark-cherry", "Dark cherry", "#7E2A38"),
@@ -382,6 +386,29 @@ def skin_order(group: str, zone: str, skin_hex: str) -> list[Shade]:
         return [float(hex_delta_e2000(c, skin_hex)) for c in s.colors]
 
     return sorted(LADDERS[group][zone], key=distance)
+
+
+def same_family(color: str, other: str) -> bool:
+    """Can `other` be the next step from `color`: a close hue (the short way round), and not much more vivid."""
+    lab, next_lab = hex_to_lab(color), hex_to_lab(other)
+    chroma, next_chroma = float(np.hypot(*lab[1:])), float(np.hypot(*next_lab[1:]))
+    if next_chroma > chroma + FAMILY_CHROMA_RISE:
+        return False
+    if min(chroma, next_chroma) < NEUTRAL_CHROMA:
+        return True
+    hue = math.degrees(math.atan2(lab[2], lab[1])) - math.degrees(math.atan2(next_lab[2], next_lab[1]))
+    return abs((hue + 180) % 360 - 180) <= FAMILY_HUE
+
+
+def step_from(group: str, zone: str, skin_hex: str, shade_id: str, op: str) -> str | None:
+    """The shade Softer / Bolder lands on from `shade_id`: the next one in the order of her skin that stays in the
+    colour family, or None at the end of the way. With no product on the zone Bolder brings the nearest shade."""
+    order = skin_order(group, zone, skin_hex)
+    if shade_id == NONE_ID:
+        return order[0].id if op == "bolder" else None
+    i = next(k for k, s in enumerate(order) if s.id == shade_id)
+    way = order[i + 1:] if op == "bolder" else order[i - 1::-1] if i else []
+    return next((s.id for s in way if same_family(order[i].colors[0], s.colors[0])), None)
 
 
 def ita(lab: NDArray[np.float64]) -> float:

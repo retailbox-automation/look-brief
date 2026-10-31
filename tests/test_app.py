@@ -99,8 +99,7 @@ def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
 
 def test_a_circle_a_step_and_a_look_through_the_api(client):
     sid = _replay_session(client)  # s2: the classic red lip is pinned to ruby
-    order = [x.id for x in palettes.skin_order("light", "lips", "#e4b29c")]
-    softer = order[order.index("ruby") - 1]
+    softer = palettes.step_from("light", "lips", "#e4b29c", "ruby", "softer")
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
     assert r.status_code == 200 and r.json()["edits"] == [["lips", f"shade:{softer}"]]
     via_step = r.json()["images"]["render"]

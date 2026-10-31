@@ -1,8 +1,8 @@
 """Does every button visibly change the face? Measured on the recorded renders of a sample.
 
 Inside the zone, mean dE2000 and the share of pixels above the just-noticeable 2.3: a circle or a finish against the
-render without edits (render:base); Softer and Bolder as the pair of shade renders they step between, for every step
-of the skin order. Thresholds (visible at a glance on a phone, checked by eye on 1:1 zone crops, decision 31.10):
+render without edits (render:base); Softer and Bolder as the pair of shade renders they step between, from every
+shade. Thresholds (visible at a glance on a phone, checked by eye on 1:1 zone crops, decision 31.10):
 mean >= 3.5 with >= 60 % of pixels over 2.3. A step below them is `quiet`: the sample lists it in `quiet_edits` and
 the button is not offered (scripts/edit_visibility_report.py --write).
 """
@@ -10,7 +10,6 @@ the button is not offered (scripts/edit_visibility_report.py --write).
 from __future__ import annotations
 
 import json
-from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +17,7 @@ from PIL import Image
 
 from . import landmarks, makeup_map, palettes
 from .color import delta_e2000
-from .recipe import LOOK_ZONE, edit_key, record_grid
+from .recipe import EDIT_OPS, LOOK_ZONE, edit_key, record_grid
 
 JND = 2.3
 MIN_MEAN = 3.5
@@ -105,11 +104,9 @@ def edit_visibility(sample_dir: Path) -> dict:
         def render_of(shade: str, zone: str = zone, start: str = z["shade_id"]) -> str:
             return "render:base" if shade == start else f"render:{zone}:shade:{shade}"
 
-        chain = [s.id for s in palettes.skin_order(recipe["group"], zone, recipe["skin_hex"])]
-        if zone in palettes.THIN_ZONES:
-            chain.insert(0, palettes.NONE_ID)
-        for a, b in pairwise(chain):
-            measure(f"{zone}:bolder@{a}", render_of(a), render_of(b), zone)
-            if a != palettes.NONE_ID:
-                measure(f"{zone}:softer@{b}", render_of(a), render_of(b), zone)
+        for s in palettes.circles(recipe["group"], zone):
+            for op in EDIT_OPS:
+                target = palettes.step_from(recipe["group"], zone, recipe["skin_hex"], s.id, op)
+                if target:
+                    measure(f"{zone}:{op}@{s.id}", render_of(s.id), render_of(target), zone)
     return {"edits": edits, "quiet": [k for k, v in edits.items() if not v["ok"]], "missing": missing}

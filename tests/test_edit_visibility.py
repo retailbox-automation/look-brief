@@ -96,9 +96,9 @@ def test_a_render_that_changes_nothing_is_quiet(synthetic):
 def test_a_painted_circle_shows_and_its_neighbours_steps_show_with_it(synthetic):
     sd, steps = synthetic
     base = steps["render:base"]["recipe"]
-    order = [s.id for s in palettes.skin_order("deep", "lips", base["skin_hex"])]
     start = base["zones"]["lips"]["shade_id"]
-    next_ = order[order.index(start) + 1]
+    next_ = palettes.step_from("deep", "lips", base["skin_hex"], start, "bolder")
+    assert palettes.step_from("deep", "lips", base["skin_hex"], next_, "softer") == start
     _paint(sd, steps, f"render:lips:shade:{next_}", "lips")
     rep = visibility.edit_visibility(sd)
     assert f"lips:shade:{next_}" not in rep["quiet"]

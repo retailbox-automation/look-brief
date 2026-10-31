@@ -149,12 +149,60 @@ def test_softer_goes_closer_to_her_skin_and_bolder_further(group):
             assert _distance(rcp.apply_edit(base, zone, "bolder"), zone) > d0, (group, zone)
 
 
-def test_softer_and_bolder_are_the_neighbours_in_the_order_of_her_skin():
+def test_softer_and_bolder_are_the_next_shades_of_her_order_within_the_family():
     base = _look()
+    start = base["zones"]["lips"]["shade_id"]
+    order = palettes.skin_order("light", "lips", SKIN["light"])
+    i = [s.id for s in order].index(start)
+    family = [palettes.same_family(order[i].colors[0], s.colors[0]) for s in order]
+    softer = next(order[j].id for j in range(i - 1, -1, -1) if family[j])
+    bolder = next(order[j].id for j in range(i + 1, len(order)) if family[j])
+    assert rcp.resolve_edit(base, "lips", "softer") == ["lips", f"shade:{softer}"]
+    assert rcp.resolve_edit(base, "lips", "bolder") == ["lips", f"shade:{bolder}"]
+
+
+def test_berry_rose_on_s3_does_not_lead_to_fuchsia():
+    base = _look("deep")
+    assert base["zones"]["lips"]["shade_id"] == "berry-rose"
+    assert palettes.skin_order("deep", "lips", SKIN["deep"])[3].id == "fuchsia", "the raw order would land on it"
+    assert rcp.apply_edit(base, "lips", "softer")["zones"]["lips"]["shade_id"] != "fuchsia"
+    assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "fuchsia"
+
+
+def test_dusty_rose_on_s0_does_not_lead_to_candy_pink():
+    base = _look()
+    assert base["zones"]["lips"]["shade_id"] == "dusty-rose"
     order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
-    i = order.index(base["zones"]["lips"]["shade_id"])
-    assert rcp.resolve_edit(base, "lips", "softer") == ["lips", f"shade:{order[i - 1]}"]
-    assert rcp.resolve_edit(base, "lips", "bolder") == ["lips", f"shade:{order[i + 1]}"]
+    assert order[order.index("dusty-rose") + 1] == "candy-pink", "the raw order would land on it"
+    assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "candy-pink"
+
+
+@pytest.mark.parametrize(("a", "b", "same"), [
+    ("#B96F78", "#B9766F", True),  # dusty rose, nude rose: hue 14 and 30, chroma close
+    ("#B96F78", "#E4719A", False),  # candy pink: chroma +17.6
+    ("#8A2F45", "#D6247F", False),  # fuchsia: chroma +30
+    ("#E9A08C", "#A32A6B", False),  # peach pink and orchid berry: 50 degrees of hue apart
+    ("#D6247F", "#8A2F45", True),  # a less vivid shade is always within the chroma limit
+    ("#17110f", "#000000", True),  # blacks have no hue to keep
+])
+def test_same_family_limits_hue_and_the_rise_in_chroma(a, b, same):
+    assert palettes.same_family(a, b) is same
+
+
+def test_a_hue_across_zero_is_measured_the_short_way():
+    assert palettes.same_family("#C45078", "#B5535A"), "hue 1 and 21: 20 degrees"
+    assert palettes.same_family("#A2175F", "#A8204E"), "hue 355 and 8: 13 degrees, not 347"
+
+
+def test_no_family_shade_on_the_way_turns_the_button_off():
+    r = _look()
+    r["zones"]["lips"].update(shade_id="ruby", shade_name="Ruby", palette=["#B0102E"])
+    order = [s.id for s in palettes.skin_order("light", "lips", SKIN["light"])]
+    assert order[-1] == "orchid-berry" and order[-2] == "ruby"
+    assert not palettes.same_family("#B0102E", "#A32A6B"), "precondition: the farther shade is another family"
+    assert rcp.blocked(r, "lips", "bolder") == "boldest"
+    with pytest.raises(ValueError):
+        rcp.apply_edit(r, "lips", "bolder")
 
 
 def test_the_order_is_her_skin_not_a_fixed_one():
@@ -201,10 +249,13 @@ def test_the_ends_of_the_order_block_the_step():
     assert rcp.blocked(farthest, "lips", "bolder") == "boldest" and rcp.blocked(farthest, "lips", "softer") is None
     with pytest.raises(ValueError):
         rcp.apply_edit(nearest, "lips", "softer")
-    one_before_last = rcp.apply_edit(base, "lips", f"shade:{order[-2]}")
-    assert rcp.apply_edit(one_before_last, "lips", "bolder")["zones"]["lips"]["shade_id"] == order[-1]
-    second = rcp.apply_edit(base, "lips", f"shade:{order[1]}")
-    assert rcp.apply_edit(second, "lips", "softer")["zones"]["lips"]["shade_id"] == order[0]
+
+
+def test_the_steps_next_to_the_ends_still_work():
+    base = _look()
+    order = [s.id for s in palettes.skin_order("light", "cheeks", SKIN["light"])]
+    second = rcp.apply_edit(base, "cheeks", f"shade:{order[1]}")
+    assert rcp.apply_edit(second, "cheeks", "softer")["zones"]["cheeks"]["shade_id"] == order[0]
 
 
 def test_a_zone_without_makeup_has_nothing_to_soften_and_bolder_starts_at_the_nearest_shade():

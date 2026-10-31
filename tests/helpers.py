@@ -20,14 +20,18 @@ HIDDEN_IDS = [s for s in SAMPLE_IDS if _meta(s).get("hidden")]
 SKIN = {"light": "#dfa588", "medium": "#c8956d", "olive": "#c4a070", "deep": "#be8567"}  # foreheads; s0 and s3 are real
 
 
-def _recipe_version(s: str) -> int:
-    return json.loads((SAMPLES / s / "manifest.json").read_text())["steps"]["render:base"]["recipe"]["version"]
+def grid_recorded(s: str) -> bool:
+    """The whole grid of this sample is recorded on the current recipe format."""
+    steps = json.loads((SAMPLES / s / "manifest.json").read_text())["steps"]
+    base = steps["render:base"]["recipe"]
+    return base["version"] == 2 and "skin_hex" in base and all(f"render:{rcp.edit_key(e)}" in steps
+                                                               for e in rcp.record_grid(base))
 
 
 def recorded_samples(ids: list[str] | None = None) -> list:
-    """Offered samples for tests on the recorded renders. A sample still holding recipe v1 waits for its re-recording
-    (skipped by name, runs by itself once the manifest is v2). Hidden s1 stays as evidence of the old rule."""
-    return [s if _recipe_version(s) == 2 else pytest.param(s, marks=pytest.mark.skip(f"{s}: waits for re-recording"))
+    """Offered samples for tests on the recorded renders. A sample whose grid is not recorded yet waits for it (skipped
+    by name, runs by itself once the grid is there). Hidden s1 stays as evidence of the old rule."""
+    return [s if grid_recorded(s) else pytest.param(s, marks=pytest.mark.skip(f"{s}: waits for re-recording"))
             for s in (VISIBLE_IDS if ids is None else ids)]
 
 

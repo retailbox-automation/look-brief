@@ -2,8 +2,9 @@
 
 The recipe comes from the palette (lookbrief.palettes), not from the transfer: the look sets every zone, and on a live
 photo the inspiration picks the colour family of lips, cheeks and lids from the ladder. An edit picks another shade or
-finish of the palette, so no path can send a colour of its own: Softer and Bolder step to the neighbour shade closer
-to her skin or further from it (strength alone barely moves a render: dE2000 0.6-1.3 for +-10, probe of 2026-10-31).
+finish of the palette, so no path can send a colour of its own: Softer and Bolder step to the next shade of the same
+colour family closer to her skin or further from it (strength alone barely moves a render: dE2000 0.6-1.3 for +-10,
+probe of 2026-10-31).
 How far the re-render lands from the transfer is measured per zone (makeup_map.compare); the recipe is not fitted to it.
 """
 
@@ -112,8 +113,8 @@ def _check(recipe: dict, zone: object, op: object) -> None:
         raise ValueError(f"no finish {op} for {zone}")
 
 
-def _skin_ids(recipe: dict, zone: str) -> list[str]:
-    return [s.id for s in palettes.skin_order(recipe["group"], zone, recipe["skin_hex"])]
+def _step(recipe: dict, zone: str, op: str) -> str | None:
+    return palettes.step_from(recipe["group"], zone, recipe["skin_hex"], recipe["zones"][zone]["shade_id"], op)
 
 
 def blocked(recipe: dict, zone: str, op: str) -> str | None:
@@ -126,13 +127,9 @@ def blocked(recipe: dict, zone: str, op: str) -> str | None:
         return "current" if op.removeprefix(SHADE_PREFIX) == z["shade_id"] else None
     if op.startswith(FINISH_PREFIX):
         return "current" if op.removeprefix(FINISH_PREFIX) == z["texture"] else None
-    if z["shade_id"] == palettes.NONE_ID:  # no product on the zone: nothing to soften, Bolder brings the nearest shade
-        return "softest" if op == "softer" else None
-    ids = _skin_ids(recipe, zone)
-    i = ids.index(z["shade_id"])
-    if op == "softer":
-        return "softest" if i == 0 else None
-    return "boldest" if i == len(ids) - 1 else None
+    if _step(recipe, zone, op) is None:
+        return "softest" if op == "softer" else "boldest"
+    return None
 
 
 def resolve_edit(recipe: dict, zone: str, op: str) -> list[str]:
@@ -141,12 +138,7 @@ def resolve_edit(recipe: dict, zone: str, op: str) -> list[str]:
     if reason and reason != "current":
         raise ValueError(f"{zone}/{op}: {reason}")
     if op in EDIT_OPS and zone != LOOK_ZONE:
-        ids = _skin_ids(recipe, zone)
-        now = recipe["zones"][zone]["shade_id"]
-        if now == palettes.NONE_ID:
-            return [zone, SHADE_PREFIX + ids[0]]
-        i = ids.index(now)
-        return [zone, SHADE_PREFIX + ids[i - 1 if op == "softer" else i + 1]]
+        return [zone, f"{SHADE_PREFIX}{_step(recipe, zone, op)}"]
     return [zone, op]
 
 
