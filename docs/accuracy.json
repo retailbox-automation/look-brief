@@ -1,44 +1,46 @@
 {
  "per_sample": {
   "s0-champagne-rose": {
-   "title": "Champagne & rose",
-   "skin_control_transfer_de76": 0.0,
-   "skin_control_render_de76": 0.0,
+   "title": "Champagne & rose (vs the evened look, re-render with foundation)",
+   "reference": "even_out",
+   "skin_control_transfer_de76": 1.47,
+   "skin_control_render_de76": 1.48,
    "zones": {
     "eyes": {
      "zone": "eyes",
      "label": "Eyelids",
-     "color_transfer": "#986552",
-     "color_render": "#996451",
-     "color_gap_de2000": 0.66,
-     "pixel_gap_de2000": 7.56,
-     "coverage_transfer": 0.275,
-     "coverage_render": 0.2445
+     "color_transfer": "#9a6954",
+     "color_render": "#9d6a55",
+     "color_gap_de2000": 0.86,
+     "pixel_gap_de2000": 8.06,
+     "coverage_transfer": 0.253,
+     "coverage_render": 0.1158
     },
     "cheeks": {
      "zone": "cheeks",
      "label": "Cheeks",
-     "color_transfer": "#bf6e52",
-     "color_render": "#bc785e",
-     "color_gap_de2000": 3.38,
-     "pixel_gap_de2000": 3.89,
-     "coverage_transfer": 0.232,
-     "coverage_render": 0.2516
+     "color_transfer": "#bb7054",
+     "color_render": "#c08066",
+     "color_gap_de2000": 4.99,
+     "pixel_gap_de2000": 5.27,
+     "coverage_transfer": 0.0447,
+     "coverage_render": 0.062
     },
     "lips": {
      "zone": "lips",
      "label": "Lips",
-     "color_transfer": "#c17571",
-     "color_render": "#b9645e",
-     "color_gap_de2000": 5.56,
-     "pixel_gap_de2000": 6.43,
-     "coverage_transfer": 0.1271,
-     "coverage_render": 0.0123
+     "color_transfer": "#c17670",
+     "color_render": "#b8655d",
+     "color_gap_de2000": 5.52,
+     "pixel_gap_de2000": 6.34,
+     "coverage_transfer": 0.1252,
+     "coverage_render": 0.01
     }
    },
    "task_ids": {
     "mu_transfer": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCr40gTcv_cdAR3i0vep5cBL1tdL0WuaKpao2rhLgDDpA",
-    "render:base": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCBX198r8MqLv0OJMOVFV-9d-BTT-LvvMAmKHuvXEbI5Q"
+    "even_out": "jZUtW2ZlG5ci6dfkWm8eRuLYPJ88K3TdcvOR2Zcq8upLbTcQ8h3wjfYbi6CulJxhd-BTT-LvvMAmKHuvXEbI5Q",
+    "render:base": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIrT2Z9A2BPxWdXT4CYnueGd-BTT-LvvMAmKHuvXEbI5Q"
    },
    "recordings": [
     {
@@ -70,11 +72,72 @@
        "face_width_share": 0.568
       }
      }
+    },
+    {
+     "at": "2026-10-31T17:15:30Z",
+     "credit_before": 802,
+     "credit_after": 789,
+     "units_spent": 13,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T17:20:14Z",
+     "credit_before": 789,
+     "credit_after": 776,
+     "units_spent": 13,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
     }
    ]
   },
   "s1-soft-glam": {
    "title": "Soft glam",
+   "reference": "mu_transfer",
    "skin_control_transfer_de76": 0.37,
    "skin_control_render_de76": 0.0,
    "zones": {
@@ -178,6 +241,7 @@
   },
   "s2-classic-red": {
    "title": "Classic red lip",
+   "reference": "mu_transfer",
    "skin_control_transfer_de76": 0.44,
    "skin_control_render_de76": 0.0,
    "zones": {
@@ -281,6 +345,7 @@
   },
   "s3-mauve-smoky": {
    "title": "Mauve smoky eye",
+   "reference": "mu_transfer",
    "skin_control_transfer_de76": 0.73,
    "skin_control_render_de76": 0.0,
    "zones": {

@@ -37,23 +37,28 @@ def main() -> int:
         bare = np.asarray(bare_img, dtype=np.uint8)
         face = landmarks.detect(bare)
         assert face is not None, sd.name
-        look = makeup_map.to_rgb_array(Image.open(sd / mf["steps"]["mu_transfer"]["image"]), size=bare_img.size)
+        # hair_first with the even-out step: compared with the evened look (transfer + foundation in her shade),
+        # the look the bride is shown; every re-render carries the same foundation (src/lookbrief/pipeline.py)
+        evened = mf.get("order") == "hair_first" and "even_out" in mf["steps"]
+        ref_step = "even_out" if evened else "mu_transfer"
+        look = makeup_map.to_rgb_array(Image.open(sd / mf["steps"][ref_step]["image"]), size=bare_img.size)
         render = makeup_map.to_rgb_array(Image.open(sd / mf["steps"]["render:base"]["image"]), size=bare_img.size)
         m = makeup_map.compute(bare, look, face)
         g = makeup_map.compare(bare, look, render, face)
         rec = json.loads((sd / "recording.json").read_text()) if (sd / "recording.json").exists() else []
         out[sd.name] = {
-            "title": meta["title"],
+            "title": meta["title"] + (" (vs the evened look, re-render with foundation)" if evened else ""),
+            "reference": ref_step,
             "skin_control_transfer_de76": m.skin_control_de,
             "skin_control_render_de76": g["skin_control_render_de76"],
             "zones": g["zones"],
-            "task_ids": {k: mf["steps"][k]["task_id"] for k in ("mu_transfer", "render:base")},
+            "task_ids": {k: mf["steps"][k]["task_id"] for k in ("mu_transfer", ref_step, "render:base")},
         }
         for z in ZONES:
             zz = g["zones"].get(z)
             if zz and is_holdout:
                 holdout_rows.append(
-                    f"| {meta['title']} | {m.zones[z].label} | {zz['color_gap_de2000']:.2f} | "
+                    f"| {out[sd.name]['title']} | {m.zones[z].label} | {zz['color_gap_de2000']:.2f} | "
                     f"{zz['coverage_transfer'] * 100:.0f}% → {zz['coverage_render'] * 100:.0f}% |"
                 )
             elif zz:
@@ -106,9 +111,14 @@ def main() -> int:
             "",
             "## Out-of-sample: samples recorded after calibration",
             "",
-            "| Sample | Zone | Shade gap ΔE2000 | Coverage: transfer → re-render |",
+            "| Sample | Zone | Shade gap ΔE2000 | Coverage: reference → re-render |",
             "|---|---|---|---|",
             *holdout_rows,
+            "",
+            "Hair-first samples are compared with the evened look (Makeup Transfer + Makeup VTO foundation in her",
+            "shade, coverage 30) — the look the bride is shown — and their recipe is read from it: on a face with",
+            "natural redness the raw transfer adds blotchy blush (docs/PLATFORM-FINDINGS.md §10), which would",
+            "otherwise inflate the cheeks. Every re-render of such a look carries the same foundation.",
         ]
     live = ROOT / "docs" / "live-check-2026-10-31.json"
     if live.exists():
