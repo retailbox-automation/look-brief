@@ -262,6 +262,8 @@ def main() -> int:
                 card.goto(f"{base}/card/{bid}?t={bride_t}")
                 card.wait_for_load_state("networkidle")
                 checks[kind]["card_has_edit_render"] = "render-eyes-deeper" in card.content()
+                if checks[kind]["edits"] != [["eyes", "deeper"]] or not checks[kind]["card_has_edit_render"]:
+                    raise RuntimeError(f"the edit of (e) did not reach the brief and the card: {checks[kind]}")
                 film(card, "g-agreed-card", step_g, top_png=True)
                 # (h) the home page: different looks, two of them opened
                 home = ctx.new_page()

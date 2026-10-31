@@ -160,6 +160,8 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
         expect(page.locator(f"[data-testid=light-{ {'Eyelids': 'eyes'}.get(zone, zone.lower()) }]")).to_have_text(
             "Softer: already close to your bare skin.")
     page.get_by_role("button", name="Eyelids", exact=True).click()
+    # an iPhone status bar: the page keeps a safe-area padding at the top (Chromium has none, so fake one)
+    page.evaluate("document.body.style.paddingTop = '47px'")
     # on a phone she scrolls down to the zone card to press a change: the photo leaves the screen
     page.get_by_role("button", name="Eyelids: a shade deeper").evaluate("el => el.scrollIntoView({block: 'start'})")
     assert not page.evaluate(HERO_ON_SCREEN_JS), "precondition: the photo is above the viewport"
@@ -168,8 +170,9 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.wait_for_function(HERO_ON_SCREEN_JS, timeout=5_000)  # 390x844: the change itself is on screen
     # scrolled to the top of the look, so the pills on the photo are on screen (not to the photo's top edge, which
     # iPhone Safari puts under the status bar)
-    page.wait_for_function("document.getElementById('look').getBoundingClientRect().top > -2 && "
-                           "document.querySelector('.hero-strip').getBoundingClientRect().top >= 0", timeout=5_000)
+    page.wait_for_function("scrollY < 1 && document.getElementById('look').getBoundingClientRect().top >= 46",
+                           timeout=5_000)  # nothing of the look under the 47 px "status bar"
+    page.evaluate("document.body.style.paddingTop = ''")
     expect(page.locator("#reset")).to_have_text("Back to my look")
     expect(page.locator("#zone-extra")).to_have_text("")  # 1% of the nose area is not a warning
     # the caption names a part of the task id that differs between re-renders; the full id is in the title
@@ -320,7 +323,7 @@ def test_edits_show_on_the_photo_in_every_view_and_zones_step_aside(base_url, br
     # "Show zones" brings them back until the next choice
     page.locator("#zones-btn").click()
     expect(page.locator("#outlines .zone-outline").first).to_be_visible()
-    expect(page.locator("#zones-btn")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#zones-btn")).to_have_text("Hide zones")
     page.get_by_role("button", name="Eyelids", exact=True).click()
     expect(page.locator("#outlines .zone-outline").first).to_be_hidden()
     # softer on her light cheeks is off, says why, and a tap sends nothing

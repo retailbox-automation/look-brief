@@ -112,9 +112,7 @@
   function showZones(on) {
     zonesShown = on;
     $("hero-img").classList.toggle("zones-off", !on);
-    const b = $("zones-btn");
-    b.textContent = on ? "Hide zones" : "Show zones";
-    b.setAttribute("aria-pressed", String(on));
+    $("zones-btn").textContent = on ? "Hide zones" : "Show zones"; // the label says the action (no pressed state)
   }
 
   function renderHero() {
@@ -135,7 +133,7 @@
       cap = [renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade"];
     }
     else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = [st.even_out, "Even out redness: foundation in her shade over the transfer"]; }
-    else if (edited && im.render && !hairFirst) {
+    else if (edited && im.render && (!hairFirst || !im.even)) { // hair first without even-out: no toggle, show the edit
       src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO";
       cap = [renderStep, "Makeup VTO re-render"];
     }
@@ -302,8 +300,9 @@
     render();
     const hr = $("img-hero").getBoundingClientRect(); // after a zone change, show the photo if less than half is on screen
     const scrolled = !!payload.zone && Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
-    // to the top of the look, not the photo's own top edge: on iPhone Safari the photo's top sits under the status bar
-    if (scrolled) window.scrollTo({ top: Math.max(0, $("look").getBoundingClientRect().top + scrollY), behavior: "smooth" });
+    // to the top of the page (the look starts it), not to the photo's top edge: on iPhone Safari the page top keeps
+    // the safe-area padding, while the photo's edge (= the top of #look) lands under the status bar with the pills
+    if (scrolled) window.scrollTo({ top: 0, behavior: "smooth" });
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
     if (refocus && usable(back)) back.focus({ preventScroll: scrolled });
