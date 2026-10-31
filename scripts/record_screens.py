@@ -4,8 +4,9 @@
     uv run python scripts/record_screens.py OUT_DIR [--sample s0-champagne-rose]
 
 One clip per step, phone viewport 390x844 @2x (MP4, 780x1688, 30 fps; frames from the DevTools screencast), plus a PNG per step at 1290x2796
-(430x932 @3x). Steps: a-photos-check, b-transfer-reveal, c-zone-map, d-hair-even-out, e-cheeks-softer,
-f-artist-brief, g-agreed-card. Every frame shows real recorded YouCam results with their Replay labels.
+(430x932 @3x). Steps, all on ONE bride session: a-photos-check, b-transfer-reveal, c-zone-map, d-hair-even-out,
+e-eyelids-deeper, f-artist-brief, g-agreed-card; plus h-samples (home page, two other looks) and h-home.png.
+Every frame shows real recorded YouCam results with their Replay labels.
 """
 
 from __future__ import annotations
@@ -45,17 +46,6 @@ def start_server() -> tuple[subprocess.Popen, str]:
             time.sleep(0.2)
     proc.kill()
     raise RuntimeError("server did not start")
-
-
-def new_session(browser, base: str, sample: str) -> tuple[str, list]:
-    """Create a ready session in a throwaway context; return its URL and the owner cookie."""
-    ctx = browser.new_context()
-    page = ctx.new_page()
-    page.goto(f"{base}/try/{sample}")
-    page.wait_for_selector("#look:not([hidden])", timeout=30_000)
-    url, cookies = page.url, ctx.cookies()
-    ctx.close()
-    return url, cookies
 
 
 class Screencast:
@@ -102,7 +92,10 @@ def pause(page, ms: int) -> None:
     page.wait_for_timeout(ms)
 
 
-# ---------- the seven steps (each gets a ready page on its session) ----------
+# ---------- the seven steps, filmed in ONE session: the edit of (e) is what the artist (f) and the card (g) show ----------
+STORY_EDIT = ("Eyelids", "Eyelids: a shade deeper")  # the heroine's most visible edit (dE2000 6.5 in the zone)
+
+
 def step_a(page) -> None:  # photos + photo check (top of the look screen: inspiration -> you strip, check pill)
     pause(page, 1800)
     page.locator(".hero-strip").hover()
@@ -111,40 +104,52 @@ def step_a(page) -> None:  # photos + photo check (top of the look screen: inspi
     pause(page, 1500)
 
 
-def step_b(page) -> None:  # transfer reveal: before/after slider
+def prep_b(page) -> None:  # the slider starts at the left edge, in view, before the clip starts
     page.locator("#ba").scroll_into_view_if_needed()
-    pause(page, 800)
-    for v in list(range(100, -1, -5)) + list(range(0, 51, 5)):
+    page.locator("#ba").fill("0")
+    pause(page, 300)
+
+
+def step_b(page) -> None:  # transfer reveal: one smooth move of the slider from left to right, handle visible
+    pause(page, 700)
+    for v in range(0, 101):
         page.locator("#ba").fill(str(v))
-        page.wait_for_timeout(60)
+        page.wait_for_timeout(24)
     pause(page, 1500)
 
 
-def step_c(page) -> None:  # zone map: tap each zone, outlines + sheet follow
+def prep_top(page) -> None:
     page.evaluate("window.scrollTo(0, 0)")
-    pause(page, 900)
+    pause(page, 300)
+
+
+def step_c(page) -> None:  # zone map over her evened look: outlines first, then the zones (outlines step aside)
+    pause(page, 2600)
     for z in ("Eyelids", "Cheeks", "Lips"):
         page.get_by_role("button", name=z, exact=True).click()
-        pause(page, 1600)
+        pause(page, 1300)
 
 
-def step_d(page) -> None:  # hair is already in the look (hair first); toggle "Even out redness"
-    page.evaluate("window.scrollTo(0, 0)")
+def step_d(page) -> None:  # hair is already in the look (hair first); toggle "Even out redness", end on it
     pause(page, 1200)
-    for name in ("Even out redness", "Transfer", "Even out redness"):
+    for name in ("Transfer", "Even out redness"):
         btn = page.get_by_role("button", name=name, exact=True)
         if btn.count():
             btn.click()
             pause(page, 1800)
 
 
-def step_e(page) -> None:  # "Cheeks: softer" re-rendered by Makeup VTO (recorded)
+def prep_e(page) -> None:  # the Eyelids zone is open, the photo and the buttons both on screen
     page.evaluate("window.scrollTo(0, 0)")
-    page.get_by_role("button", name="Cheeks", exact=True).click()
-    pause(page, 1200)
-    page.get_by_role("button", name="Cheeks: softer").click()
+    page.get_by_role("button", name=STORY_EDIT[0], exact=True).click()
+    pause(page, 300)
+
+
+def step_e(page) -> None:  # the story edit, re-rendered by Makeup VTO (recorded): ~1 s, tap, hold the result >= 3 s
+    pause(page, 1000)
+    page.get_by_role("button", name=STORY_EDIT[1]).click()
     page.wait_for_selector("#edit-msg:has-text('Updated.')", timeout=20_000)
-    pause(page, 2500)
+    pause(page, 3400)
 
 
 def step_f(page) -> None:  # the artist's link: answer every zone, add a note, agree
@@ -166,6 +171,7 @@ def step_f(page) -> None:  # the artist's link: answer every zone, add a note, a
     page.get_by_role("button", name="Agree to this look").scroll_into_view_if_needed()
     pause(page, 600)
     page.get_by_role("button", name="Agree to this look").click()
+    page.wait_for_selector("#agree-help:has-text('Waiting for the bride')", timeout=10_000)
     pause(page, 2000)
 
 
@@ -175,6 +181,19 @@ def step_g(page) -> None:  # the agreed-look card with the server attestation
         page.evaluate(f"window.scrollTo(0, {y})")
         page.wait_for_timeout(90)
     pause(page, 1500)
+
+
+def step_h(page, base: str) -> None:  # the home page lists different looks: open two of them (5-7 s)
+    pause(page, 700)
+    for sid in ("s2-classic-red", "s3-mauve-smoky"):
+        page.get_by_test_id(f"sample-{sid}").scroll_into_view_if_needed()
+        page.get_by_test_id(f"sample-{sid}").click()
+        page.wait_for_selector("#look:not([hidden])", timeout=30_000)
+        pause(page, 1500)
+        if sid != "s3-mauve-smoky":
+            page.go_back()
+            page.wait_for_selector("[data-testid^=sample-]", timeout=10_000)
+            pause(page, 300)
 
 
 def main() -> int:
@@ -187,82 +206,85 @@ def main() -> int:
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
     proc, base = start_server()
-    made = []
+    made: list[str] = []
+    checks: dict = {}
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
+            for kind in ("video", "png"):
+                view, scale = (VIDEO_VIEW, 2) if kind == "video" else (PNG_VIEW, 3)
+                ctx = browser.new_context(viewport=view, device_scale_factor=scale, is_mobile=True, has_touch=True)
 
-            def page_for(url: str, cookies: list, view: dict, scale: int, video_dir: Path | None):
-                kw = {"viewport": view, "device_scale_factor": scale, "is_mobile": True, "has_touch": True}
-                ctx = browser.new_context(**kw)
-                if cookies:
-                    ctx.add_cookies(cookies)
-                page = ctx.new_page()
-                page.goto(url)
-                return ctx, page
-
-            def brief_links(session_url: str, cookies: list) -> tuple[str, str, str]:
-                ctx = browser.new_context()
-                ctx.add_cookies(cookies)
-                sid = session_url.rsplit("/", 1)[1]
-                b = ctx.request.post(f"{base}/api/sessions/{sid}/brief").json()
-                ctx.close()
-                return b["brief_id"], b["bride_url"], b["artist_url"]
-
-            steps = [("a-photos-check", step_a, "look"), ("b-transfer-reveal", step_b, "look"),
-                     ("c-zone-map", step_c, "look"), ("d-hair-even-out", step_d, "look"),
-                     ("e-cheeks-softer", step_e, "look"), ("f-artist-brief", step_f, "artist"),
-                     ("g-agreed-card", step_g, "card")]
-            for name, fn, where in steps:
-                for kind in ("video", "png"):
-                    url, cookies = new_session(browser, base, args.sample)
-                    if where in ("artist", "card"):
-                        bid, bride_url, artist_url = brief_links(url, cookies)
-                        if where == "artist":
-                            url = base + artist_url
-                        else:  # sign it first, then film the card
-                            api = browser.new_context().request
-                            artist_t, bride_t = artist_url.split("t=")[1], bride_url.split("t=")[1]
-                            v = api.get(f"{base}/api/briefs/{bid}?t={artist_t}").json()
-                            for z in v["snapshot"]["review_zones"]:
-                                api.post(f"{base}/api/briefs/{bid}/review", data={
-                                    "t": artist_t, "zone": z, "status": "swap" if z == "cheeks" else "do",
-                                    "note": "I'll use a cream blush, one shade cooler" if z == "cheeks" else ""})
-                            api.post(f"{base}/api/briefs/{bid}/agree", data={"t": artist_t})
-                            api.post(f"{base}/api/briefs/{bid}/agree", data={"t": bride_t})
-                            url = f"{base}/card/{bid}?t={bride_t}"
-                    tmp = Path(tempfile.mkdtemp(prefix=f"lb-{name}-")) if kind == "video" else None
-                    view, scale = (VIDEO_VIEW, 2) if kind == "video" else (PNG_VIEW, 3)
-                    ctx, page = page_for(url, cookies, view, scale, tmp)
-                    if where == "look":
-                        page.wait_for_selector("#look:not([hidden])", timeout=30_000)
-                    else:
-                        page.wait_for_load_state("networkidle")
+                def film(page, name: str, fn, prep=None, top_png: bool = False, ctx=ctx, kind=kind) -> None:
+                    if prep:
+                        prep(page)
                     rec = Screencast(ctx, page) if kind == "video" else None
+                    tmp = Path(tempfile.mkdtemp(prefix=f"lb-{name}-")) if rec else None
                     if rec:
                         rec.start()
                     fn(page)
-                    if kind == "png":
-                        if where in ("artist", "card"):
+                    if rec and tmp is not None:
+                        rec.stop()
+                        rec.encode(tmp, out / f"{name}.mp4")
+                        made.append(f"{name}.mp4")
+                        shutil.rmtree(tmp, ignore_errors=True)
+                    else:
+                        if top_png:
                             page.evaluate("window.scrollTo(0, 0)")
                             pause(page, 400)
                         page.screenshot(path=str(out / f"{name}.png"))
                         made.append(f"{name}.png")
-                    if rec and tmp is not None:
-                        rec.stop()
-                        mp4 = out / f"{name}.mp4"
-                        rec.encode(tmp, mp4)
-                        made.append(mp4.name)
-                        shutil.rmtree(tmp, ignore_errors=True)
-                    ctx.close()
+
+                # one bride session for (a)-(e); the brief is sent from it, so (f) and (g) carry her edit
+                look = ctx.new_page()
+                look.goto(f"{base}/try/{args.sample}")
+                look.wait_for_selector("#look:not([hidden])", timeout=30_000)
+                film(look, "a-photos-check", step_a, prep_top)
+                film(look, "b-transfer-reveal", step_b, prep_b)
+                film(look, "c-zone-map", step_c, prep_top)
+                film(look, "d-hair-even-out", step_d, prep_top)
+                film(look, "e-eyelids-deeper", step_e, prep_e)
+                look.get_by_role("button", name="Send brief to my makeup artist").click()
+                look.wait_for_selector("[data-testid=artist-link][href^='/b/']", timeout=10_000)
+                artist_url = look.get_by_test_id("artist-link").get_attribute("href")
+                bride_url = look.get_by_test_id("bride-link").get_attribute("href")
+                bid, artist_t, bride_t = artist_url.split("/b/")[1].split("?")[0], artist_url.split("t=")[1], \
+                    bride_url.split("t=")[1]
+                snap = ctx.request.get(f"{base}/api/briefs/{bid}?t={artist_t}").json()["snapshot"]
+                checks[kind] = {"edits": snap.get("edits"), "eyes": next(
+                    (z for z in snap["zones"] if z["zone"] == "eyes"), None)}
+                artist = ctx.new_page()
+                artist.goto(base + artist_url)
+                artist.wait_for_load_state("networkidle")
+                film(artist, "f-artist-brief", step_f, top_png=True)
+                ctx.request.post(f"{base}/api/briefs/{bid}/agree", data={"t": bride_t})  # she agrees too
+                card = ctx.new_page()
+                card.goto(f"{base}/card/{bid}?t={bride_t}")
+                card.wait_for_load_state("networkidle")
+                checks[kind]["card_has_edit_render"] = "render-eyes-deeper" in card.content()
+                film(card, "g-agreed-card", step_g, top_png=True)
+                # (h) the home page: different looks, two of them opened
+                home = ctx.new_page()
+                home.goto(base + "/")
+                home.wait_for_selector("[data-testid^=sample-]", timeout=10_000)
+                if kind == "png":
+                    pause(home, 600)
+                    home.screenshot(path=str(out / "h-home.png"))
+                    made.append("h-home.png")
+                else:
+                    film(home, "h-samples", lambda pg: step_h(pg, base))
+                ctx.close()
             browser.close()
     finally:
         proc.terminate()
         proc.wait(timeout=10)
     (out / "README.json").write_text(json.dumps({
         "sample": args.sample, "made": made, "video": "390x844 @2x", "png": "430x932 @3x = 1290x2796",
+        "one_session": "a-e on one bride session; the brief is sent from it after the edit, so f and g show it",
+        "edit_carried": checks,
         "source": "Replay of recorded real YouCam API results (no API calls); scripts/record_screens.py"}, indent=1))
     print("\n".join(made))
+    print(json.dumps(checks))
     return 0
 
 

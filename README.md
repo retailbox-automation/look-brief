@@ -3,7 +3,7 @@
 **Agree on your wedding makeup before you pay for the trial.** The bride uploads her selfie and the photo she
 loves. YouCam **AI Makeup Transfer** puts that exact makeup on *her* face and **AI Hair Transfer** adds the hair;
 Look Brief measures the makeup zone by zone (eyelids, cheeks, lips — shade, strength, coverage), turns it into an
-editable recipe that **AI Makeup VTO** re-renders ("softer blush", "lips a shade lighter"), and sends it to her
+editable recipe that **AI Makeup VTO** re-renders ("bolder blush", "lids a shade deeper"), and sends it to her
 makeup artist, who confirms every zone by link without an account. The result is one agreed-look card, signed by
 the server, so the paid trial only executes what both already saw.
 
@@ -23,6 +23,7 @@ the server, so the paid trial only executes what both already saw.
 | Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → "Even out redness" (foundation in her shade over the transfer) gives 4 %, lips stay at ΔE 0.66 |
 | The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
 | Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 124 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
+| Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Each offered edit moves its zone by mean ΔE2000 ≥ 3.5 (≥ 60 % of pixels over 2.3), two edits of one zone differ by ≥ 3.0; softer is off where the zone is already light |
 | Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
 | No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
 

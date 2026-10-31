@@ -83,8 +83,9 @@ files committed here; dates are 2026-10-31 (UTC). Nothing here is a complaint: m
 - **Edits keep the even tone:** every later Makeup VTO re-render (base recipe and each zone edit) carries the same
   foundation under the recipe, and the recipe is read from the evened look, not from the blotchy transfer. Before
   that, "Cheeks: softer" brought the redness back and still showed more blush than the evened look (visible blush
-  area 11 % vs 4.5 %); now softer 3 %, evened look 4.5 %, base recipe 6 %, bolder 11 %
-  (`samples/s0-champagne-rose`, `tests/test_app.py::test_edits_after_even_out_keep_her_foundation`).
+  area 11 % vs 4.5 %); now the evened look 4.5 %, base recipe 6 % (`samples/s0-champagne-rose`,
+  `tests/test_app.py::test_edits_after_even_out_keep_her_foundation`). Since 31.10 evening "softer" is not offered on
+  her cheeks at all: their whole makeup is ΔE2000 2.3, too light to soften visibly (`docs/EDITS.md`).
 - **Also tried:** re-rendering from the bare face with "Cheeks: softer" removes the patches but VTO paints its own,
   darker lips (ΔE 4.8–7.5); a recipe read straight from the inspiration photo gives no patches but flatter colours
   (eyes and lips ΔE 5.5–9.2).
