@@ -2,12 +2,13 @@ import json
 import re
 from pathlib import Path
 
+import numpy as np
 import pytest
 from helpers import SKIN
 
 from lookbrief import palettes
 from lookbrief import recipe as rcp
-from lookbrief.color import hex_delta_e2000
+from lookbrief.color import hex_delta_e2000, lab_to_hex
 from lookbrief.makeup_map import MakeupMap, ZoneStat
 
 DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.json").read_text())
@@ -176,6 +177,14 @@ def test_softer_and_bolder_are_the_next_shades_of_her_order_within_the_family():
     assert rcp.resolve_edit(base, "lips", "bolder") == ["lips", f"shade:{bolder}"]
 
 
+@pytest.mark.parametrize("group", ["light", "deep"])
+def test_gloss_is_a_circle_of_its_own_never_a_step(group):
+    for s in palettes.ladder(group, "lips"):
+        for op in rcp.EDIT_OPS:
+            target = palettes.step_from(group, "lips", SKIN[group], s.id, op)
+            assert target is None or palettes.shade(group, "lips", target).texture != "gloss", (s.id, op)
+
+
 def test_a_step_never_lands_on_the_same_colour_with_another_finish():
     base = _look()
     assert rcp.apply_edit(base, "lips", "bolder")["zones"]["lips"]["shade_id"] != "rose-gloss"
@@ -189,9 +198,14 @@ def test_a_step_never_lands_on_the_same_colour_with_another_finish():
     ("#E9A08C", "#A32A6B", False),  # peach pink and orchid berry: 50 degrees of hue apart
     ("#D6247F", "#8A2F45", True),  # a less vivid shade is always within the chroma limit
     ("#17110f", "#000000", True),  # blacks have no hue to keep
+    ("#D58C95", "#D9A066", False),  # muted rose and a gold: chroma is fine, 56 degrees of hue apart
 ])
 def test_same_family_limits_hue_and_the_rise_in_chroma(a, b, same):
     assert palettes.same_family(a, b) is same
+
+
+def test_a_hue_across_the_wrap_is_measured_the_short_way():
+    assert palettes.same_family(lab_to_hex(np.array([50.0, -30.0, 4.0])), lab_to_hex(np.array([50.0, -30.0, -4.0])))
 
 
 def test_a_hue_across_zero_is_measured_the_short_way():

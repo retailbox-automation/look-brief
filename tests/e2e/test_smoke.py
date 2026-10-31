@@ -17,8 +17,10 @@ SAMPLES = Path(__file__).resolve().parents[2] / "samples"
 
 
 def recorded(sample: str) -> bool:
+    """The sample holds its grid on the current recipe format (palette v2: three lid colours, named styles)."""
     steps = json.loads((SAMPLES / sample / "manifest.json").read_text())["steps"]
-    return "render:look:evening" in steps and "skin_hex" in steps["render:base"]["recipe"]
+    eyes = steps["render:base"]["recipe"].get("zones", {}).get("eyes", {})
+    return "render:look:evening" in steps and "slot_intensity" in eyes
 
 
 def needs(sample: str):

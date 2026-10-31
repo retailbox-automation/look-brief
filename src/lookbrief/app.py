@@ -513,10 +513,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         skin_name, skin_palette, skin_coverage = "Concealer a touch lighter than her skin", [concealer], None
         if st.get("even_out") and "even" in st["images"]:
             ev = st["even_out"]
-            skin_name, skin_palette = "Foundation in her own shade, concealer a touch lighter", [ev["skin_hex"], concealer]
-            skin_coverage = ev["coverage"]
+            skin_name = "Foundation in her own shade, concealer a touch lighter"
+            skin_palette, skin_coverage = [ev["skin_hex"], concealer], ev["coverage"]
         zones.append({"zone": "skin", "label": "Skin", "shade_name": skin_name, "palette": skin_palette, "texture": "",
-                      "product_hex": skin_palette[0], "intensity": skin_coverage, "on_face_hex": None, "coverage": None})
+                      "product_hex": skin_palette[0], "intensity": skin_coverage, "on_face_hex": None,
+                      "coverage": None})
         review_zones.append("skin")
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),
