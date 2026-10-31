@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero">
+<section class="hero-intro">
   <h1>See your wedding makeup before you pay for the trial</h1>
   <p class="lead">Upload your selfie and the photo you love. Look Brief puts that exact makeup on <em>your</em> face, measures it zone by zone, and turns it into a brief your makeup artist confirms — so the trial only has to execute what you both already agreed on.</p>
   <ol class="how">
@@ -31,7 +31,7 @@
   <h2 id="live-h">Use your own photos (Live)</h2>
   {% if live.available %}
   <p>Runs the real YouCam API on our server (your photos are deleted within 24 hours). Live budget left: <strong>{{ live.budget_left }}</strong> units.</p>
-  <p><a class="btn" href="/live">Start with my photos</a></p>
+  <p><a class="btn primary" href="/live">Start with my photos</a></p>
   {% else %}
   <p class="note" data-testid="live-off">{{ live.reason }}</p>
   {% endif %}

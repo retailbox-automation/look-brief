@@ -1,49 +1,86 @@
 {% extends "base.html" %}
 {% block title %}Your look · Look Brief{% endblock %}
-{% block header_extra %}<span class="badge {{ mode }}" data-testid="mode-badge">{% if mode == 'replay' %}Replay · recorded real YouCam API results{% else %}Live · YouCam API{% endif %}</span>{% endblock %}
+{% block body_class %}page-look{% endblock %}
+{% block header %}{% endblock %}
 {% block content %}
 <div id="app" data-sid="{{ sid }}" data-mode="{{ mode }}">
+  <a class="brand hero-brand" href="/">Look Brief</a>
   <p id="status" role="status" aria-live="polite">Creating your look…</p>
   <section id="look" hidden aria-labelledby="look-h">
-    <h1 id="look-h">Your look</h1>
-    <div class="compare">
-      <figure class="ba">
-        <div class="ba-frame">
-          <img id="img-before" alt="Your bare-faced selfie">
-          <img id="img-after" class="after" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+    <div class="hero">
+      <h1 id="look-h" class="hero-step">Step 3 of 4 · Your look</h1>
+      <div class="hero-strip">
+        <img id="strip-inspo" class="thumb" alt="">
+        <span>inspiration</span>
+        <svg class="arrow" viewBox="0 0 16 10" aria-hidden="true" focusable="false"><path d="M1 5h13M10 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <img id="strip-you" class="thumb" alt="">
+        <span>you</span>
+      </div>
+      <span class="badge hero-badge {{ mode }}" data-testid="mode-badge">{% if mode == 'replay' %}Replay · recorded real YouCam API results{% else %}Live · YouCam API{% endif %}</span>
+      <div class="hero-frame">
+        <div class="hero-img">
+          <img id="img-hero" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+          <svg id="outlines" class="outlines" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
+          <div id="pins" class="pins" aria-hidden="true"></div>
         </div>
-        <label class="ba-slider">Before / after <input id="ba" type="range" min="0" max="100" value="50"></label>
-        <figcaption id="cap-after"></figcaption>
-      </figure>
-      <div class="side">
-        <figure><img id="img-inspo" alt="Your inspiration photo"><figcaption>Inspiration</figcaption></figure>
-        <figure><img id="img-hair" alt="Makeup and hair preview (YouCam Hair Transfer)"><figcaption id="cap-hair">Makeup + hair</figcaption></figure>
+      </div>
+      <p id="hero-check" class="hero-check" hidden></p>
+      <div id="hero-toggle" class="hero-toggle" role="group" aria-label="Preview">
+        <button type="button" data-view="makeup" aria-pressed="true">Makeup</button>
+        <button type="button" data-view="hair" aria-pressed="false">Makeup + hair</button>
       </div>
     </div>
 
-    <h2>Your makeup map</h2>
-    <div class="maprow">
-      <figure><img id="img-layer" alt="Heat map of where makeup is added"><figcaption>What the artist adds (measured)</figcaption></figure>
-      <figure><img id="img-render" alt="Your recipe re-rendered with YouCam Makeup VTO"><figcaption id="cap-render">Recipe re-rendered (Makeup VTO)</figcaption></figure>
+    <div class="sheet">
+      <span class="handle" aria-hidden="true"></span>
+      <h2 class="sheet-title">Your makeup map</h2>
+      <div id="zone-tabs" class="zone-tabs" role="group" aria-label="Choose a zone"></div>
+      <div id="zones" class="zones"></div>
+      <div id="edit-msg" class="edit-msg" role="status" aria-live="polite"></div>
+      <p id="edit-tools" class="edit-tools" hidden><button id="undo" class="linkbtn" type="button">Undo last change</button> <button id="reset" class="linkbtn" type="button">Back to the transferred look</button></p>
+      <p id="accuracy" class="accuracy"></p>
+      <button id="make-brief" class="btn primary block" type="button">Send brief to my makeup artist</button>
+      <p id="zone-extra" class="zone-extra"></p>
+      <div id="brief-links" class="brief-links" hidden>
+        <p>Your artist opens this link (no account), confirms each zone or suggests a swap, and you both agree. You get one agreed-look card.</p>
+        <p><strong>Link for your artist:</strong> <a id="artist-link" data-testid="artist-link" href="#"></a> <button class="btn ghost small" type="button" data-copy="artist-link">Copy</button></p>
+        <p><strong>Your link:</strong> <a id="bride-link" data-testid="bride-link" href="#"></a></p>
+      </div>
     </div>
-    <div id="zones" class="zones"></div>
-    <div id="edit-msg" role="status" aria-live="polite"></div>
-    <p><button id="undo" class="btn ghost" type="button">Undo last change</button> <button id="reset" class="btn ghost" type="button">Back to the transferred look</button></p>
 
-    <h2>How close is the editable recipe to the transfer?</h2>
-    <p class="note">Measured on the pixels the transfer changed. ΔE2000 below ~2 is hard to see; repeated renders of the same recipe vary by about ±0.6.</p>
-    <table id="gaps" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade gap ΔE2000</th><th scope="col">Coverage: transfer → recipe</th></tr></thead><tbody></tbody></table>
-    <p id="skin-note" class="note"></p>
+    <div class="more">
+      <section aria-labelledby="ba-h">
+        <h2 id="ba-h">Before and after</h2>
+        <figure class="ba">
+          <div class="ba-frame">
+            <img id="img-before" alt="Your bare-faced selfie">
+            <img id="img-after" class="after" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+          </div>
+          <label class="ba-slider">Before / after <input id="ba" type="range" min="0" max="100" value="50"></label>
+          <figcaption id="cap-after"></figcaption>
+        </figure>
+      </section>
 
-    <h2>Send it to your makeup artist</h2>
-    <p>Your artist opens a link (no account), confirms each zone or suggests a swap, and you both agree. You get one agreed-look card.</p>
-    <p><button id="make-brief" class="btn" type="button">Create the brief link</button></p>
-    <div id="brief-links" hidden>
-      <p><strong>Link for your artist:</strong> <a id="artist-link" data-testid="artist-link" href="#"></a> <button class="btn ghost" type="button" data-copy="artist-link">Copy</button></p>
-      <p><strong>Your link:</strong> <a id="bride-link" data-testid="bride-link" href="#"></a></p>
+      <details class="fold">
+        <summary>Inspiration, hair and the measured map</summary>
+        <div class="grid2">
+          <figure><img id="img-inspo" alt="Your inspiration photo"><figcaption>Inspiration</figcaption></figure>
+          <figure><img id="img-hair" alt="Makeup and hair preview (YouCam Hair Transfer)"><figcaption id="cap-hair">Makeup + hair</figcaption></figure>
+          <figure><img id="img-layer" alt="Heat map of where makeup is added"><figcaption>What the artist adds (measured)</figcaption></figure>
+          <figure><img id="img-render" alt="Your recipe re-rendered with YouCam Makeup VTO"><figcaption id="cap-render">Recipe re-rendered (Makeup VTO)</figcaption></figure>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>How close is the editable recipe to the transfer?</summary>
+        <p class="note">Measured on the pixels the transfer changed. ΔE2000 below ~2 is hard to see; re-renders of one recipe can differ by up to ~2 ΔE on eyelids and lips (see docs/CALIBRATION.md).</p>
+        <table id="gaps" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade gap ΔE2000</th><th scope="col">Coverage: transfer → recipe</th></tr></thead><tbody></tbody></table>
+        <p id="skin-note" class="note"></p>
+      </details>
+
+      {% if mode == 'live' %}<p><button id="delete" class="btn ghost" type="button">Delete my photos now</button></p>{% endif %}
+      <details class="fold tech"><summary>Technical details (API steps, recipe JSON)</summary><pre id="tech"></pre></details>
     </div>
-    {% if mode == 'live' %}<p><button id="delete" class="btn ghost" type="button">Delete my photos now</button></p>{% endif %}
-    <details class="tech"><summary>Technical details (API steps, recipe JSON)</summary><pre id="tech"></pre></details>
   </section>
 </div>
 {% endblock %}

@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Look Brief{% endblock %}</title>
   <meta name="description" content="Agree on your wedding makeup before the paid trial: your inspiration photo on your face, a measured zone-by-zone brief, confirmed by your makeup artist.">
+  <meta name="theme-color" content="#faf6f1">
   <link rel="stylesheet" href="/static/app.css">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <a class="skip" href="#main">Skip to content</a>
+  {% block header %}
   <header class="top">
     <a class="brand" href="/">Look Brief</a>
     {% block header_extra %}{% endblock %}
   </header>
+  {% endblock %}
   <main id="main">
     {% block content %}{% endblock %}
   </main>

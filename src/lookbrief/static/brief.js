@@ -23,19 +23,20 @@
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
-      const detail = zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair from the inspiration photo (see preview)";
+      const detail = zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
-        return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p>${detail}</p><p><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
+        return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
       }
-      const radios = Object.entries(LABELS).map(([k, l]) => `<label class="seg"><input type="radio" name="st-${z}" value="${k}" ${r.status === k ? "checked" : ""}> ${esc(l)}</label>`).join("");
-      return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p>${detail}</p>
+      const radios = Object.entries(LABELS).map(([k, l]) => `<label class="seg"><input type="radio" name="st-${z}" value="${k}" ${r.status === k ? "checked" : ""}><span>${esc(l)}</span></label>`).join("");
+      const hint = zi.product_hex ? "" : `<p class="rv-detail">${detail}</p>`;
+      return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend>
         <div class="segs">${radios}</div>
-        <label>Note for the bride <input type="text" maxlength="300" name="note-${z}" value="${esc(r.note || "")}" placeholder="e.g. I'll use a cooler pink"></label></fieldset>`;
+        <label class="rv-note"><span class="sr-only">Note for the bride about ${esc(zi.label)}</span><input type="text" maxlength="300" name="note-${z}" value="${esc(r.note || "")}" placeholder="Note for the bride"></label>${hint}</fieldset>`;
     }).join("");
     $("reviews").innerHTML = rows;
     $("reviews").querySelectorAll("input[type=radio]").forEach((el) => el.addEventListener("change", () => save(el.name.slice(3))));
     $("reviews").querySelectorAll("input[type=text]").forEach((el) => el.addEventListener("change", () => save(el.name.slice(5))));
-    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="swatch" style="background:${esc(z.product_hex)}" aria-hidden="true"></span> ${esc(z.label)} <code>${esc(z.product_hex)}</code> · intensity ${esc(z.intensity)}</li>`).join("");
+    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%</span></li>`).join("");
     const a = view.agreed;
     const me = a[role];
     const other = role === "artist" ? "bride" : "artist";
@@ -49,14 +50,28 @@
     if (signed || a.bride || a.artist) { $("card-a").href = `/card/${bid}?t=${token}`; $("card-link").hidden = false; }
   }
 
-  async function load() { const { ok, body } = await api(`/api/briefs/${bid}?t=${encodeURIComponent(token)}`); if (ok) { view = body; render(); } }
+  function keepFocus(fn) { // re-rendering the form must not drop keyboard focus
+    const a = document.activeElement;
+    const sel = a && a.name ? (a.type === "radio" ? `input[name="${a.name}"][value="${a.value}"]` : `input[name="${a.name}"]`) : (a && a.id ? `#${a.id}` : "");
+    fn();
+    const b = sel && document.querySelector(sel);
+    if (b && b !== document.activeElement && !b.disabled) b.focus();
+  }
+
+  async function load() {
+    const { ok, body } = await api(`/api/briefs/${bid}?t=${encodeURIComponent(token)}`);
+    if (!ok) return;
+    const a = document.activeElement;
+    if (view && a && a.type === "text" && root.contains(a)) return; // don't wipe a note being typed
+    view = body; keepFocus(render);
+  }
 
   async function save(zone) {
     const st = document.querySelector(`input[name="st-${zone}"]:checked`);
     if (!st) return;
     const note = (document.querySelector(`input[name="note-${zone}"]`) || {}).value || "";
     const { ok, body } = await api(`/api/briefs/${bid}/review`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token, zone, status: st.value, note }) });
-    if (ok) { view = body; render(); }
+    if (ok) { view = body; keepFocus(render); }
   }
 
   $("agree").addEventListener("click", async () => {
