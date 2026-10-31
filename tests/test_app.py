@@ -371,16 +371,24 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
     assert 'href="https://example.org/repo"' in c.get("/").text
 
 
-@pytest.mark.parametrize(("sample", "label", "not_label"), [
-    ("s2-classic-red", "Target (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
-    ("s0-champagne-rose", "Target (Hair Transfer + Makeup Transfer)", "Target (Makeup Transfer)"),
+@pytest.mark.parametrize(("sample", "edit", "label", "not_label"), [
+    ("s2-classic-red", None, "Agreed look (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
+    ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
+    ("s0-champagne-rose", ["cheeks", "softer"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
+     "Agreed look: transfer + foundation"),
+    ("s2-classic-red", ["lips", "lighter"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
 ])
-def test_card_names_the_transfers_that_made_the_target(client, sample, label, not_label):
+def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
+    """The card shows what was agreed: her edited re-render if she edited, the evened look for hair first."""
     r = client.get(f"/try/{sample}", follow_redirects=False)
     sid = r.headers["location"].rsplit("/", 1)[1]
+    if edit:
+        assert client.post(f"/api/sessions/{sid}/edits", json={"zone": edit[0], "op": edit[1]}).status_code == 200
     b = client.post(f"/api/sessions/{sid}/brief").json()
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert label in html and not_label not in html
+    if edit:
+        assert f"render-{edit[0]}-{edit[1]}" in html, "the agreed image is the edited re-render"
 
 
 def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):

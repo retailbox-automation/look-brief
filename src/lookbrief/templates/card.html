@@ -8,7 +8,17 @@
     <p class="note">Brief {{ v.id }} · version {{ v.version }} · {% if snap.mode == 'replay' %}sample, recorded real YouCam API results{% else %}live YouCam API session{% endif %}</p>
   </header>
   <div class="compare small">
-    {% for key, label in [('bride','Bare face'),('look','Target (Hair Transfer + Makeup Transfer)' if snap.order == 'hair_first' else 'Target (Makeup Transfer)'),('even','Target with foundation in her shade over the transfer (Makeup VTO)'),('inspiration','Inspiration'),('hair','Makeup + hair')] %}
+    {# the agreed look first: the edited re-render if she edited, else the evened look (hair first), else the transfer #}
+    {% set hf = snap.order == 'hair_first' %}
+    {% set agreed = 'render' if snap.edits and v.images.get('render') else ('even' if v.images.get('even') else 'look') %}
+    {% set agreed_label = {
+      'render': 'Agreed look: her edits, re-rendered by Makeup VTO' ~ (' with foundation in her shade' if hf else ''),
+      'even': 'Agreed look: transfer + foundation in her shade (Makeup VTO)',
+      'look': 'Agreed look (Hair Transfer + Makeup Transfer)' if hf else 'Agreed look (Makeup Transfer)'}[agreed] %}
+    {% set items = [('bride','Bare face'), (agreed, agreed_label), ('inspiration','Inspiration')] %}
+    {% if agreed != 'look' %}{% set items = items + [('look', 'Raw transfer, before evening out (Hair Transfer + Makeup Transfer)' if hf else 'Raw transfer (Makeup Transfer)')] %}{% endif %}
+    {% if not hf %}{% set items = items + [('hair','Makeup + hair')] %}{% endif %}
+    {% for key, label in items %}
       {% if v.images.get(key) %}<figure><img src="{{ v.images[key] }}" alt="{{ label }}"><figcaption>{{ label }}</figcaption></figure>{% endif %}
     {% endfor %}
   </div>

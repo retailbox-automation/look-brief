@@ -109,8 +109,8 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-img { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 3 / 4; }
 .hero-img > img { width: 100%; height: 100%; object-fit: cover; }
 .outlines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; }
-.zone-outline { fill: rgba(255, 255, 255, .06); stroke: rgba(255, 251, 246, .9); stroke-width: 1.4; vector-effect: non-scaling-stroke; cursor: pointer; filter: drop-shadow(0 0 1px rgba(60, 40, 30, .35)); }
-.zone-outline.on { stroke-width: 2; fill: rgba(255, 255, 255, .1); }
+.zone-outline { fill: transparent; stroke: rgba(255, 251, 246, .9); stroke-width: 1.4; vector-effect: non-scaling-stroke; cursor: pointer; filter: drop-shadow(0 0 1px rgba(60, 40, 30, .35)); }
+.zone-outline.on { stroke-width: 2; }  /* outline only: a tint over the cheek read as a red patch */
 .pins { position: absolute; inset: 0; z-index: 3; }
 .pin { position: absolute; width: 0; height: 0; padding: 0; border: 0; background: none; cursor: pointer; }
 .pin-line { position: absolute; left: 0; top: 0; height: 1.5px; margin-top: -.75px; background: rgba(255, 251, 246, .95); transform-origin: 0 50%; box-shadow: 0 0 1px rgba(60, 40, 30, .4); }
@@ -123,9 +123,9 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-strip .thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: 50% 30%; }
 .hero-strip .arrow { width: 14px; height: 10px; margin: 0 2px; color: var(--ink-2); }
 .hero-badge { position: absolute; z-index: 4; right: 12px; top: 55px; max-width: 148px; text-align: center; text-wrap: balance; background: var(--glass); color: var(--ink-2); font-size: 11px; padding: 4px 9px; border-radius: 14px; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
-.hero-check { position: absolute; z-index: 4; left: 13px; bottom: 40px; max-width: calc(100% - 190px); margin: 0; padding: 4px 11px; border-radius: 12px; background: var(--glass); color: var(--ink-2); font-size: 11.5px; line-height: 1.3; text-wrap: balance; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
+.hero-check { position: absolute; z-index: 4; left: 13px; bottom: 56px; max-width: calc(100% - 26px); margin: 0; padding: 4px 11px; border-radius: 12px; background: var(--glass); color: var(--ink-2); font-size: 11.5px; line-height: 1.3; text-wrap: balance; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
 .hero-check[hidden] { display: none; }
-.hero-toggle { position: absolute; z-index: 4; right: 9px; bottom: 38px; display: flex; padding: 3px; border-radius: 999px; background: rgba(214, 205, 194, .82); border: 1px solid rgba(255, 255, 255, .6); }
+.hero-toggle { position: absolute; z-index: 4; right: 9px; bottom: 10px; display: flex; padding: 3px; border-radius: 999px; background: rgba(214, 205, 194, .82); border: 1px solid rgba(255, 255, 255, .6); }
 .hero-toggle[hidden] { display: none; }
 .hero-toggle button { border: 0; background: none; padding: 6px 13px; border-radius: 999px; font: 13px/1.2 var(--sans); color: var(--ink); cursor: pointer; }
 .hero-toggle button[aria-pressed=true] { background: #fffdfa; box-shadow: 0 1px 3px rgba(60, 40, 30, .15); }
@@ -245,7 +245,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
   .attest, .gaps tr, figure { break-inside: avoid; }
 }
 
-.hero-cap { font-size: .78rem; color: var(--muted, #6b605a); margin: 6px 16px 0; line-height: 1.35; }
+.hero-cap { font-size: .78rem; color: var(--muted, #6b605a); margin: 6px 16px 0; padding-bottom: 24px; line-height: 1.35; }  /* the sheet overlaps the hero by 18px */
 </style>
 </head>
 <body class="">
@@ -262,7 +262,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 <article class="card" data-testid="card">
   <header>
     <h1>Agreed look</h1>
-    <p class="note">Brief Dvv_qOkD3_FA · version 1 · sample, recorded real YouCam API results</p>
+    <p class="note">Brief LBJy98FKi4G5 · version 1 · sample, recorded real YouCam API results</p>
   </header>
   <div class="compare small">
     
@@ -285,8 +285,8 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
       
       <tr>
         <th scope="row">Eyelids</th>
-        <td><span class="swatch" style="background:#8e5e50"></span> #8e5e50</td>
-        <td>74</td>
+        <td><span class="swatch" style="background:#936755"></span> #936755</td>
+        <td>71</td>
         <td>I'll do this</td>
         <td></td>
       </tr>
@@ -295,8 +295,8 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
       
       <tr>
         <th scope="row">Cheeks</th>
-        <td><span class="swatch" style="background:#c0593c"></span> #c0593c</td>
-        <td>84</td>
+        <td><span class="swatch" style="background:#b75f41"></span> #b75f41</td>
+        <td>61</td>
         <td>I'll swap the product</td>
         <td>I'll use a cream blush one shade cooler</td>
       </tr>
@@ -305,8 +305,8 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
       
       <tr>
         <th scope="row">Lips</th>
-        <td><span class="swatch" style="background:#da8c88"></span> #da8c88</td>
-        <td>51</td>
+        <td><span class="swatch" style="background:#da8e88"></span> #da8e88</td>
+        <td>52</td>
         <td>I'll do this</td>
         <td></td>
       </tr>
@@ -336,12 +336,12 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
   <section class="attest">
     
       <h2>Server-attested agreement</h2>
-      <p>Bride agreed 2026-10-31T16:53:08Z · artist agreed 2026-10-31T16:53:08Z.</p>
+      <p>Bride agreed 2026-10-31T17:22:42Z · artist agreed 2026-10-31T17:22:42Z.</p>
       <p class="note">The Look Brief server recorded that the bride link and the makeup-artist link both agreed to this exact brief version. This is a server attestation, not a personal signature.</p>
-      <p class="mono">Ed25519 public key GLR1wDaWxSdGLXUn6IwH5lX/uc5TbeKDTuEKoxvWdwQ= (key id 09f75ee7daae76b8)</p>
-      <p class="mono">signature eIZyv4jTnbvjmj/66sAye79eMd81T8MwnLh6ljLuXNm32rRV3flXxUmYNlvXH0LM7rkl1kZGn2fm+enPR5pdDQ==</p>
-      <p class="mono">recipe sha256 e5b293c1d8b9ddf8…</p>
-      <p><a href="agreed-look-card.json">Download the signed JSON</a> · verify with <code>python scripts/verify_card.py look-brief-Dvv_qOkD3_FA.json --key-url https://lookbrief.retailbox-automation.com/.well-known/lookbrief-attest.json</code></p>
+      <p class="mono">Ed25519 public key weSrtfrBRyzax6fFfiAj5a19l6N4rdb6Mga130PqFuo= (key id 9b648d93c79f7804)</p>
+      <p class="mono">signature Pa0qN2WykXBXtO/sdSW7qXCVFHJe2X49a9QzMhdJjpHz2xkohqwSX0Fri1ouQUi969TyGa7nXBzhrkWmi+4VDw==</p>
+      <p class="mono">recipe sha256 7cfa307f95caf27e…</p>
+      <p><a href="agreed-look-card.json">Download the signed JSON</a> · verify with <code>python scripts/verify_card.py look-brief-LBJy98FKi4G5.json --key-url https://lookbrief.retailbox-automation.com/.well-known/lookbrief-attest.json</code></p>
     
   </section>
   <p class="noprint"><button class="btn" type="button" onclick="window.print()">Print / save as PDF</button></p>
