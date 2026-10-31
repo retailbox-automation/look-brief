@@ -63,12 +63,16 @@ def test_replay_session_state(client):
         assert client.get(url).status_code == 200
 
 
-def test_replay_edits_undo_and_unrecorded_combo(client):
+def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     sid = _replay_session(client)
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
     assert r.status_code == 200 and r.json()["edits"] == [["cheeks", "softer"]]
+    opts = r.json()["edit_options"]
+    assert all(o["available"] for o in opts), "after one change every recorded single change can still be pressed"
+    assert all(o["replaces"] for o in opts), "samples hold one change: each of them replaces the current one"
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
-    assert r.status_code == 409 and r.json()["error"] == "not_recorded"
+    assert r.status_code == 200 and r.json()["edits"] == [["lips", "lighter"]]
+    assert r.json()["images"]["render"].endswith("render-lips-lighter.png")
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
     assert r.json()["edits"] == []
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "nose", "op": "softer"}).status_code == 400
@@ -520,3 +524,14 @@ def test_footer_live_status_opens_the_live_page(client):
     html = client.get("/").text
     assert 'href="/live">Live status' in html and 'href="/api/limits"' not in html
     assert "Try a recorded sample instead" in client.get("/live").text
+
+
+def test_replay_edit_options_without_a_recorded_single_edit():
+    """Only what is recorded can be pressed in Replay: no recorded single change -> no button, nothing replaced."""
+    from lookbrief import pipeline
+    state = {"edits": [["cheeks", "softer"]], "recipe_base": {"zones": {"cheeks": {}, "lips": {}}}}
+    keys = {"base", "cheeks:softer", "cheeks:softer+lips:bolder"}
+    opts = {(o["zone"], o["op"]): o for o in pipeline.edit_options(state, keys)}
+    assert opts[("lips", "bolder")]["available"] and not opts[("lips", "bolder")]["replaces"], "recorded combination"
+    assert opts[("cheeks", "softer")]["available"] and opts[("cheeks", "softer")]["replaces"]
+    assert not opts[("lips", "lighter")]["available"], "neither the combination nor the single change is recorded"

@@ -191,6 +191,7 @@
     $("undo").disabled = ed.length === 0;
     $("reset").disabled = ed.length === 0;
     $("edit-tools").hidden = ed.length === 0;
+    $("reset").textContent = state.order === "hair_first" && (state.images || {}).even ? "Back to my look" : "Back to the transferred look";
     selectZone(selZone);
   }
 
@@ -253,12 +254,16 @@
     const { ok, body } = await api(`/api/sessions/${sid}/edits`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     busy = false;
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
+    const before = (state.edits || []).length;
     state = body;
     if (state.order === "hair_first" && (state.images || {}).even) heroView = "even"; // the edit shows over her even tone
     else if (payload.action === "reset") heroView = "makeup";
     const opts = state.edit_options || [];
-    const heldOne = state.mode === "replay" && (state.edits || []).length > 0 && opts.length > 0 && !opts.some((o) => o.available);
-    $("edit-msg").textContent = heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another." : "Updated.";
+    const after = (state.edits || []).length;
+    const replaced = state.mode === "replay" && payload.zone && before > 0 && after === before;
+    const heldOne = state.mode === "replay" && after > 0 && opts.length > 0 && !opts.some((o) => o.available);
+    $("edit-msg").textContent = replaced ? "Updated. Samples hold one recorded change at a time — this replaced your previous change."
+      : heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another." : "Updated.";
     render();
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);

@@ -417,6 +417,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if body.zone not in (state.get("recipe_base") or {}).get("zones", {}):
                     raise HTTPException(400, f"this look has no {body.zone} makeup to adjust")
                 edits.append([body.zone, body.op])
+                if sess["mode"] == "replay":  # samples hold one recorded change at a time: a new one replaces it
+                    keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
+                    if rcp.edit_key(edits) not in keys and rcp.edit_key([[body.zone, body.op]]) in keys:
+                        edits = [[body.zone, body.op]]
             engine = engine_for(sess)
             if sess["mode"] == "live":
                 if sess["units_spent"] + UNITS["makeup-vto"] > s.live_session_unit_cap:

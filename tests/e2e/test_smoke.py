@@ -12,7 +12,7 @@ from playwright.sync_api import expect, sync_playwright
 
 pytestmark = pytest.mark.e2e
 AXE = Axe()
-HELD_ONE = "Updated. Samples hold one recorded change at a time — undo it to try another."
+REPLACED = "Updated. Samples hold one recorded change at a time — this replaced your previous change."
 WCAG = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]}}
 
 
@@ -57,8 +57,10 @@ def test_guided_path_both_roles(base_url, browser_ctx):
         page.get_by_role("button", name="Transfer").click()
 
     page.get_by_role("button", name="Cheeks", exact=True).click()  # open the Cheeks zone in the sheet
-    page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()
-    expect(page.locator("#edit-msg")).to_have_text(HELD_ONE, timeout=20_000)
+    page.get_by_role("button", name=re.compile("Cheeks: a shade deeper", re.I)).click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()  # a second change replaces the first
+    expect(page.locator("#edit-msg")).to_have_text(REPLACED, timeout=20_000)
     expect(page.locator("#cap-render")).to_contain_text("Makeup VTO re-render")
 
     page.get_by_role("button", name="Send brief to my makeup artist").click()
@@ -137,7 +139,8 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     # an edit is shown over her even tone, never on the raw transfer
     page.get_by_role("button", name="Cheeks", exact=True).click()
     page.get_by_role("button", name="Cheeks: softer").click()
-    expect(page.locator("#edit-msg")).to_have_text(HELD_ONE, timeout=20_000)
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#reset")).to_have_text("Back to my look")
     expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("same foundation in her shade")
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))

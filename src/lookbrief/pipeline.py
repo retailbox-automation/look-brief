@@ -191,7 +191,8 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
 
 
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
-    """Edits offered next. With `recorded_keys` (Replay) only recorded combinations are available."""
+    """Edits offered next. With `recorded_keys` (Replay) an edit is available when the combination is recorded,
+    or when the single edit is recorded: then it replaces the current one (`replaces`; one change at a time)."""
     current = state.get("edits") or []
     zones = list((state.get("recipe_base") or {}).get("zones", {}))
     opts = []
@@ -199,5 +200,7 @@ def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dic
         for op in rcp.EDIT_OPS:
             nxt = [*current, [z, op]]
             available = recorded_keys is None or rcp.edit_key(nxt) in recorded_keys
-            opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": available})
+            replaces = not available and bool(current) and rcp.edit_key([[z, op]]) in (recorded_keys or ())
+            opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": available or replaces,
+                         "replaces": replaces})
     return opts
