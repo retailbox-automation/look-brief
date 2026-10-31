@@ -58,5 +58,65 @@
     "face_width_share": 0.574
    }
   }
+ },
+ {
+  "at": "2026-10-31T19:29:04Z",
+  "credit_before": 713,
+  "credit_after": 702,
+  "units_spent": 11,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.3,
+    "pitch_deg": 8.3,
+    "roll_deg": 1.0,
+    "face_width_share": 0.56
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 8.0,
+    "roll_deg": 1.5,
+    "face_width_share": 0.574
+   }
+  }
+ },
+ {
+  "at": "2026-10-31T19:30:29Z",
+  "credit_before": 700,
+  "credit_after": 699,
+  "units_spent": 1,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.3,
+    "pitch_deg": 8.3,
+    "roll_deg": 1.0,
+    "face_width_share": 0.56
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 8.0,
+    "roll_deg": 1.5,
+    "face_width_share": 0.574
+   }
+  }
  }
 ]

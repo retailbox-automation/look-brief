@@ -26,9 +26,20 @@ EDIT_LABELS = {
     "lighter": "a shade lighter",
     "deeper": "a shade deeper",
 }
+# Edit steps. Makeup VTO barely moves the photo for intensity +-20 or a shade +-8 L* (recorded renders, 31.10: mean
+# dE2000 0.5-1.5 inside the zone, below what a bride sees), so every edit moves the product shade by a fixed step:
+# softer -> most of the way to her skin (and less intensity), bolder -> more vivid (chroma up, a little darker),
+# lighter/deeper -> L*. Bolder moves mostly in chroma so it never looks like lighter/deeper (switching must show).
+# Each recorded edit is checked to change its zone visibly (lookbrief.visibility, tests/test_edit_visibility.py);
+# softer is not offered where the zone's whole makeup is already too light to soften visibly.
 INTENSITY_STEP = 20
-SHADE_STEP_L = 8.0
-BOLDER_PUSH = 1.25
+SOFTER_KEEP = {"eyes": 0.0, "cheeks": 0.2, "lips": 0.1}  # softer: product shade = skin + keep * (shade - skin)
+SOFTER_INTENSITY = {"eyes": 0.25, "cheeks": 0.4, "lips": 0.3}  # softer: intensity x this
+BOLDER_STEP = {"eyes": 28.0, "cheeks": 34.0, "lips": 18.0}  # bolder: chroma (C*ab) up by this, hue kept
+BOLDER_DARKEN = {"eyes": 6.0, "cheeks": 8.0, "lips": 0.0}  # bolder: and L* down by this
+SHADE_STEP_L = {"eyes": 24.0, "cheeks": 26.0, "lips": 14.0}  # lighter / deeper, L*
+LIGHTER_ABOVE_SKIN = {"eyes": 14.0}  # lighter lids end at least this far above her skin's L*, or they read as softer
+L_FLOOR = 5.0  # deeper: what the L* step cannot take below this floor goes into chroma (a richer shade)
 
 
 @dataclass(frozen=True)
@@ -98,6 +109,21 @@ def base_recipe(m: MakeupMap) -> dict:
     return {"version": 1, "zones": zones}
 
 
+def _more_vivid(z: dict, step: float, darken: float = 0.0) -> str:
+    """The product shade with its chroma raised by `step` and L* lowered by `darken` (hue kept); a near-grey shade
+    takes her skin's hue."""
+    col = hex_to_lab(z["color"])
+    ab = col[1:].copy()
+    c = float(np.hypot(*ab))
+    if c < 1.0:
+        ab = hex_to_lab(z.get("skin", z["color"]))[1:]
+        c = float(np.hypot(*ab)) or 1.0
+        col[1:] = 0.0
+    col[1:] = col[1:] + step * ab / c
+    col[0] = float(np.clip(col[0] - darken, 5, 95))
+    return lab_to_hex(col)
+
+
 def apply_edit(recipe: dict, zone: str, op: str) -> dict:
     if zone not in EDIT_ZONES or op not in EDIT_OPS:
         raise ValueError(f"unknown edit {zone}/{op}")
@@ -106,20 +132,26 @@ def apply_edit(recipe: dict, zone: str, op: str) -> dict:
     if z is None:
         raise ValueError(f"zone {zone} is not in this look")
     if op == "softer":
-        z["intensity"] = _clip_int(z["intensity"] - INTENSITY_STEP, 10, 100)
+        skin, col = hex_to_lab(z.get("skin", z["color"])), hex_to_lab(z["color"])
+        z["color"] = lab_to_hex(skin + SOFTER_KEEP[zone] * (col - skin))
+        z["intensity"] = _clip_int(z["intensity"] * SOFTER_INTENSITY[zone], 10, 100)
     elif op == "bolder":
-        if z["intensity"] <= 100 - INTENSITY_STEP:
-            z["intensity"] += INTENSITY_STEP
-        else:  # already at full intensity: push the shade further from the skin instead
-            skin, col = hex_to_lab(z.get("skin", z["color"])), hex_to_lab(z["color"])
-            pushed = skin + BOLDER_PUSH * (col - skin)
-            pushed[0] = float(np.clip(pushed[0], 5, 95))
-            z["color"] = lab_to_hex(pushed)
-            z["intensity"] = 100
-    else:
+        z["color"] = _more_vivid(z, BOLDER_STEP[zone], BOLDER_DARKEN[zone])
+        z["intensity"] = _clip_int(z["intensity"] + INTENSITY_STEP, 10, 100)
+    elif op == "lighter":
         lab = hex_to_lab(z["color"])
-        lab[0] = float(np.clip(lab[0] + (SHADE_STEP_L if op == "lighter" else -SHADE_STEP_L), 5, 95))
+        target = lab[0] + SHADE_STEP_L[zone]
+        if zone in LIGHTER_ABOVE_SKIN:
+            target = max(target, hex_to_lab(z.get("skin", z["color"]))[0] + LIGHTER_ABOVE_SKIN[zone])
+        lab[0] = float(np.clip(target, 5, 95))
         z["color"] = lab_to_hex(lab)
+    else:  # deeper
+        lab = hex_to_lab(z["color"])
+        target = lab[0] - SHADE_STEP_L[zone]
+        lab[0] = float(max(target, L_FLOOR))
+        z["color"] = lab_to_hex(lab)
+        if target < L_FLOOR:
+            z["color"] = _more_vivid(z, L_FLOOR - target)
     return out
 
 

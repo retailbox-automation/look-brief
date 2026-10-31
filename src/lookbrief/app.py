@@ -33,6 +33,9 @@ LIVE_ORDER = "hair_first"
 LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-vto"]
 
 
+LIGHT_ZONE_NOTE = "Already close to your bare skin."  # "softer" on a zone too light to soften visibly
+
+
 class EditIn(BaseModel):
     zone: str | None = None
     op: str | None = None
@@ -212,7 +215,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 out["edit_options"] = pipeline.edit_options(st, keys)
             else:
                 room = sess["units_spent"] + UNITS["makeup-vto"] <= s.live_session_unit_cap
-                out["edit_options"] = [{**o, "available": room} for o in pipeline.edit_options(st)]
+                out["edit_options"] = [{**o, "available": o["available"] and room} for o in pipeline.edit_options(st)]
             out["edit_cost_units"] = 0 if sess["mode"] == "replay" else UNITS["makeup-vto"]
         return out
 
@@ -420,6 +423,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     raise HTTPException(400, "unknown edit")
                 if body.zone not in (state.get("recipe_base") or {}).get("zones", {}):
                     raise HTTPException(400, f"this look has no {body.zone} makeup to adjust")
+                if pipeline.softer_blocked(state, [[body.zone, body.op]]):
+                    return JSONResponse({"error": "light_zone", "reason": LIGHT_ZONE_NOTE}, status_code=400)
                 edits.append([body.zone, body.op])
                 if sess["mode"] == "replay":  # samples hold one recorded change at a time: a new one replaces it
                     keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())

@@ -18,12 +18,13 @@
       </div>
       <span class="badge hero-badge {{ mode }}" data-testid="mode-badge">{% if mode == 'replay' %}Replay · recorded real YouCam API results{% else %}Live · YouCam API{% endif %}</span>
       <div class="hero-frame">
-        <div class="hero-img">
+        <div id="hero-img" class="hero-img">
           <img id="img-hero" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
           <svg id="outlines" class="outlines" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
           <div id="pins" class="pins" aria-hidden="true"></div>
         </div>
         <p id="hero-check" class="hero-check" hidden></p>
+        <button id="zones-btn" class="hero-zones" type="button" aria-pressed="true">Hide zones</button>
         <div id="hero-toggle" class="hero-toggle" role="group" aria-label="Preview">
           <button type="button" data-view="makeup" aria-pressed="true">Makeup</button>
           <button type="button" data-view="hair" aria-pressed="false">Makeup + hair</button>

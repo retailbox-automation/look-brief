@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from . import landmarks, makeup_map
+from . import landmarks, makeup_map, visibility
 from . import recipe as rcp
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx, StepResult, image_ext
 from .youcam import YouCamError
@@ -177,6 +177,9 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
     gaps["reference"] = "even" if even else "transfer"
+    if not edits:  # her whole makeup per zone: where it is too light, "softer" would not show and is not offered
+        state["zone_strength"] = visibility.zone_strength(makeup_map._lab(bare), makeup_map._lab(render),
+                                                          visibility.zone_masks(face))
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name
     state["edits"] = edits
@@ -192,15 +195,27 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
 
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
     """Edits offered next. With `recorded_keys` (Replay) an edit is available when the combination is recorded,
-    or when the single edit is recorded: then it replaces the current one (`replaces`; one change at a time)."""
+    or when the single edit is recorded: then it replaces the current one (`replaces`; one change at a time).
+    "softer" is never offered on a zone whose whole makeup is too light to soften visibly (`reason`: "light")."""
     current = state.get("edits") or []
     zones = list((state.get("recipe_base") or {}).get("zones", {}))
+    strength = state.get("zone_strength")
     opts = []
     for z in zones:
         for op in rcp.EDIT_OPS:
+            if op == "softer" and not visibility.softer_offered(strength, z):
+                opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": False,
+                             "replaces": False, "reason": "light"})
+                continue
             nxt = [*current, [z, op]]
             available = recorded_keys is None or rcp.edit_key(nxt) in recorded_keys
             replaces = not available and bool(current) and rcp.edit_key([[z, op]]) in (recorded_keys or ())
             opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": available or replaces,
                          "replaces": replaces})
     return opts
+
+
+def softer_blocked(state: dict, edits: list[list[str]]) -> bool:
+    """True if `edits` asks for "softer" on a zone too light to soften visibly (the server refuses it too)."""
+    strength = state.get("zone_strength")
+    return any(op == "softer" and not visibility.softer_offered(strength, z) for z, op in edits)

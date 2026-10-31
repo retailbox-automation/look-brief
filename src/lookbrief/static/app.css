@@ -22,7 +22,8 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; font: 15px/1.5 var(--sans); background: var(--bg); color: var(--ink); }
+body { margin: 0; font: 15px/1.5 var(--sans); background: var(--bg); color: var(--ink);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); }  /* viewport-fit=cover: nothing under the iPhone status bar or notch */
 img { max-width: 100%; height: auto; display: block; }
 figure { margin: 0; }
 figcaption { font-size: .78rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
@@ -121,6 +122,9 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-check[hidden] { display: none; }
 .hero-toggle { position: absolute; z-index: 4; right: 9px; bottom: 10px; display: flex; padding: 3px; border-radius: 999px; background: rgba(214, 205, 194, .82); border: 1px solid rgba(255, 255, 255, .6); }
 .hero-toggle[hidden] { display: none; }
+.chip-note { margin: 6px 0 0; font-size: .8rem; color: var(--muted, #6b605a); }
+.hero-zones { position: absolute; z-index: 4; left: 13px; bottom: 10px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 999px; padding: 6px 12px; background: var(--glass); color: var(--ink); font: 12.5px/1.2 var(--sans); cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 30, .12); }
+.hero-img.zones-off .outlines, .hero-img.zones-off .pins { display: none; }  /* she is choosing: the face shows, not the outlines */
 .hero-toggle button { border: 0; background: none; padding: 6px 13px; border-radius: 999px; font: 13px/1.2 var(--sans); color: var(--ink); cursor: pointer; }
 .hero-toggle button[aria-pressed=true] { background: #fffdfa; box-shadow: 0 1px 3px rgba(60, 40, 30, .15); }
 

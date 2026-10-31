@@ -10,6 +10,7 @@
   let selZone = null;     // zone open in the sheet
   let heroView = "makeup"; // "makeup" | "hair" | "even"
   let heroInit = false; // hair-first looks open on "Even out redness": that is her look, and edits show there
+  let zonesShown = true; // zone outlines show once; the first zone or edit tap hides them so the face change is visible
 
   // Where the zone labels sit around each outline (px from the anchor point).
   const PIN = {
@@ -103,8 +104,17 @@
     });
     $("outlines").innerHTML = paths;
     $("pins").innerHTML = pins;
-    $("outlines").querySelectorAll(".zone-outline").forEach((el) => el.addEventListener("click", () => selectZone(el.dataset.zone)));
-    $("pins").querySelectorAll(".pin").forEach((el) => el.addEventListener("click", () => selectZone(el.dataset.zone)));
+    $("outlines").querySelectorAll(".zone-outline").forEach((el) => el.addEventListener("click", () => selectZone(el.dataset.zone, true)));
+    $("pins").querySelectorAll(".pin").forEach((el) => el.addEventListener("click", () => selectZone(el.dataset.zone, true)));
+    showZones(zonesShown);
+  }
+
+  function showZones(on) {
+    zonesShown = on;
+    $("hero-img").classList.toggle("zones-off", !on);
+    const b = $("zones-btn");
+    b.textContent = on ? "Hide zones" : "Show zones";
+    b.setAttribute("aria-pressed", String(on));
   }
 
   function renderHero() {
@@ -116,7 +126,10 @@
       : "You wearing the inspiration makeup (YouCam Makeup Transfer)";
     let cap = [st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer"];
     const renderStep = st["render:" + (state.edits || []).map((e) => e.join(":")).join("+")];
-    if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; cap = [st.hair_transfer, "Hair Transfer"]; }
+    if (heroView === "hair" && im.hair) {
+      src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)";
+      cap = [st.hair_transfer, edited ? "Hair Transfer (your look before your changes; tap Makeup to see them)" : "Hair Transfer"];
+    }
     else if (heroView === "even" && im.even && edited && im.render) {
       src = im.render; alt = "Your adjusted look: your edits re-rendered with YouCam Makeup VTO, with foundation in her shade";
       cap = [renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade"];
@@ -156,8 +169,9 @@
   }
 
   // ---------- sheet: zone tabs + zone panels ----------
-  function selectZone(z) {
+  function selectZone(z, byUser) {
     if (!z) return;
+    if (byUser && zonesShown) showZones(false); // she started choosing: let the face show
     selZone = z;
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.zone === z)));
     $("zones").querySelectorAll(".zone").forEach((p) => { p.hidden = p.dataset.zone !== z; });
@@ -177,8 +191,12 @@
       const m = map[z] || {};
       const g = ((state.gaps && state.gaps.zones) || {})[z] || {};
       const face = g.color_render || m.color_after || r.color; // measured on the current render
-      const buttons = opts.filter((o) => o.zone === z).map((o) =>
-        `<button type="button" class="chip" data-zone="${z}" data-op="${o.op}" ${o.available ? "" : "disabled"} aria-label="${esc(m.label)}: ${esc(o.label)}">${esc(cap(o.op))}</button>`).join("");
+      const light = opts.some((o) => o.zone === z && o.reason === "light");
+      const buttons = opts.filter((o) => o.zone === z).map((o) => {
+        const why = o.reason === "light" ? ` aria-describedby="light-${esc(z)}"` : "";
+        return `<button type="button" class="chip" data-zone="${z}" data-op="${o.op}" ${o.available ? "" : "disabled"}${why} aria-label="${esc(m.label)}: ${esc(o.label)}">${esc(cap(o.op))}</button>`;
+      }).join("");
+      const lightNote = light ? `<p class="chip-note" id="light-${esc(z)}" data-testid="light-${esc(z)}">Softer: already close to your bare skin.</p>` : "";
       return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${z}" aria-labelledby="zone-h-${esc(z)}">
         <div class="zone-head">
           <span class="zone-swatch" style="background:${esc(face)}" aria-hidden="true"></span>
@@ -189,13 +207,14 @@
           </div>
         </div>
         <div class="chips" role="group" aria-label="Adjust ${esc(m.label)}">${buttons}</div>
+        ${lightNote}
       </article>`;
     }).join("");
     $("zones").innerHTML = html;
     const extra = map.nose && map.nose.changed_px > 200 && map.nose.coverage >= 0.05 // 1% reads like a false warning
       ? `Also changed: nose &amp; contour (${Math.round(map.nose.coverage * 100)}% of that area) — not re-rendered, flag it with your artist.` : "";
     $("zone-extra").innerHTML = extra;
-    $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone)));
+    $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone, true)));
     $("zones").querySelectorAll("button.chip").forEach((b) => b.addEventListener("click", () => doEdit({ zone: b.dataset.zone, op: b.dataset.op })));
     const ed = state.edits || [];
     $("undo").disabled = ed.length === 0;
@@ -268,8 +287,9 @@
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
     const before = (state.edits || []).length;
     state = body;
-    if (state.order === "hair_first" && (state.images || {}).even) heroView = "even"; // the edit shows over her even tone
-    else if (payload.action === "reset") heroView = "makeup";
+    // the photo that carries the change: over her even tone (hair first), else the Makeup VTO view, never the hair preview
+    heroView = state.order === "hair_first" && (state.images || {}).even ? "even" : "makeup";
+    if (payload.zone && zonesShown) showZones(false);
     const opts = state.edit_options || [];
     const after = (state.edits || []).length;
     const replaced = state.mode === "replay" && payload.zone && before > 0 && after === before;
@@ -282,7 +302,8 @@
     render();
     const hr = $("img-hero").getBoundingClientRect(); // after a zone change, show the photo if less than half is on screen
     const scrolled = !!payload.zone && Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
-    if (scrolled) $("img-hero").scrollIntoView({ behavior: "smooth", block: "start" });
+    // to the top of the look, not the photo's own top edge: on iPhone Safari the photo's top sits under the status bar
+    if (scrolled) window.scrollTo({ top: Math.max(0, $("look").getBoundingClientRect().top + scrollY), behavior: "smooth" });
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
     if (refocus && usable(back)) back.focus({ preventScroll: scrolled });
@@ -293,6 +314,7 @@
   $("undo").addEventListener("click", () => doEdit({ action: "undo" }));
   $("reset").addEventListener("click", () => doEdit({ action: "reset" }));
   $("hero-toggle").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { heroView = b.dataset.view; if (state) renderHero(); }));
+  $("zones-btn").addEventListener("click", () => showZones(!zonesShown));
   $("make-brief").addEventListener("click", async () => {
     const { ok, body } = await api(`/api/sessions/${sid}/brief`, { method: "POST" });
     if (!ok) { $("edit-msg").textContent = body.detail || "Couldn't create the brief link."; return; }

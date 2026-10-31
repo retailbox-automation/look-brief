@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from lookbrief import recipe as rcp
@@ -64,7 +65,7 @@ def test_vto_effects_match_documented_schema():
 def test_edits_move_in_the_right_direction():
     base = rcp.base_recipe(_map())
     soft = rcp.apply_edit(base, "cheeks", "softer")["zones"]["cheeks"]
-    assert soft["intensity"] == base["zones"]["cheeks"]["intensity"] - rcp.INTENSITY_STEP
+    assert soft["intensity"] == round(base["zones"]["cheeks"]["intensity"] * rcp.SOFTER_INTENSITY["cheeks"])
     light = rcp.apply_edit(base, "lips", "lighter")["zones"]["lips"]
     assert hex_to_lab(light["color"])[0] > hex_to_lab(base["zones"]["lips"]["color"])[0]
     deep = rcp.apply_edit(base, "lips", "deeper")["zones"]["lips"]
@@ -72,6 +73,32 @@ def test_edits_move_in_the_right_direction():
     assert base["zones"]["cheeks"]["intensity"] == rcp.base_recipe(_map())["zones"]["cheeks"]["intensity"], (
         "no mutation"
     )
+
+
+def test_softer_goes_to_her_skin_and_bolder_is_more_vivid():
+    """Intensity +-20 alone barely moves a Makeup VTO render, so the shade moves too: softer towards her skin,
+    bolder to a more vivid, slightly darker shade (mostly chroma, so it never reads as lighter / deeper)."""
+    base = rcp.base_recipe(_map())
+    for zone in rcp.EDIT_ZONES:
+        z0 = base["zones"][zone]
+        soft = rcp.apply_edit(base, zone, "softer")["zones"][zone]
+        bold = rcp.apply_edit(base, zone, "bolder")["zones"][zone]
+        assert hex_delta_e2000(soft["color"], z0["skin"]) < hex_delta_e2000(z0["color"], z0["skin"]), zone
+        assert soft["intensity"] < z0["intensity"]
+        l0, lb = hex_to_lab(z0["color"]), hex_to_lab(bold["color"])
+        assert np.hypot(*lb[1:]) > np.hypot(*l0[1:]) + 5, zone  # more vivid (sRGB clipping eats part of the step)
+        assert -rcp.BOLDER_DARKEN[zone] - 4 < lb[0] - l0[0] < 4, zone  # a little darker at most, never lighter
+        assert bold["intensity"] == min(100, z0["intensity"] + rcp.INTENSITY_STEP)
+
+
+def test_shade_steps_are_per_zone():
+    base = rcp.base_recipe(_map())
+    for zone in rcp.EDIT_ZONES:
+        l0 = hex_to_lab(base["zones"][zone]["color"])[0]
+        light = hex_to_lab(rcp.apply_edit(base, zone, "lighter")["zones"][zone]["color"])[0]
+        deep = hex_to_lab(rcp.apply_edit(base, zone, "deeper")["zones"][zone]["color"])[0]
+        assert light > l0 + 0.6 * rcp.SHADE_STEP_L[zone], zone  # hex rounding and sRGB clipping at the light end
+        assert l0 - deep == pytest.approx(rcp.SHADE_STEP_L[zone], abs=1.0), zone
 
 
 def test_bolder_at_full_intensity_pushes_shade_from_skin():

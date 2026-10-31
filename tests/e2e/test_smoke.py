@@ -62,7 +62,7 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     page.get_by_role("button", name="Cheeks", exact=True).click()  # open the Cheeks zone in the sheet
     page.get_by_role("button", name=re.compile("Cheeks: a shade deeper", re.I)).click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
-    page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()  # a second change replaces the first
+    page.get_by_role("button", name=re.compile("Cheeks: bolder", re.I)).click()  # a second change replaces the first
     expect(page.locator("#edit-msg")).to_have_text(REPLACED, timeout=20_000)
     expect(page.locator("#cap-render")).to_contain_text("Makeup VTO re-render")
 
@@ -77,7 +77,7 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     bride = browser_ctx.new_page()
     bride.goto(base_url + bride_url)
     expect(bride.locator("#agree-help")).to_have_text("Waiting for your makeup artist to answer every zone.")
-    expect(bride.locator("#b-after")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
+    expect(bride.locator("#b-after")).to_have_attribute("src", re.compile(r"render-cheeks-bolder"))
     expect(bride.locator("#b-after-cap")).to_contain_text("Agreed look: your adjusted look")
     for cap in bride.locator(".pair-photos figcaption").all():  # on screen, not screen-reader-only (1px)
         box = cap.bounding_box()
@@ -153,25 +153,35 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.get_by_role("button", name="Transfer", exact=True).click()
     expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
     # an edit is shown over her even tone, never on the raw transfer
-    page.get_by_role("button", name="Cheeks", exact=True).click()
+    page.get_by_role("button", name="Eyelids", exact=True).click()
+    for zone in ("Eyelids", "Cheeks", "Lips"):  # her makeup is light everywhere: softer is off, and says why
+        page.get_by_role("button", name=zone, exact=True).click()
+        expect(page.get_by_role("button", name=f"{zone}: softer")).to_be_disabled()
+        expect(page.locator(f"[data-testid=light-{ {'Eyelids': 'eyes'}.get(zone, zone.lower()) }]")).to_have_text(
+            "Softer: already close to your bare skin.")
+    page.get_by_role("button", name="Eyelids", exact=True).click()
     # on a phone she scrolls down to the zone card to press a change: the photo leaves the screen
-    page.get_by_role("button", name="Cheeks: softer").evaluate("el => el.scrollIntoView({block: 'start'})")
+    page.get_by_role("button", name="Eyelids: a shade deeper").evaluate("el => el.scrollIntoView({block: 'start'})")
     assert not page.evaluate(HERO_ON_SCREEN_JS), "precondition: the photo is above the viewport"
-    page.get_by_role("button", name="Cheeks: softer").click()
+    page.get_by_role("button", name="Eyelids: a shade deeper").click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     page.wait_for_function(HERO_ON_SCREEN_JS, timeout=5_000)  # 390x844: the change itself is on screen
+    # scrolled to the top of the look, so the pills on the photo are on screen (not to the photo's top edge, which
+    # iPhone Safari puts under the status bar)
+    page.wait_for_function("document.getElementById('look').getBoundingClientRect().top > -2 && "
+                           "document.querySelector('.hero-strip').getBoundingClientRect().top >= 0", timeout=5_000)
     expect(page.locator("#reset")).to_have_text("Back to my look")
     expect(page.locator("#zone-extra")).to_have_text("")  # 1% of the nose area is not a warning
     # the caption names a part of the task id that differs between re-renders; the full id is in the title
     sid = page.url.rsplit("/", 1)[1]
     steps = page.evaluate(f"async () => (await (await fetch('/api/sessions/{sid}')).json()).steps")
-    softer, base = steps["render:cheeks:softer"]["task_id"], steps["render:base"]["task_id"]
-    assert task_fragment(softer) != task_fragment(base), (softer, base)
-    expect(page.get_by_test_id("hero-caption")).to_contain_text(f"task {task_fragment(softer)}")
-    expect(page.get_by_test_id("hero-caption")).to_have_attribute("title", f"YouCam task {softer}")
+    deeper, base = steps["render:eyes:deeper"]["task_id"], steps["render:base"]["task_id"]
+    assert task_fragment(deeper) != task_fragment(base), (deeper, base)
+    expect(page.get_by_test_id("hero-caption")).to_contain_text(f"task {task_fragment(deeper)}")
+    expect(page.get_by_test_id("hero-caption")).to_have_attribute("title", f"YouCam task {deeper}")
     expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("same foundation in her shade")
-    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-eyes-deeper"))
     for width, height in ((390, 844), (1440, 900)):
         page.set_viewport_size({"width": width, "height": height})
         assert_caption_clear(page, width)
@@ -205,7 +215,7 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     bride.wait_for_function("document.getElementById('b-hair').naturalWidth > 0", timeout=5_000)
     expect(bride.locator("#b-hair")).to_be_visible()
     # back to her look after a change
-    page.get_by_role("button", name="Cheeks: softer").click()
+    page.get_by_role("button", name="Eyelids: a shade deeper").click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     page.get_by_role("button", name="Back to my look").click()
     expect(page.locator("#edit-msg")).to_have_text("Back to your look.", timeout=20_000)
@@ -222,7 +232,7 @@ def test_transfer_first_sample_keeps_the_nose_note_and_reset_text(base_url, brow
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
     expect(page.locator("#zone-extra")).to_contain_text("Also changed: nose & contour")
     page.get_by_role("button", name="Cheeks", exact=True).click()
-    page.get_by_role("button", name="Cheeks: softer").click()
+    page.get_by_role("button", name="Cheeks: bolder").click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     page.get_by_role("button", name="Back to the transferred look").click()
     expect(page.locator("#edit-msg")).to_have_text("Back to the transferred look.", timeout=20_000)
@@ -233,9 +243,9 @@ CAPTION_LAYOUT_JS = """() => {
   const cap = document.getElementById("hero-cap");
   const range = document.createRange(); range.selectNodeContents(cap);
   const text = range.getBoundingClientRect();
-  const over = ["hero-toggle", "hero-check"].map((id) => box(document.getElementById(id))).filter(Boolean);
-  const [tg, ck] = over.length === 2 ? over : [null, null];
-  const clash = !!(tg && ck && ck.left < tg.right && tg.left < ck.right && ck.top < tg.bottom && tg.top < ck.bottom);
+  const over = ["hero-toggle", "hero-check", "zones-btn"].map((id) => box(document.getElementById(id))).filter(Boolean);
+  const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const clash = over.some((a, i) => over.some((b, j) => j > i && hit(a, b)));
   return {clash, textTop: text.top, textBottom: text.bottom, overBottom: Math.max(0, ...over.map((b) => b.bottom)),
           sheetTop: document.querySelector(".sheet").getBoundingClientRect().top};
 }"""
@@ -246,6 +256,81 @@ def assert_caption_clear(page, width: int) -> None:
     makeup-map sheet (which overlaps the hero by 18px) does not cover its last line."""
     page.evaluate("window.scrollTo(0, 0)")
     m = page.evaluate(CAPTION_LAYOUT_JS)
-    assert not m["clash"], f"{width}px: the photo-check pill and the preview toggle overlap {m}"
+    assert not m["clash"], f"{width}px: the photo-check pill, the zones pill and the preview toggle overlap {m}"
     assert m["textTop"] >= m["overBottom"], f"{width}px: photo controls overlap the caption {m}"
     assert m["textBottom"] <= m["sheetTop"], f"{width}px: the sheet covers the caption {m}"
+
+
+IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute RGB difference (0..255) inside the zone's outline box
+  const load = (u) => new Promise((ok, no) => {
+    const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = u; });
+  const [x, y] = await Promise.all([load(a), load(b)]);
+  // outline points (0..1) from the path data: getBBox() is empty while the outlines are hidden
+  const nums = [...document.querySelectorAll(`#outlines path[data-zone="${zone}"]`)]
+    .flatMap((p) => p.getAttribute("d").match(/[0-9.]+/g).map(Number));
+  const xs = nums.filter((_, i) => i % 2 === 0), ys = nums.filter((_, i) => i % 2 === 1);
+  const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs), y1 = Math.max(...ys);
+  const w = 200, h = Math.max(1, Math.round(200 * (y1 - y0) * x.naturalHeight / ((x1 - x0) * x.naturalWidth)));
+  const px = (img) => {
+    const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d");
+    g.drawImage(img, x0 * img.naturalWidth, y0 * img.naturalHeight, (x1 - x0) * img.naturalWidth,
+                (y1 - y0) * img.naturalHeight, 0, 0, w, h); return g.getImageData(0, 0, w, h).data; };
+  const p = px(x), q = px(y); let s = 0;
+  for (let i = 0; i < p.length; i += 4)
+    s += Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]);
+  return s / (p.length / 4) / 3;
+}"""
+
+
+def test_edits_show_on_the_photo_in_every_view_and_zones_step_aside(base_url, browser_ctx):
+    """Nadya on an iPhone (31.10): in "Makeup + hair" an edit only changed the text; the zone outlines covered the
+    face; the top pills went under the status bar. An edit must change the photo itself, whatever view is on."""
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s2-classic-red")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    hero = page.locator("#img-hero")
+    # outlines are shown once, with a pill to hide them
+    expect(page.locator("#outlines .zone-outline").first).to_be_visible()
+    expect(page.locator("#zones-btn")).to_have_text("Hide zones")
+    page.get_by_role("button", name="Makeup + hair").click()
+    expect(hero).to_have_attribute("src", re.compile(r"hair"))
+    before = hero.get_attribute("src")
+    # she starts choosing: the outlines step aside so the face shows
+    page.get_by_role("button", name="Lips", exact=True).click()
+    expect(page.locator("#outlines .zone-outline").first).to_be_hidden()
+    expect(page.locator("#pins .pin").first).to_be_hidden()
+    expect(page.locator("#zones-btn")).to_have_text("Show zones")
+    page.get_by_role("button", name="Lips: a shade deeper").click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-lips-deeper"))  # not the hair preview any more
+    expect(page.get_by_role("button", name="Makeup", exact=True)).to_have_attribute("aria-pressed", "true")
+    d1 = page.evaluate(IMG_DIFF_JS, [before, hero.get_attribute("src"), "lips"])
+    assert d1 > 4.0, f"the photo itself changed on the lips: {d1}"
+    # switching to another button of the zone changes the photo again
+    src1 = hero.get_attribute("src")
+    page.get_by_role("button", name="Lips: bolder").click()
+    expect(hero).to_have_attribute("src", re.compile(r"render-lips-bolder"))
+    d2 = page.evaluate(IMG_DIFF_JS, [src1, hero.get_attribute("src"), "lips"])
+    same = page.evaluate(IMG_DIFF_JS, [src1, src1, "lips"])
+    assert same == 0 and d2 > 4.0, f"switching buttons changes the lips: {d2} (control, same photo: {same})"
+    # the hair preview says it is the look before her changes
+    page.get_by_role("button", name="Makeup + hair").click()
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("before your changes")
+    page.get_by_role("button", name="Makeup", exact=True).click()
+    # "Show zones" brings them back until the next choice
+    page.locator("#zones-btn").click()
+    expect(page.locator("#outlines .zone-outline").first).to_be_visible()
+    expect(page.locator("#zones-btn")).to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Eyelids", exact=True).click()
+    expect(page.locator("#outlines .zone-outline").first).to_be_hidden()
+    # softer on her light cheeks is off, says why, and a tap sends nothing
+    page.get_by_role("button", name="Cheeks", exact=True).click()
+    soft = page.get_by_role("button", name="Cheeks: softer")
+    expect(soft).to_be_disabled()
+    expect(page.get_by_test_id("light-cheeks")).to_be_visible()
+    sent = []
+    page.on("request", lambda r: sent.append(r.url) if r.method == "POST" else None)
+    soft.click(force=True)
+    page.wait_for_timeout(500)
+    assert not [u for u in sent if "/edits" in u], sent
+    assert_caption_clear(page, 390)

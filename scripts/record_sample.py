@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lookbrief import photo_check, pipeline  # noqa: E402
+from lookbrief import photo_check, pipeline, visibility  # noqa: E402
 from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief.config import youcam_key  # noqa: E402
 from lookbrief.engine import LiveEngine, Recorder, SessionCtx, StepMeta, StepResult  # noqa: E402
@@ -38,6 +38,10 @@ def main() -> int:
                     help="hair_first: Hair Transfer on the selfie first, Makeup Transfer on that, plus the even-out step")
     ap.add_argument("--max-units", type=int, default=25)
     ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
+    ap.add_argument("--redo-edits", action="store_true",
+                    help="with --only-edits: drop the recorded edit renders (render:base stays) and record them again "
+                         "under the current edit rule; softer is skipped where the zone is too light to soften")
+    ap.add_argument("--redo", default="", help="with --only-edits: re-record only these edits, e.g. eyes:softer,lips:bolder")
     ap.add_argument("--reuse-transfer", type=Path, metavar="META_JSON",
                     help="use an already paid Makeup Transfer result (JSON with task_id etc.; .jpg next to it)")
     ap.add_argument(
@@ -120,14 +124,28 @@ def main() -> int:
         planned = UNITS["makeup-vto"]
     elif args.only_edits:
         state = json.loads((work / "state.json").read_text())
+        if state.get("order") == "hair_first":  # edits render on her face with the new hair, with the even-out
+            ctx.ids["base_jpeg"] = (work / state["images"]["base"]).read_bytes()
+        redo = {f"render:{k.strip()}" for k in args.redo.split(",") if k.strip()}
+        if args.redo_edits or redo:
+            for key in [k for k in recorder.manifest["steps"] if k.startswith("render:") and k != "render:base"
+                        and (args.redo_edits or k in redo)]:
+                step = recorder.manifest["steps"].pop(key)
+                (sd / step["image"]).unlink(missing_ok=True)
+                (sd / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
+            recorder.save()
     else:
         state = pipeline.build_look(engine, ctx, work, recorder=recorder, order=args.order)
     spent = planned
     base_state = copy.deepcopy(state)
+    strength = visibility.edit_visibility(sd)["strength"] if "render:base" in recorder.manifest["steps"] else None
     if args.grid == "single":
         for zone in list(state["recipe_base"]["zones"]):
             for op in rcp.EDIT_OPS:
                 edits = [[zone, op]]
+                if op == "softer" and not visibility.softer_offered(strength, zone):
+                    print(f"skip {zone}:softer — zone too light to soften visibly ({(strength or {}).get(zone)})")
+                    continue
                 if f"render:{rcp.edit_key(edits)}" in recorder.manifest["steps"]:
                     continue
                 if spent + UNITS["makeup-vto"] > args.max_units:

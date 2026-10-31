@@ -88,5 +88,125 @@
     "face_width_share": 0.568
    }
   }
+ },
+ {
+  "at": "2026-10-31T19:22:44Z",
+  "credit_before": 747,
+  "credit_after": 738,
+  "units_spent": 9,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 7.5,
+    "roll_deg": 0.1,
+    "face_width_share": 0.568
+   }
+  }
+ },
+ {
+  "at": "2026-10-31T19:24:51Z",
+  "credit_before": 733,
+  "credit_after": 730,
+  "units_spent": 3,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 7.5,
+    "roll_deg": 0.1,
+    "face_width_share": 0.568
+   }
+  }
+ },
+ {
+  "at": "2026-10-31T19:26:18Z",
+  "credit_before": 727,
+  "credit_after": 724,
+  "units_spent": 3,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 7.5,
+    "roll_deg": 0.1,
+    "face_width_share": 0.568
+   }
+  }
+ },
+ {
+  "at": "2026-10-31T19:30:10Z",
+  "credit_before": 702,
+  "credit_after": 701,
+  "units_spent": 1,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 7.5,
+    "roll_deg": 0.1,
+    "face_width_share": 0.568
+   }
+  }
  }
 ]

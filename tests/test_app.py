@@ -59,16 +59,19 @@ def test_replay_session_state(client):
     assert all(0 <= c <= 1 for poly in st["outlines"]["lips"] for pt in poly for c in pt)
     assert st["checks"]["bride"]["ok"] and st["checks"]["inspiration"]["ok"]
     assert abs(st["checks"]["bride"]["yaw_deg"]) < 15
-    assert all(o["available"] for o in st["edit_options"])
+    light = [o for o in st["edit_options"] if o.get("reason") == "light"]
+    assert [(o["zone"], o["op"]) for o in light] == [("cheeks", "softer")], "s2: the cheeks are too light to soften"
+    assert all(o["available"] for o in st["edit_options"] if o not in light)
+    assert not any(o["available"] for o in light)
     for url in st["images"].values():
         assert client.get(url).status_code == 200
 
 
 def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     sid = _replay_session(client)
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
-    assert r.status_code == 200 and r.json()["edits"] == [["cheeks", "softer"]]
-    opts = r.json()["edit_options"]
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
+    assert r.status_code == 200 and r.json()["edits"] == [["cheeks", "bolder"]]
+    opts = [o for o in r.json()["edit_options"] if o.get("reason") != "light"]  # cheeks softer: too light
     assert all(o["available"] for o in opts), "after one change every recorded single change can still be pressed"
     assert all(o["replaces"] for o in opts), "samples hold one change: each of them replaces the current one"
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
@@ -182,8 +185,8 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     zone = next(iter(st["recipe_base"]["zones"]))  # the fake client's images decide which zones exist
     r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "lighter"})
     assert r.status_code == 200 and r.json()["units_spent"] == 7
-    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
+    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
     assert r.status_code == 429 and r.json()["error"] == "session_cap"
     lim = live_client.get("/api/limits").json()
     assert lim["budget_spent"] == 8 and lim["budget_left"] == 5 and lim["available"] is False
@@ -305,6 +308,19 @@ def test_replay_session_cap_evicts_oldest(tmp_path, monkeypatch):
     assert (tmp_path / "data" / "sessions" / second).exists()
 
 
+def test_softer_on_a_light_zone_is_refused_and_changes_nothing(client):
+    """Decision B (31.10): where the zone's whole makeup is too light, softer would not show; it is not offered
+    and the server refuses it (a tap on a disabled button must not send an edit that 'does nothing')."""
+    sid = _replay_session(client)
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
+    assert r.status_code == 400 and r.json() == {"error": "light_zone", "reason": "Already close to your bare skin."}
+    assert client.get(f"/api/sessions/{sid}").json()["edits"] == []
+    sess = client.app.state.store.session(sid)
+    assert sess["state"]["zone_strength"]["cheeks"] < 3.5 <= sess["state"]["zone_strength"]["eyes"]
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "eyes", "op": "softer"})
+    assert r.status_code == 200 and r.json()["edits"] == [["eyes", "softer"]]
+
+
 def test_edit_of_a_zone_missing_from_the_look_is_400(client):
     sid = _replay_session(client)
     store = client.app.state.store
@@ -380,7 +396,7 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
 @pytest.mark.parametrize(("sample", "edit", "label", "not_label"), [
     ("s2-classic-red", None, "Agreed look (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
     ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
-    ("s0-champagne-rose", ["cheeks", "softer"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
+    ("s0-champagne-rose", ["cheeks", "bolder"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
      "Agreed look: transfer + foundation"),
     ("s2-classic-red", ["lips", "lighter"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
 ])
@@ -405,7 +421,7 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
     sid = r.json()["session_id"]
     st = live_client.get(f"/api/sessions/{sid}").json()
     zone = next(iter(st["recipe_base"]["zones"]))
-    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"}).json()
+    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"}).json()
     skin = st["even_out"]["skin_hex"]
     vto = [b["effects"] for n, b in FakeYouCam.calls if n == "makeup-vto"]
     makeup = {"eye_shadow", "blush", "lip_color"}
@@ -436,7 +452,7 @@ def _links(b: dict) -> tuple[str, str, str]:
 @pytest.mark.parametrize(("sample", "edit", "target"), [
     ("s0-champagne-rose", None, "even"),  # hair first: her look is the evened one
     ("s2-classic-red", None, "look"),  # transfer first, no even-out
-    ("s2-classic-red", ("cheeks", "softer"), "render"),  # her adjusted look
+    ("s2-classic-red", ("cheeks", "bolder"), "render"),  # her adjusted look
 ])
 def test_brief_target_is_the_look_she_agrees_to(client, sample, edit, target):
     sid = _sample_session(client, sample)
@@ -481,10 +497,10 @@ def test_revise_without_changes_keeps_the_version_and_answers(client):
     assert v["unchanged"] is True and v["version"] == 1
     assert set(v["reviews"]) == set(zones) and "artist" in v["agreed"], "nothing the artist did is wiped"
     # a real change still makes a new version
-    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
     v = client.post(f"/api/briefs/{bid}/revise", json={"t": bride}).json()
     assert v["version"] == 2 and not v.get("unchanged") and v["reviews"] == {} and v["agreed"] == {}
-    assert v["snapshot"]["edits"] == [["cheeks", "softer"]]
+    assert v["snapshot"]["edits"] == [["cheeks", "bolder"]]
 
 
 def test_send_brief_twice_reuses_the_links_until_the_look_changes(client):
@@ -492,7 +508,7 @@ def test_send_brief_twice_reuses_the_links_until_the_look_changes(client):
     first = client.post(f"/api/sessions/{sid}/brief").json()
     again = client.post(f"/api/sessions/{sid}/brief").json()
     assert again == first, "same look, same links"
-    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
     changed = client.post(f"/api/sessions/{sid}/brief").json()
     assert changed["brief_id"] != first["brief_id"] and set(changed) == set(first)
     assert client.post(f"/api/sessions/{sid}/brief").json() == changed
@@ -599,7 +615,7 @@ def test_image_work_runs_one_at_a_time(client, monkeypatch):
     sids = [_replay_session(c) for c in clients]
     codes = []
     threads = [th.Thread(target=lambda c=c, sid=sid: codes.append(
-        c.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"}).status_code))
+        c.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"}).status_code))
         for c, sid in zip(clients, sids, strict=True)]
     for t in threads:
         t.start()

@@ -1,8 +1,8 @@
 {
  "step": "render:lips:lighter",
- "task_id": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIqjSS4HsdZjA0JFPKoNddud-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T17:20:06Z",
- "seconds": 6.7,
+ "task_id": "UpKcOlsWBRau42bWcGwbNkq117NuYJoJWOco1p7W3o9d0HxwxC6sd3EfHIPQjDf5d-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T19:22:36Z",
+ "seconds": 16.2,
  "units": 1,
  "request_without_file_ids": {
   "version": "1.0",
@@ -56,7 +56,7 @@
     },
     "palettes": [
      {
-      "color": "#f2a39d",
+      "color": "#ffb4ad",
       "texture": "matte",
       "colorIntensity": 52
      }
