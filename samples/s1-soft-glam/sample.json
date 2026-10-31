@@ -14,5 +14,6 @@
   }
  },
  "role": "calibration",
- "hidden": false
+ "hidden": true,
+ "hidden_reason": "Not offered in the app since 2026-10-31 (face replaced by the heroine in s0); kept as calibration evidence."
 }

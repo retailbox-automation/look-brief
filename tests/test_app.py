@@ -2,14 +2,14 @@ import json
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import SAMPLE_IDS, SAMPLES
+from helpers import SAMPLE_IDS, SAMPLES, VISIBLE_IDS
 
 from lookbrief import app as app_mod
 from lookbrief import attest
 from lookbrief.config import Settings
 from lookbrief.youcam import UNITS, TaskResult
 
-SID = SAMPLE_IDS[0]
+SID = VISIBLE_IDS[0]
 
 
 def _settings(tmp_path, **kw) -> Settings:
@@ -37,7 +37,7 @@ def _replay_session(client) -> str:
 
 
 def test_health_index_and_live_off_without_key(client):
-    assert client.get("/healthz").json()["samples"] == SAMPLE_IDS
+    assert client.get("/healthz").json()["samples"] == VISIBLE_IDS
     html = client.get("/").text
     assert f"/try/{SID}" in html and "recorded real YouCam API results" in html
     lim = client.get("/api/limits").json()
@@ -305,3 +305,12 @@ def test_runs_left_by_a_previous_process_are_marked_interrupted(tmp_path, monkey
     app.state.store.update_session(sid, status="running")
     app2 = app_mod.create_app(s)  # restart
     assert app2.state.store.session(sid)["status"] == "error"
+
+
+def test_hidden_samples_are_not_offered(client):
+    hidden = [s for s in SAMPLE_IDS if s not in VISIBLE_IDS]
+    assert hidden, "s1 is kept as calibration evidence but hidden"
+    html = client.get("/").text
+    for h in hidden:
+        assert f"/try/{h}" not in html
+        assert client.get(f"/try/{h}", follow_redirects=False).status_code == 404
