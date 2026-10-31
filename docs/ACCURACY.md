@@ -27,7 +27,7 @@ Skin control (forehead, no makeup), median ΔE76 vs the bare selfie:
 
 | Sample | Transfer | Re-render (`skin_smooth` 0) |
 |---|---|---|
-| Champagne & rose | 0.0 | 0.0 |
+| Champagne & rose (vs the evened look, re-render with foundation) | 1.47 | 1.48 |
 | Soft glam | 0.37 | 0.0 |
 | Classic red lip | 0.44 | 0.0 |
 | Mauve smoky eye | 0.73 | 0.0 |
@@ -37,11 +37,16 @@ development sample (control run, see docs/CALIBRATION.md).
 
 ## Out-of-sample: samples recorded after calibration
 
-| Sample | Zone | Shade gap ΔE2000 | Coverage: transfer → re-render |
+| Sample | Zone | Shade gap ΔE2000 | Coverage: reference → re-render |
 |---|---|---|---|
-| Champagne & rose | Eyelids | 0.66 | 28% → 24% |
-| Champagne & rose | Cheeks | 3.38 | 23% → 25% |
-| Champagne & rose | Lips | 5.56 | 13% → 1% |
+| Champagne & rose (vs the evened look, re-render with foundation) | Eyelids | 0.86 | 25% → 12% |
+| Champagne & rose (vs the evened look, re-render with foundation) | Cheeks | 4.99 | 4% → 6% |
+| Champagne & rose (vs the evened look, re-render with foundation) | Lips | 5.52 | 13% → 1% |
+
+Hair-first samples are compared with the evened look (Makeup Transfer + Makeup VTO foundation in her
+shade, coverage 30) — the look the bride is shown — and their recipe is read from it: on a face with
+natural redness the raw transfer adds blotchy blush (docs/PLATFORM-FINDINGS.md §10), which would
+otherwise inflate the cheeks. Every re-render of such a look carries the same foundation.
 
 ## Out-of-sample live check (through the app)
 

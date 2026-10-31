@@ -372,17 +372,24 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
     assert 'href="https://example.org/repo"' in c.get("/").text
 
 
-@pytest.mark.parametrize(("sample", "label", "not_label"), [
-    ("s2-classic-red", "Agreed target: Makeup Transfer", "Hair Transfer + Makeup Transfer"),
-    # hair first: the target is the evened look; the raw transfer is named as the step before it
-    ("s0-champagne-rose", "Before evening out: Hair Transfer + Makeup Transfer", "Agreed target: Makeup Transfer"),
+@pytest.mark.parametrize(("sample", "edit", "label", "not_label"), [
+    ("s2-classic-red", None, "Agreed look (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
+    ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
+    ("s0-champagne-rose", ["cheeks", "softer"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
+     "Agreed look: transfer + foundation"),
+    ("s2-classic-red", ["lips", "lighter"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
 ])
-def test_card_names_the_transfers_that_made_the_target(client, sample, label, not_label):
+def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
+    """The card shows what was agreed: her edited re-render if she edited, the evened look for hair first."""
     r = client.get(f"/try/{sample}", follow_redirects=False)
     sid = r.headers["location"].rsplit("/", 1)[1]
+    if edit:
+        assert client.post(f"/api/sessions/{sid}/edits", json={"zone": edit[0], "op": edit[1]}).status_code == 200
     b = client.post(f"/api/sessions/{sid}/brief").json()
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert label in html and not_label not in html
+    if edit:
+        assert f"render-{edit[0]}-{edit[1]}" in html, "the agreed image is the edited re-render"
 
 
 def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
@@ -406,6 +413,7 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
         assert f["color"] == skin and f["coverageIntensity"] == 30
     assert "foundation" in [x["category"] for x in st["vto_effects"]]
     assert st["gaps"]["reference"] == "even", "accuracy is measured against the evened look she is shown"
+    assert st["map_reference"] == "even", "the recipe is read from the evened look, not the blotchy transfer"
 
 
 # ---------------- click-test fixes of 2026-10-31 (CT3110-YCBQ) ----------------
@@ -436,23 +444,23 @@ def test_brief_target_is_the_look_she_agrees_to(client, sample, edit, target):
         assert v["snapshot"]["target"] == target
         assert client.get(v["images"][target]).status_code == 200
     figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
-    assert sum("target" in f.lower() for f in figs) == 1, f"exactly one photo is called the target: {figs}"
-    assert figs[0] == "Bare face" and figs[1].startswith("Agreed target")
+    assert sum(f.startswith("Agreed look") for f in figs) == 1, f"exactly one photo is the agreed look: {figs}"
+    assert figs[0] == "Bare face" and figs[1].startswith("Agreed look")
     if target == "even":
-        assert "Before evening out: Hair Transfer + Makeup Transfer" in figs
+        assert "Raw transfer, before evening out (Hair Transfer + Makeup Transfer)" in figs
 
 
-def test_old_snapshot_without_target_falls_back_to_the_transfer(client):
+def test_old_snapshot_without_target_falls_back_like_the_look_screen(client):
     sid = _sample_session(client, "s0-champagne-rose")
     bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
     store = client.app.state.store
     snap = store.brief(bid)["snapshot"]
     snap.pop("target")
     store._exec("UPDATE briefs SET snapshot_json=? WHERE id=?", (json.dumps(snap), bid))
-    assert client.get(f"/api/briefs/{bid}?t={bride}").json()["snapshot"]["target"] == "look"
+    assert client.get(f"/api/briefs/{bid}?t={bride}").json()["snapshot"]["target"] == "even"
     figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
-    assert figs[1] == "Agreed target: Hair Transfer + Makeup Transfer"
-    assert sum("target" in f.lower() for f in figs) == 1, figs
+    assert figs[1] == "Agreed look: transfer + foundation in her shade (Makeup VTO)"
+    assert sum(f.startswith("Agreed look") for f in figs) == 1, figs
 
 
 def test_revise_without_changes_keeps_the_version_and_answers(client):

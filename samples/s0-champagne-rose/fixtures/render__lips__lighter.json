@@ -1,7 +1,7 @@
 {
  "step": "render:lips:lighter",
- "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cAB-X65jhGJn-ek52hQsgGxd-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T16:23:13Z",
+ "task_id": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIqjSS4HsdZjA0JFPKoNddud-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T17:20:06Z",
  "seconds": 6.7,
  "units": 1,
  "request_without_file_ids": {
@@ -13,15 +13,26 @@
     "skinSmoothColorIntensity": 0
    },
    {
+    "category": "foundation",
+    "palettes": [
+     {
+      "color": "#dfa588",
+      "colorIntensity": 50,
+      "glowIntensity": 0,
+      "coverageIntensity": 30
+     }
+    ]
+   },
+   {
     "category": "eye_shadow",
     "pattern": {
      "name": "1color1"
     },
     "palettes": [
      {
-      "color": "#8e5e50",
+      "color": "#936755",
       "texture": "matte",
-      "colorIntensity": 74
+      "colorIntensity": 71
      }
     ]
    },
@@ -32,9 +43,9 @@
     },
     "palettes": [
      {
-      "color": "#c0593c",
+      "color": "#b75f41",
       "texture": "matte",
-      "colorIntensity": 84
+      "colorIntensity": 61
      }
     ]
    },
@@ -45,9 +56,9 @@
     },
     "palettes": [
      {
-      "color": "#f2a19d",
+      "color": "#f2a39d",
       "texture": "matte",
-      "colorIntensity": 51
+      "colorIntensity": 52
      }
     ],
     "style": {

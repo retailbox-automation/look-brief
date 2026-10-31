@@ -27,8 +27,8 @@
     const im = view.images;
     $("b-before").src = im.bride || ""; $("b-inspo").src = im.inspiration || "";
     $("b-after").src = im[view.snapshot.target] || im.look || "";
-    $("b-after").alt = `Agreed target look: ${targetText(view.snapshot)}`;
-    $("b-after-cap").textContent = `Agreed target: ${targetText(view.snapshot)}`;
+    $("b-after").alt = `Agreed look: ${targetText(view.snapshot)}`;
+    $("b-after-cap").textContent = `Agreed look: ${targetText(view.snapshot)}`;
     if (im.hair) $("b-hair").src = im.hair; else $("b-hair").closest("figure").hidden = true;
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {

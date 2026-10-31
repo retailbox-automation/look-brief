@@ -203,7 +203,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
-                                                "checks", "order", "even_out")})
+                                                "checks", "order", "even_out", "map_reference")})
             if sess["mode"] == "replay":
                 keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
                 out["edit_options"] = pipeline.edit_options(st, keys)
@@ -524,7 +524,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         agreed = store.agreements(bid, v)
         snap = {k: val for k, val in b["snapshot"].items() if k != "session_id"}
         if snap.get("target") not in snap["images"]:  # snapshots made before the target was recorded
-            snap["target"] = "look"
+            im = snap["images"]
+            snap["target"] = "render" if snap.get("edits") and "render" in im else ("even" if "even" in im else "look")
         missing = [z for z in snap["review_zones"] if z not in reviews]
         discuss = [z for z, r in reviews.items() if r["status"] == "discuss"]
         return {

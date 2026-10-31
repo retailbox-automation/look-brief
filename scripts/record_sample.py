@@ -112,6 +112,9 @@ def main() -> int:
             (sd / step["image"]).unlink(missing_ok=True)
             (sd / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
         recorder.save()
+        # re-measure the map from the current reference (the evened look for hair first) before re-rendering
+        mmap = pipeline.measure_map(work, state, pipeline.face_of(work, state["bare"]))
+        recorder.set_map(mmap.to_dict())
         state["recipe_base"] = rcp.base_recipe(MakeupMap.from_dict(recorder.manifest["map"]))
         state = pipeline.rerender(engine, ctx, work, state, [])
         planned = UNITS["makeup-vto"]

@@ -23,6 +23,14 @@ def bare_path(sd: Path, manifest: dict) -> Path:
     return sd / "bride.jpg"
 
 
+def reference_path(sd: Path, manifest: dict) -> Path:
+    """The look the map and the accuracy are read from: the evened look for hair-first samples with the
+    even-out step (src/lookbrief/pipeline.map_reference), else the Makeup Transfer result."""
+    if manifest.get("order") == "hair_first" and "even_out" in manifest["steps"]:
+        return sd / manifest["steps"]["even_out"]["image"]
+    return sd / manifest["steps"]["mu_transfer"]["image"]
+
+
 def load_rgb(path: Path, size: tuple[int, int] | None = None) -> np.ndarray:
     img = Image.open(path).convert("RGB")
     if size and img.size != size:

@@ -2,43 +2,43 @@
  "payload": {
   "type": "lookbrief.agreement.v1",
   "statement": "The Look Brief server recorded that the bride link and the makeup-artist link both agreed to this exact brief version. This is a server attestation, not a personal signature.",
-  "brief_id": "Dvv_qOkD3_FA",
+  "brief_id": "S9F72MAEW0Tm",
   "version": 1,
   "issuer": "https://lookbrief.retailbox-automation.com",
-  "issued_at": "2026-10-31T16:53:08Z",
+  "issued_at": "2026-10-31T17:23:54Z",
   "agreed_at": {
-   "artist": "2026-10-31T16:53:08Z",
-   "bride": "2026-10-31T16:53:08Z"
+   "artist": "2026-10-31T17:23:54Z",
+   "bride": "2026-10-31T17:23:54Z"
   },
   "reviews_sha256": "977b29b9e6be0d09f250176ce2682b3bca31adcd409b4bebfdd14a0b9906e226",
   "zones": [
    {
     "zone": "eyes",
     "label": "Eyelids",
-    "product_hex": "#8e5e50",
-    "intensity": 74,
-    "on_face_hex": "#986552",
-    "coverage": 0.275,
+    "product_hex": "#936755",
+    "intensity": 71,
+    "on_face_hex": "#9a6954",
+    "coverage": 0.253,
     "status": "do",
     "note": ""
    },
    {
     "zone": "cheeks",
     "label": "Cheeks",
-    "product_hex": "#c0593c",
-    "intensity": 84,
-    "on_face_hex": "#bf6e52",
-    "coverage": 0.232,
+    "product_hex": "#b75f41",
+    "intensity": 61,
+    "on_face_hex": "#bb7054",
+    "coverage": 0.0447,
     "status": "swap",
     "note": "I'll use a cream blush one shade cooler"
    },
    {
     "zone": "lips",
     "label": "Lips",
-    "product_hex": "#da8c88",
-    "intensity": 51,
-    "on_face_hex": "#c17571",
-    "coverage": 0.1271,
+    "product_hex": "#da8e88",
+    "intensity": 52,
+    "on_face_hex": "#c17670",
+    "coverage": 0.1252,
     "status": "do",
     "note": ""
    },
@@ -65,35 +65,35 @@
     "eyes": {
      "category": "eye_shadow",
      "pattern": "1color1",
-     "color": "#8e5e50",
-     "intensity": 74,
-     "skin": "#a56e55"
+     "color": "#936755",
+     "intensity": 71,
+     "skin": "#a36b53"
     },
     "cheeks": {
      "category": "blush",
      "pattern": "1color1",
-     "color": "#c0593c",
-     "intensity": 84,
+     "color": "#b75f41",
+     "intensity": 61,
      "skin": "#bd7b61"
     },
     "lips": {
      "category": "lip_color",
      "pattern": "original",
-     "color": "#da8c88",
-     "intensity": 51,
-     "skin": "#b6655d"
+     "color": "#da8e88",
+     "intensity": 52,
+     "skin": "#b4635b"
     }
    }
   },
-  "recipe_sha256": "e5b293c1d8b9ddf8eef5c1ed0b673e709f6db75230987e462565c5f6adfa3ca8",
+  "recipe_sha256": "7cfa307f95caf27ef69ffddf295d80f81843bdafe0e190560371c17f55598cae",
   "images_sha256": {
    "bride": "f960b1d6cfca9b50b6ebb93c6fac1a1060d907fd077ca33a2544becbae36637e",
    "inspiration": "e60ad0aa293d8013de4e1e96f04ecbf51405e284ef16fc1bfc48a98e88e649e2",
    "base": "d5605d18ce805718a54a0ec79ef422141b9ff7acd987e9ae8425098618bbd566",
    "look": "2df832fdc472094864dfb3313a6c3bd7f5aba2fd2bf05d28db4e347bdc1f0cc9",
-   "layer": "89cf9f3124f96098c6c6eb7b2d54af2bdd2c35958f2f203fd5952779b64b8174",
    "even": "c116cc8f59000a803d2ef9f0c0dbf34fa89af438b8683b52c59b23da8a4707a5",
-   "render": "a193c4575e2a32e55fcd4d67f86077d2034c7d78e58ac5e20a1e3589bc740e28"
+   "layer": "4125fe5cb12093ea2be2093c2dca9680e75bbdc85c9ca620490e33d7da9493b6",
+   "render": "1e57cac8340a74c74ef0b5b277688600a535442236626b50bb450a412672b571"
   },
   "youcam_steps": {
    "hair_transfer": {
@@ -116,15 +116,15 @@
    },
    "render:base": {
     "mode": "replay",
-    "task_id": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCBX198r8MqLv0OJMOVFV-9d-BTT-LvvMAmKHuvXEbI5Q",
-    "recorded_at": "2026-10-31T16:21:47Z",
+    "task_id": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIrT2Z9A2BPxWdXT4CYnueGd-BTT-LvvMAmKHuvXEbI5Q",
+    "recorded_at": "2026-10-31T17:18:12Z",
     "seconds": 6.6
    }
   },
   "mode": "replay"
  },
  "alg": "Ed25519",
- "key_id": "09f75ee7daae76b8",
- "public_key_b64": "GLR1wDaWxSdGLXUn6IwH5lX/uc5TbeKDTuEKoxvWdwQ=",
- "signature_b64": "eIZyv4jTnbvjmj/66sAye79eMd81T8MwnLh6ljLuXNm32rRV3flXxUmYNlvXH0LM7rkl1kZGn2fm+enPR5pdDQ=="
+ "key_id": "d9756acbd81759b8",
+ "public_key_b64": "Xy6EaVTzzhoPsAZwA1s0rlylV08krpsXqBO3mUIL6XU=",
+ "signature_b64": "kUxa7Fif/77O5Ziz1smHx0JFa9qOH7LuKhIyt6+SidgrT0JysdU7Ah4ss1UM9/rj35FfCcZtUsn24c8NhvTOAg=="
 }
