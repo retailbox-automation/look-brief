@@ -9,6 +9,7 @@
   let busy = false;
   let selZone = null;     // zone open in the sheet
   let heroView = "makeup"; // "makeup" | "hair" | "even"
+  let heroInit = false; // hair-first looks open on "Even out redness": that is her look, and edits show there
 
   // Where the zone labels sit around each outline (px from the anchor point).
   const PIN = {
@@ -104,9 +105,14 @@
     let src = im.look, alt = hairFirst ? "You with the inspiration hair and makeup (YouCam Hair Transfer, then Makeup Transfer)"
       : "You wearing the inspiration makeup (YouCam Makeup Transfer)";
     let cap = stepCaption(st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer");
+    const renderStep = st["render:" + (state.edits || []).map((e) => e.join(":")).join("+")];
     if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; cap = stepCaption(st.hair_transfer, "Hair Transfer"); }
+    else if (heroView === "even" && im.even && edited && im.render) {
+      src = im.render; alt = "Your adjusted look: your edits re-rendered with YouCam Makeup VTO, with foundation in her shade";
+      cap = stepCaption(renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade");
+    }
     else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = stepCaption(st.even_out, "Even out redness: foundation in her shade over the transfer"); }
-    else if (edited && im.render) {
+    else if (edited && im.render && !hairFirst) {
       src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO";
       cap = stepCaption(st["render:" + state.edits.map((e) => e.join(":")).join("+")], "Makeup VTO re-render");
     }
@@ -193,21 +199,28 @@
     const rows = Object.values(gz).map((g) =>
       `<tr><th scope="row">${esc(g.label)}</th><td>${g.color_gap_de2000.toFixed(1)}</td><td>${Math.round(g.coverage_transfer * 100)}% → ${Math.round(g.coverage_render * 100)}%</td></tr>`).join("");
     document.querySelector("#gaps tbody").innerHTML = rows;
-    $("skin-note").textContent = `Skin control (forehead, no makeup): transfer changes it by ΔE76 ${state.map.skin_control_de}, recipe render by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
+    const evened = state.gaps && state.gaps.reference === "even";
+    $("gaps-ref").textContent = evened ? "Hair-first look: compared with the evened look (transfer + foundation in her shade), because every re-render carries the same foundation." : "";
+    $("skin-note").textContent = evened
+      ? `Skin control (forehead): the transfer changes it by ΔE76 ${state.map.skin_control_de}; the re-render, with foundation in her shade (coverage 30, no smoothing), by ${state.gaps.skin_control_render_de76}.`
+      : `Skin control (forehead, no makeup): transfer changes it by ΔE76 ${state.map.skin_control_de}, recipe render by ${state.gaps.skin_control_render_de76} — your skin is kept, not beautified.`;
     const parts = Object.values(gz).map((g) => `${esc(g.label)} ${g.color_gap_de2000.toFixed(1)}`);
     $("accuracy").innerHTML = parts.length ? `Re-render accuracy (ΔE2000, lower is closer): ${parts.join(" · ")}` : "";
   }
 
   function render() {
     const im = state.images || {};
-    $("img-before").src = im.bride; $("img-after").src = im.look;
+    const evenAfter = state.order === "hair_first" && im.even; // her look is the evened one
+    $("img-before").src = im.bride; $("img-after").src = evenAfter ? im.even : im.look;
     $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-render").src = im.render;
     if (im.hair) { $("img-hair").src = im.hair; } else { $("img-hair").closest("figure").hidden = true; }
     const st = state.steps || {};
-    $("cap-after").textContent = stepCaption(st.mu_transfer, "Makeup Transfer");
+    $("cap-after").textContent = evenAfter ? stepCaption(st.even_out, "Hair Transfer + Makeup Transfer, then even out redness (foundation in her shade, Makeup VTO)")
+      : stepCaption(st.mu_transfer, "Makeup Transfer");
     $("cap-hair").textContent = st.hair_transfer && st.hair_transfer.task_id ? stepCaption(st.hair_transfer, "Hair Transfer") : "Hair preview unavailable";
     const key = (state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base";
     $("cap-render").textContent = stepCaption(st[key], "Makeup VTO re-render");
+    if (!heroInit) { heroInit = true; if (state.order === "hair_first" && im.even) heroView = "even"; }
     renderHero(); renderPhoto(); renderZones(); renderGaps();
     $("tech").textContent = JSON.stringify({ steps: state.steps, recipe: state.recipe, vto_effects: state.vto_effects, map: state.map }, null, 2);
     $("look").hidden = false;
@@ -240,8 +253,9 @@
     const { ok, body } = await api(`/api/sessions/${sid}/edits`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     busy = false;
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
-    if (payload.action === "reset") heroView = "makeup";
-    state = body; $("edit-msg").textContent = "Updated."; render();
+    state = body;
+    if (state.order === "hair_first" && (state.images || {}).even) heroView = "even"; // the edit shows over her even tone
+    else if (payload.action === "reset") heroView = "makeup"; $("edit-msg").textContent = "Updated."; render();
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
     if (refocus && usable(back)) back.focus();

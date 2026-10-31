@@ -112,10 +112,19 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.goto(base_url + "/")
     page.get_by_test_id(f"sample-{hair_first[0]}").click()  # the way a visitor opens it: from the home page
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
-    expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
-    page.get_by_role("button", name="Even out redness").click()
+    # her look opens on "Even out redness" (foundation in her shade over the transfer)
+    expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("foundation in her shade over the transfer")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("Recorded real YouCam API result")
+    page.get_by_role("button", name="Transfer", exact=True).click()
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
+    # an edit is shown over her even tone, never on the raw transfer
+    page.get_by_role("button", name="Cheeks", exact=True).click()
+    page.get_by_role("button", name="Cheeks: softer").click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("same foundation in her shade")
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
     for width, height in ((390, 844), (1440, 900)):
         page.set_viewport_size({"width": width, "height": height})
         assert_caption_clear(page, width)

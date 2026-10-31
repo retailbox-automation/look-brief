@@ -103,8 +103,8 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-img { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 3 / 4; }
 .hero-img > img { width: 100%; height: 100%; object-fit: cover; }
 .outlines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; }
-.zone-outline { fill: rgba(255, 255, 255, .06); stroke: rgba(255, 251, 246, .9); stroke-width: 1.4; vector-effect: non-scaling-stroke; cursor: pointer; filter: drop-shadow(0 0 1px rgba(60, 40, 30, .35)); }
-.zone-outline.on { stroke-width: 2; fill: rgba(255, 255, 255, .1); }
+.zone-outline { fill: transparent; stroke: rgba(255, 251, 246, .9); stroke-width: 1.4; vector-effect: non-scaling-stroke; cursor: pointer; filter: drop-shadow(0 0 1px rgba(60, 40, 30, .35)); }
+.zone-outline.on { stroke-width: 2; }  /* outline only: a tint over the cheek read as a red patch */
 .pins { position: absolute; inset: 0; z-index: 3; }
 .pin { position: absolute; width: 0; height: 0; padding: 0; border: 0; background: none; cursor: pointer; }
 .pin-line { position: absolute; left: 0; top: 0; height: 1.5px; margin-top: -.75px; background: rgba(255, 251, 246, .95); transform-origin: 0 50%; box-shadow: 0 0 1px rgba(60, 40, 30, .4); }
