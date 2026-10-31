@@ -1,7 +1,12 @@
 {% extends "base.html" %}
-{% block title %}This link has expired · Look Brief{% endblock %}
+{% block title %}{% if other_browser %}This look is in another browser{% else %}This link has expired{% endif %} · Look Brief{% endblock %}
 {% block content %}
+{% if other_browser %}
+<h1>This look is in another browser</h1>
+<p>A look stays in the browser that made it. To share it, use the brief links on that look ("Send brief to my makeup artist"), or start your own from a sample here.</p>
+{% else %}
 <h1>This link has expired</h1>
 <p>Demo links live until the demo server restarts. Start again from a sample — it takes a minute.</p>
+{% endif %}
 <p><a class="btn primary" href="/">Start from a sample</a></p>
 {% endblock %}

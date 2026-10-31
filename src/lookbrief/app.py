@@ -304,15 +304,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return templates.TemplateResponse(request, "live.html", {"live": live_status(client_ip(request)),
                                                                  "look_units": LOOK_UNITS})
 
-    def expired_page(request: Request) -> HTMLResponse:
+    def expired_page(request: Request, other_browser: bool = False) -> HTMLResponse:
         """Sessions and briefs live until the server restarts (the data dir is not persisted): old links get a page
         for people, not JSON. A wrong token gets the same page, so it never tells whether a brief exists."""
-        return templates.TemplateResponse(request, "expired.html", {}, status_code=404)
+        return templates.TemplateResponse(request, "expired.html", {"other_browser": other_browser},
+                                          status_code=403 if other_browser else 404)
 
     @app.get("/s/{sid}", response_class=HTMLResponse)
     def session_page(sid: str, request: Request):
         if store.session(sid) is None:
             return expired_page(request)
+        if not store.is_owner(sid, request.cookies.get(owner_cookie(sid))):  # a look link pasted into another browser
+            return expired_page(request, other_browser=True)
         sess = owned_session(sid, request)
         sample = samples.get(sess["sample_id"] or "")
         return templates.TemplateResponse(request, "session.html", {

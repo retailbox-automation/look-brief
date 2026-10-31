@@ -499,6 +499,15 @@ def test_expired_links_get_a_human_page(client, path):
     assert client.get("/api/sessions/nosuchsession").json() == {"detail": "session not found"}
 
 
+def test_look_link_in_another_browser_gets_a_human_page(client):
+    sid, _, _, _ = _brief(client)
+    assert client.get(f"/s/{sid}").status_code == 200, "the browser that made it still opens it"
+    r = TestClient(client.app).get(f"/s/{sid}")
+    assert r.status_code == 403 and r.headers["content-type"].startswith("text/html")
+    assert "This look is in another browser" in r.text and "Start from a sample" in r.text
+    assert TestClient(client.app).get(f"/api/sessions/{sid}").status_code == 403, "API stays JSON and closed"
+
+
 def test_footer_live_status_opens_the_live_page(client):
     html = client.get("/").text
     assert 'href="/live">Live status' in html and 'href="/api/limits"' not in html
