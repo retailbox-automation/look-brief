@@ -50,11 +50,12 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(page.locator("#gaps tbody tr")).to_have_count(3)
     check_a11y(page, "your look")
 
+    page.get_by_role("button", name="Cheeks", exact=True).click()  # open the Cheeks zone in the sheet
     page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     expect(page.locator("#cap-render")).to_contain_text("Makeup VTO re-render")
 
-    page.get_by_role("button", name="Create the brief link").click()
+    page.get_by_role("button", name="Send brief to my makeup artist").click()
     expect(page.get_by_test_id("artist-link")).to_have_attribute("href", re.compile(r"^/b/"))
     artist_url = page.get_by_test_id("artist-link").get_attribute("href")
     bride_url = page.get_by_test_id("bride-link").get_attribute("href")

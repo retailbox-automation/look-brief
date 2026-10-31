@@ -4,7 +4,7 @@
 <h1>Your photos</h1>
 {% if not live.available %}
 <p class="note" role="status">{{ live.reason }}</p>
-<p><a class="btn" href="/">Try a recorded sample instead</a></p>
+<p><a class="btn primary" href="/">Try a recorded sample instead</a></p>
 {% else %}
 <form id="live-form" class="stack" enctype="multipart/form-data">
   <fieldset>
@@ -19,7 +19,7 @@
     <input type="file" name="inspiration" accept="image/jpeg,image/png" required>
   </label>
   <p class="note">Uses about {{ 5 }} YouCam units, then 1 per zone adjustment (cap {{ live.session_unit_cap }} per session). Budget left: {{ live.budget_left }}.</p>
-  <button class="btn" type="submit">Check photos and create my look</button>
+  <button class="btn primary block" type="submit">Check photos and create my look</button>
   <div id="live-out" role="status" aria-live="polite"></div>
 </form>
 {% endif %}

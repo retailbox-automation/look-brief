@@ -1,25 +1,37 @@
 {% extends "base.html" %}
 {% block title %}{% if role == 'artist' %}Brief for your makeup artist{% else %}Your brief{% endif %} · Look Brief{% endblock %}
-{% block header_extra %}<span class="badge">{% if role == 'artist' %}For your makeup artist · no account needed{% else %}Bride view{% endif %}</span>{% endblock %}
+{% block body_class %}page-brief{% endblock %}
+{% block header %}{% endblock %}
 {% block content %}
 <div id="brief" data-bid="{{ bid }}" data-token="{{ token }}" data-role="{{ role }}">
-  <h1>{% if role == 'artist' %}Look brief from your bride{% else %}Your look brief{% endif %}</h1>
-  <p id="b-status" role="status" aria-live="polite">Loading…</p>
-  <div class="compare small">
-    <figure><img id="b-before" alt="Bride's bare-faced selfie"><figcaption>Bare face</figcaption></figure>
-    <figure><img id="b-after" alt="Bride wearing the inspiration makeup (YouCam Makeup Transfer)"><figcaption>Agreed target (preview)</figcaption></figure>
-    <figure><img id="b-inspo" alt="Inspiration photo"><figcaption>Inspiration</figcaption></figure>
-    <figure><img id="b-hair" alt="Makeup and hair preview"><figcaption>Makeup + hair</figcaption></figure>
+  {% if role == 'artist' %}
+  <h1 class="brief-title"><span class="bt-brand">Look Brief</span> <span class="bt-for">· for your makeup artist</span><span class="sr-only"> · </span><span class="bt-sub">no account needed</span></h1>
+  {% else %}
+  <h1 class="brief-title"><span class="bt-brand">Look Brief</span> <span class="bt-for">· your look brief</span><span class="sr-only"> · </span><span class="bt-sub">bride view</span></h1>
+  {% endif %}
+  <div class="pair-photos">
+    <figure><img id="b-before" alt="Bride's bare-faced selfie"><figcaption class="sr-only">Bare face</figcaption></figure>
+    <figure><img id="b-after" alt="Bride wearing the inspiration makeup (YouCam Makeup Transfer)"><figcaption class="sr-only">Agreed target (preview)</figcaption></figure>
   </div>
-  <form id="reviews" class="stack" onsubmit="return false"></form>
-  <h2>Shades to bring to the trial</h2>
-  <ul id="shades" class="shades"></ul>
-  <div id="agree-box">
-    <p id="agree-help" class="note"></p>
-    <button id="agree" class="btn" type="button">Agree to this look</button>
-    {% if role == 'bride' %}<button id="revise" class="btn ghost" type="button">Update the brief from my latest edits</button>{% endif %}
+  <p id="b-status" class="b-status" role="status" aria-live="polite">Loading…</p>
+  <form id="reviews" class="reviews" onsubmit="return false"></form>
+  <section class="shades-card" aria-labelledby="shades-h">
+    <h2 id="shades-h">Shades to bring to the trial</h2>
+    <ul id="shades" class="shades"></ul>
+  </section>
+  <div id="agree-box" class="agree-box">
+    <button id="agree" class="btn primary block serif" type="button">Agree to this look</button>
+    <p id="agree-help" class="agree-help"></p>
+    {% if role == 'bride' %}<button id="revise" class="btn ghost block" type="button">Update the brief from my latest edits</button>{% endif %}
   </div>
-  <p id="card-link" hidden><a class="btn" id="card-a" href="#">Open the agreed-look card</a></p>
+  <p id="card-link" class="card-link" hidden><a class="btn ghost block" id="card-a" href="#">Open the agreed-look card</a></p>
+  <details class="fold more-photos">
+    <summary>Inspiration photo and makeup + hair preview</summary>
+    <div class="grid2">
+      <figure><img id="b-inspo" alt="Inspiration photo"><figcaption>Inspiration</figcaption></figure>
+      <figure><img id="b-hair" alt="Makeup and hair preview"><figcaption>Makeup + hair</figcaption></figure>
+    </div>
+  </details>
 </div>
 {% endblock %}
 {% block scripts %}<script src="/static/brief.js" defer></script>{% endblock %}
