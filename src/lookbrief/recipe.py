@@ -40,7 +40,6 @@ TONE_WEIGHTS = np.array([0.25, 1.0, 1.0])  # L*, a*, b*
 
 NO_SMOOTHING = {"category": "skin_smooth", "skinSmoothStrength": 0, "skinSmoothColorIntensity": 0}
 # Finish numbers accepted by the API in the probes of 2026-10-31 (the same in every look).
-HIGHLIGHT_FINISH = {"glowIntensity": 45, "shimmerIntensity": 25, "shimmerDensity": 35, "shimmerSize": 25}
 LIP_FINISH = {"sheer": {"gloss": 45, "transparencyIntensity": 30}}  # texture gloss leaves drops of shine: not used
 LIP_LINE_FINISH = {"thickness": 30, "smoothness": 70}
 FOUNDATION_INTENSITY = 40  # 50 lifted the heroine's forehead L* by 1.7; the target is 1.5 at most
@@ -54,6 +53,8 @@ def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None =
          "texture": s.texture, "pattern": pattern, "intensity": spec.intensity}
     if zone == "eyes":
         z |= {"slot_intensity": list(spec.slots), "shimmer": list(spec.shimmer)}
+    elif zone == "highlight":
+        z["glow"] = dict(palettes.HIGHLIGHT_GLOW_MEDIUM if group == "medium" else palettes.HIGHLIGHT_GLOW)
     elif zone == "cheeks":
         z["glow"] = spec.glow
     return z
@@ -223,7 +224,7 @@ def _palettes(z: dict) -> list[dict]:
     if cat == "blush":
         return [{"color": color, "texture": z["texture"], "glowStrength": z["glow"], "colorIntensity": i}]
     if cat == "highlighter":
-        return [{"color": color, **HIGHLIGHT_FINISH, "colorIntensity": i}]
+        return [{"color": color, **z["glow"], "colorIntensity": i}]
     if cat == "lip_color":
         return [{"color": color, "texture": z["texture"], "colorIntensity": i, **LIP_FINISH.get(z["texture"], {})}]
     if cat == "lip_liner":
@@ -248,7 +249,7 @@ def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
     effects: list[dict] = [dict(NO_SMOOTHING)]
     if even_out:
         effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
-    effects.append(concealer_effect(recipe["skin_hex"], recipe["group"]))
+    effects.append(concealer_effect(recipe["skin_hex"]))
     zones = recipe["zones"]
     effects += [_effect(zones[z]) for z in palettes.ZONES if z in zones and zones[z]["palette"]]  # "none": left out
     return effects
@@ -263,10 +264,9 @@ def foundation_effect(skin_hex: str, coverage: int = 30) -> dict:
          "coverageIntensity": int(coverage)}]}
 
 
-def concealer_effect(skin_hex: str, group: str) -> dict:
+def concealer_effect(skin_hex: str) -> dict:
     """A layer under every look, not a zone: nothing to choose, the artist reads it in the Skin row of the brief."""
-    finish = palettes.CONCEALER_FINISH_DEEP if group == "deep" else palettes.CONCEALER_FINISH
-    return {"category": "concealer", "palettes": [{"color": palettes.concealer_hex(skin_hex), **finish}]}
+    return {"category": "concealer", "palettes": [{"color": skin_hex, **palettes.CONCEALER_FINISH}]}
 
 
 def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:

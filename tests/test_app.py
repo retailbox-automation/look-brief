@@ -107,8 +107,8 @@ def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
 
 
 def test_a_circle_a_step_and_a_look_through_the_api(client):
-    sid = _replay_session(client)  # s2: the classic red lip is pinned to ruby
-    softer = palettes.step_from("light", "lips", "#e4b29c", "ruby", "softer")
+    sid = _replay_session(client)  # s2: the classic red lip is the base of the medium look
+    softer = palettes.step_from("medium", "lips", "#e4b29c", "ruby", "softer")
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
     assert r.status_code == 200 and r.json()["edits"] == [["lips", f"shade:{softer}"]]
     via_step = r.json()["images"]["render"]
@@ -527,12 +527,14 @@ def test_the_brief_names_the_concealer_in_the_skin_row(client):
     bride = b["bride_url"].split("t=")[1]
     snap = client.get(f"/api/briefs/{b['brief_id']}?t={bride}").json()["snapshot"]
     skin = next(z for z in snap["zones"] if z["zone"] == "skin")
-    assert skin["shade_name"].startswith("Concealer") and skin["intensity"] is None and "skin" in snap["review_zones"]
+    assert skin["shade_name"] == "Concealer in her own shade" and skin["intensity"] is None
+    assert skin["palette"] == ["#e4b29c"] and "skin" in snap["review_zones"]
     sid = _sample_session(client, "s0-champagne-rose")
     b = client.post(f"/api/sessions/{sid}/brief").json()
     snap = client.get(f"/api/briefs/{b['brief_id']}?t={b['bride_url'].split('t=')[1]}").json()["snapshot"]
     skin = next(z for z in snap["zones"] if z["zone"] == "skin")
-    assert skin["palette"] == ["#dfa588", "#E8B79C"] and skin["intensity"] == 30
+    assert skin["palette"] == ["#dfa588"] and skin["intensity"] == 30
+    assert skin["shade_name"] == "Foundation and concealer in her own shade"
 
 
 def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):

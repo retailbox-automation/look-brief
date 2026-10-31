@@ -13,14 +13,14 @@ import pytest
 from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import expect, sync_playwright
 
-SAMPLES = Path(__file__).resolve().parents[2] / "samples"
+SAMPLES = Path(os.environ.get("LOOKBRIEF_SAMPLES", Path(__file__).resolve().parents[2] / "samples"))
 
 
 def recorded(sample: str) -> bool:
-    """The sample holds its grid on the current recipe format (palette v2: three lid colours, named styles)."""
+    """The sample holds its grid on the current recipe (two-colour lids on 2colors279)."""
     steps = json.loads((SAMPLES / sample / "manifest.json").read_text())["steps"]
     eyes = steps["render:base"]["recipe"].get("zones", {}).get("eyes", {})
-    return "render:look:evening" in steps and "slot_intensity" in eyes
+    return "render:look:evening" in steps and eyes.get("pattern") == "2colors279"
 
 
 def needs(sample: str):

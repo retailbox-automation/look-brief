@@ -1,5 +1,5 @@
 {
- "_source": "Request bodies after the second critic (PALETTE-V3, 2026-10-31): probes/p10-spec.json A, B, C of s0 and B, C of s3; deep fresh is v1 A-fresh with the eye row of the PALETTE-V3 table. light = heroine s0, deep = s3.",
+ "_source": "Final request bodies (2026-10-31): A and C from probes/p14-spec.json; B from p12-spec.json (s0, s3) and p13-spec.json warm (s2). light = heroine s0, medium = s2, deep = s3.",
  "light": {
   "fresh": [
    {
@@ -22,10 +22,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#E8B79C",
-      "colorIntensity": 55,
+      "color": "#dfa588",
+      "colorIntensity": 20,
       "colorUnderEyeIntensity": 85,
-      "coverageLevel": 70
+      "coverageLevel": 50
      }
     ]
    },
@@ -169,10 +169,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#E8B79C",
-      "colorIntensity": 55,
+      "color": "#dfa588",
+      "colorIntensity": 20,
       "colorUnderEyeIntensity": 85,
-      "coverageLevel": 70
+      "coverageLevel": 50
      }
     ]
    },
@@ -329,10 +329,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#E8B79C",
-      "colorIntensity": 55,
+      "color": "#dfa588",
+      "colorIntensity": 20,
       "colorUnderEyeIntensity": 85,
-      "coverageLevel": 70
+      "coverageLevel": 50
      }
     ]
    },
@@ -469,6 +469,442 @@
    }
   ]
  },
+ "medium": {
+  "fresh": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#e4b29c",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
+     }
+    ]
+   },
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "2colors279"
+    },
+    "palettes": [
+     {
+      "color": "#D9B08C",
+      "texture": "shimmer",
+      "shimmerColor": "#D9B08C",
+      "shimmerIntensity": 60,
+      "colorIntensity": 70
+     },
+     {
+      "color": "#8A6450",
+      "texture": "matte",
+      "colorIntensity": 62
+     }
+    ]
+   },
+   {
+    "category": "eye_liner",
+    "pattern": {
+     "name": "Upper283"
+    },
+    "palettes": [
+     {
+      "color": "#7A5C52",
+      "texture": "matte",
+      "colorIntensity": 50
+     }
+    ]
+   },
+   {
+    "category": "eyelashes",
+    "pattern": {
+     "name": "Natural17"
+    },
+    "palettes": [
+     {
+      "color": "#17110f",
+      "colorIntensity": 60
+     }
+    ]
+   },
+   {
+    "category": "eyebrows",
+    "pattern": {
+     "type": "color"
+    },
+    "palettes": [
+     {
+      "color": "#5A4034",
+      "texture": "matte",
+      "colorIntensity": 35
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color2"
+    },
+    "palettes": [
+     {
+      "color": "#F0A090",
+      "texture": "satin",
+      "glowStrength": 30,
+      "colorIntensity": 30
+     }
+    ]
+   },
+   {
+    "category": "bronzer",
+    "pattern": {
+     "name": "Bronzer1"
+    },
+    "palettes": [
+     {
+      "color": "#C08A55",
+      "colorIntensity": 20
+     }
+    ]
+   },
+   {
+    "category": "highlighter",
+    "pattern": {
+     "name": "OvalFace28"
+    },
+    "palettes": [
+     {
+      "color": "#EBC8A0",
+      "glowIntensity": 35,
+      "shimmerIntensity": 15,
+      "shimmerDensity": 35,
+      "shimmerSize": 25,
+      "colorIntensity": 18
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "style": {
+     "type": "full"
+    },
+    "palettes": [
+     {
+      "color": "#D98C86",
+      "texture": "sheer",
+      "colorIntensity": 55,
+      "gloss": 45,
+      "transparencyIntensity": 30
+     }
+    ]
+   }
+  ],
+  "softglam": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#e4b29c",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
+     }
+    ]
+   },
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "2colors279"
+    },
+    "palettes": [
+     {
+      "color": "#B9745F",
+      "texture": "shimmer",
+      "shimmerColor": "#B9745F",
+      "shimmerIntensity": 70,
+      "colorIntensity": 92
+     },
+     {
+      "color": "#5C342A",
+      "texture": "matte",
+      "colorIntensity": 88
+     }
+    ]
+   },
+   {
+    "category": "eye_liner",
+    "pattern": {
+     "name": "Upper1"
+    },
+    "palettes": [
+     {
+      "color": "#2B1B17",
+      "texture": "matte",
+      "colorIntensity": 60
+     }
+    ]
+   },
+   {
+    "category": "eyelashes",
+    "pattern": {
+     "name": "Natural17"
+    },
+    "palettes": [
+     {
+      "color": "#17110f",
+      "colorIntensity": 75
+     }
+    ]
+   },
+   {
+    "category": "eyebrows",
+    "pattern": {
+     "type": "color"
+    },
+    "palettes": [
+     {
+      "color": "#5A4034",
+      "texture": "matte",
+      "colorIntensity": 35
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color2"
+    },
+    "palettes": [
+     {
+      "color": "#E27A8A",
+      "texture": "satin",
+      "glowStrength": 30,
+      "colorIntensity": 38
+     }
+    ]
+   },
+   {
+    "category": "bronzer",
+    "pattern": {
+     "name": "Bronzer1"
+    },
+    "palettes": [
+     {
+      "color": "#B97A4C",
+      "colorIntensity": 30
+     }
+    ]
+   },
+   {
+    "category": "highlighter",
+    "pattern": {
+     "name": "OvalFace28"
+    },
+    "palettes": [
+     {
+      "color": "#EBC8A0",
+      "glowIntensity": 35,
+      "shimmerIntensity": 15,
+      "shimmerDensity": 35,
+      "shimmerSize": 25,
+      "colorIntensity": 22
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "style": {
+     "type": "full"
+    },
+    "palettes": [
+     {
+      "color": "#B0102E",
+      "texture": "matte",
+      "colorIntensity": 80
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#8E0F1A",
+      "texture": "matte",
+      "colorIntensity": 45,
+      "thickness": 30,
+      "smoothness": 70
+     }
+    ]
+   }
+  ],
+  "evening": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#e4b29c",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
+     }
+    ]
+   },
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "2colors279"
+    },
+    "palettes": [
+     {
+      "color": "#A8613A",
+      "texture": "shimmer",
+      "shimmerColor": "#A8613A",
+      "shimmerIntensity": 75,
+      "colorIntensity": 94
+     },
+     {
+      "color": "#2F1C16",
+      "texture": "matte",
+      "colorIntensity": 92
+     }
+    ]
+   },
+   {
+    "category": "eye_liner",
+    "pattern": {
+     "name": "Upper4"
+    },
+    "palettes": [
+     {
+      "color": "#2B1B17",
+      "texture": "matte",
+      "colorIntensity": 76
+     }
+    ]
+   },
+   {
+    "category": "eyelashes",
+    "pattern": {
+     "name": "UpperDense1"
+    },
+    "palettes": [
+     {
+      "color": "#17110f",
+      "colorIntensity": 80
+     }
+    ]
+   },
+   {
+    "category": "eyebrows",
+    "pattern": {
+     "type": "color"
+    },
+    "palettes": [
+     {
+      "color": "#5A4034",
+      "texture": "matte",
+      "colorIntensity": 42
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color2"
+    },
+    "palettes": [
+     {
+      "color": "#D0707E",
+      "texture": "satin",
+      "glowStrength": 30,
+      "colorIntensity": 40
+     }
+    ]
+   },
+   {
+    "category": "bronzer",
+    "pattern": {
+     "name": "Bronzer1"
+    },
+    "palettes": [
+     {
+      "color": "#B97A4C",
+      "colorIntensity": 30
+     }
+    ]
+   },
+   {
+    "category": "highlighter",
+    "pattern": {
+     "name": "OvalFace28"
+    },
+    "palettes": [
+     {
+      "color": "#EBC8A0",
+      "glowIntensity": 35,
+      "shimmerIntensity": 15,
+      "shimmerDensity": 35,
+      "shimmerSize": 25,
+      "colorIntensity": 22
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "style": {
+     "type": "full"
+    },
+    "palettes": [
+     {
+      "color": "#B0102E",
+      "texture": "matte",
+      "colorIntensity": 80
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#A01028",
+      "texture": "matte",
+      "colorIntensity": 40,
+      "thickness": 30,
+      "smoothness": 70
+     }
+    ]
+   }
+  ]
+ },
  "deep": {
   "fresh": [
    {
@@ -480,10 +916,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#C88F6E",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "color": "#be8567",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
      }
     ]
    },
@@ -629,10 +1065,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#C88F6E",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "color": "#be8567",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
      }
     ]
    },
@@ -778,10 +1214,10 @@
     "category": "concealer",
     "palettes": [
      {
-      "color": "#C88F6E",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "color": "#be8567",
+      "colorIntensity": 20,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 50
      }
     ]
    },

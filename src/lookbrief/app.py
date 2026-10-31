@@ -510,15 +510,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         review_zones = [z["zone"] for z in zones]
         if "hair" in st["images"] or st.get("order") == "hair_first":
             review_zones.append("hair")
-        concealer = palettes.concealer_hex(st["recipe"]["skin_hex"])
-        skin_name, skin_palette, skin_coverage = "Concealer a touch lighter than her skin", [concealer], None
+        skin_hex, skin_name, skin_coverage = st["recipe"]["skin_hex"], "Concealer in her own shade", None
         if st.get("even_out") and "even" in st["images"]:
-            ev = st["even_out"]
-            skin_name = "Foundation in her own shade, concealer a touch lighter"
-            skin_palette, skin_coverage = [ev["skin_hex"], concealer], ev["coverage"]
-        zones.append({"zone": "skin", "label": "Skin", "shade_name": skin_name, "palette": skin_palette, "texture": "",
-                      "product_hex": skin_palette[0], "intensity": skin_coverage, "on_face_hex": None,
-                      "coverage": None})
+            skin_name, skin_coverage = "Foundation and concealer in her own shade", st["even_out"]["coverage"]
+        zones.append({"zone": "skin", "label": "Skin", "shade_name": skin_name, "palette": [skin_hex], "texture": "",
+                      "product_hex": skin_hex, "intensity": skin_coverage, "on_face_hex": None, "coverage": None})
         review_zones.append("skin")
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),

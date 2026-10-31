@@ -481,11 +481,17 @@ def test_a_lid_circle_from_the_fresh_look_takes_the_strengths_of_the_base():
     assert eyes["pattern"] == {"name": "2colors279"} and [p["colorIntensity"] for p in eyes["palettes"]] == [92, 88]
 
 
-def test_the_concealer_is_lighter_on_deep_skin():
-    light = next(e for e in rcp.to_vto_effects(_look()) if e["category"] == "concealer")["palettes"][0]
-    deep = next(e for e in rcp.to_vto_effects(_look("deep")) if e["category"] == "concealer")["palettes"][0]
-    assert (light["colorIntensity"], light["colorUnderEyeIntensity"], light["coverageLevel"]) == (55, 85, 70)
-    assert (deep["colorIntensity"], deep["colorUnderEyeIntensity"], deep["coverageLevel"]) == (45, 55, 45)
+@pytest.mark.parametrize("group", palettes.GROUPS)
+def test_the_concealer_is_her_own_colour_and_stays_under_the_eyes(group):
+    p = next(e for e in rcp.to_vto_effects(_look(group)) if e["category"] == "concealer")["palettes"][0]
+    assert p == {"color": SKIN[group], "colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
+
+
+def test_medium_skin_takes_the_quieter_shine():
+    hi = next(e for e in rcp.to_vto_effects(_look("medium")) if e["category"] == "highlighter")["palettes"][0]
+    assert (hi["glowIntensity"], hi["shimmerIntensity"]) == (35, 15)
+    light = next(e for e in rcp.to_vto_effects(_look()) if e["category"] == "highlighter")["palettes"][0]
+    assert (light["glowIntensity"], light["shimmerIntensity"]) == (45, 25)
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)

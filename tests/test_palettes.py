@@ -50,6 +50,12 @@ def test_medium_and_olive_are_built_the_same_way(group):
     assert sizes["eyes"] == 6 and sizes["cheeks"] == 5 and sizes["lips"] >= 9 and sizes["bronzer"] == 1
 
 
+def test_medium_keeps_the_ruby_lip_of_s2_with_the_red_liner():
+    look = rcp.look_recipe("medium", "softglam", SKIN["medium"])["zones"]
+    assert look["lips"]["shade_id"] == "ruby" and look["lip_line"]["palette"] == ["#8E0F1A"]
+    assert look["lip_line"]["intensity"] == 45
+
+
 @pytest.mark.parametrize("group", palettes.GROUPS)
 def test_none_is_offered_on_highlighter_and_lip_liner_only(group):
     for zone in palettes.ZONES:
@@ -110,11 +116,6 @@ def test_shades_left_out_of_the_palette_are_gone():
 def test_a_look_only_shade_is_no_circle():
     assert palettes.shade("light", "eyes", "copper-umber").colors == ("#A8613A", "#2F1C16")
     assert "copper-umber" not in {s.id for s in palettes.circles("light", "eyes")}
-
-
-def test_the_concealer_is_her_skin_a_touch_lighter():
-    assert palettes.concealer_hex("#dfa588") == "#E8B79C" and palettes.concealer_hex("#be8567") == "#C88F6E"
-    assert hex_to_lab(palettes.concealer_hex("#e4b29c"))[0] == pytest.approx(hex_to_lab("#e4b29c")[0] + 4, abs=0.5)
 
 
 @pytest.mark.parametrize(("group", "zone"), ALL)
@@ -195,7 +196,7 @@ def test_patterns_are_in_the_youcam_catalogs():
                         assert pattern in labels[catalog[zone]], (zone, pattern)
 
 
-@pytest.mark.parametrize(("group", "look"), [(g, k) for g in ("light", "deep") for k in palettes.LOOK_IDS])
+@pytest.mark.parametrize(("group", "look"), [(g, k) for g in ("light", "medium", "deep") for k in palettes.LOOK_IDS])
 def test_approved_looks_are_sent_byte_for_byte(group, look):
     want = APPROVED[group][look]
     even = None

@@ -311,6 +311,8 @@
 
   async function doEdit(payload) {
     if (busy) return;
+    if (payload.zone === "look") zoomTo(null); // a look reads on the whole face; on the tap, not on the answer: she may
+    // already have chosen a zone by the time it arrives
     const a = document.activeElement;
     const refocus = a && a.dataset ? (a.dataset.op ? `button[data-zone="${a.dataset.zone}"][data-op="${a.dataset.op}"]` : (a.id ? `#${a.id}` : "")) : "";
     busy = true; $("edit-msg").textContent = state.mode === "replay" ? "One moment…" : "Rendering with YouCam Makeup VTO…";
@@ -321,7 +323,6 @@
     state = body;
     heroView = "makeup"; // the view that carries the change, never the hair preview
     if (payload.zone && zonesShown) showZones(false);
-    if (payload.zone === "look") zoomTo(null); // a look reads on the whole face
     const opts = state.edit_options || [];
     const now = state.edits || [];
     // a change in the same zone is the next choice there; in another zone it took the place of the earlier change

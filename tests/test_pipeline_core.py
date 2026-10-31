@@ -359,7 +359,7 @@ def test_build_look_without_pins_picks_the_group_from_her_forehead(tmp_path):
 
 
 def test_pins_of_the_samples():
-    for sid, group, shades in (("s0-champagne-rose", "light", {}), ("s2-classic-red", "light", {"lips": "ruby"}),
+    for sid, group, shades in (("s0-champagne-rose", "light", {}), ("s2-classic-red", "medium", {}),
                                ("s3-mauve-smoky", "deep", {})):
         pins = json.loads((SAMPLES / sid / "sample.json").read_text())["recipe_pins"]
         assert pins == {"group": group, "look": "softglam", "shades": shades}, sid

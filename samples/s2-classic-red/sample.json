@@ -16,10 +16,8 @@
  "role": "calibration",
  "hidden": false,
  "recipe_pins": {
-  "group": "light",
+  "group": "medium",
   "look": "softglam",
-  "shades": {
-   "lips": "ruby"
-  }
+  "shades": {}
  }
 }

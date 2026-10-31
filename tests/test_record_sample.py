@@ -127,7 +127,8 @@ def _spent():
 
 
 @pytest.mark.parametrize(("sample", "group", "src"), [
-    ("s0-champagne-rose", "light", "base.jpg"), ("s3-mauve-smoky", "deep", "bride.jpg")])
+    ("s0-champagne-rose", "light", "base.jpg"), ("s2-classic-red", "medium", "bride.jpg"),
+    ("s3-mauve-smoky", "deep", "bride.jpg")])
 def test_the_base_render_of_a_sample_is_the_approved_request(script, monkeypatch, tmp_path, sample, group, src):
     """From the pins through the whole chain to the bytes that would go out, foundation 40 instead of 50 included."""
     sd = before_the_grid(sample, tmp_path / sample)
@@ -135,19 +136,6 @@ def test_the_base_render_of_a_sample_is_the_approved_request(script, monkeypatch
     want = json.loads((ROOT / "tests" / "fixtures" / "approved_looks.json").read_text())[group]["softglam"]
     assert rcp.canonical(FakeClient.bodies[0]["effects"]) == rcp.canonical(want)
     assert FakeClient.bodies[0]["src_file_id"] == f"file-{src}"
-
-
-def test_the_classic_red_sample_is_the_soft_glam_with_a_ruby_lip_and_the_red_liner(script, monkeypatch, tmp_path):
-    sd = before_the_grid("s2-classic-red", tmp_path / "s2-classic-red")
-    assert _record(script, monkeypatch, sd, 1) == 4
-    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam", "#e4b29c"))
-    got = FakeClient.bodies[0]["effects"]
-    by = {e["category"]: e for e in got}
-    assert by["lip_color"]["palettes"][0]["color"] == "#B0102E"
-    liner = by["lip_liner"]["palettes"][0]
-    assert liner["color"] == "#8E0F1A" and liner["colorIntensity"] == 45
-    rest = ("lip_color", "lip_liner")
-    assert [e for e in got if e["category"] not in rest] == [e for e in want if e["category"] not in rest]
 
 
 def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, monkeypatch, tmp_path):

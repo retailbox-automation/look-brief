@@ -17,15 +17,16 @@ def _meta(s: str) -> dict:
 VISIBLE_IDS = [s for s in SAMPLE_IDS if not _meta(s).get("hidden") and not _meta(s).get("unlisted")]
 UNLISTED_IDS = [s for s in SAMPLE_IDS if _meta(s).get("unlisted") and not _meta(s).get("hidden")]
 HIDDEN_IDS = [s for s in SAMPLE_IDS if _meta(s).get("hidden")]
-SKIN = {"light": "#dfa588", "medium": "#c8956d", "olive": "#c4a070", "deep": "#be8567"}  # foreheads; s0 and s3 are real
+SKIN = {"light": "#dfa588", "medium": "#e4b29c", "olive": "#c4a070", "deep": "#be8567"}  # foreheads of s0, s2, s3
 
 
 def grid_recorded(s: str) -> bool:
     """The whole grid of this sample is recorded on the current recipe format."""
     steps = json.loads((SAMPLES / s / "manifest.json").read_text())["steps"]
     base = steps["render:base"]["recipe"]
-    return base["version"] == 2 and "skin_hex" in base and all(f"render:{rcp.edit_key(e)}" in steps
-                                                               for e in rcp.record_grid(base))
+    if base["version"] != 2 or base["zones"]["eyes"]["pattern"] != "2colors279":
+        return False
+    return all(f"render:{rcp.edit_key(e)}" in steps for e in rcp.record_grid(base))
 
 
 def recorded_samples(ids: list[str] | None = None) -> list:
@@ -64,6 +65,7 @@ def make_v2_samples(dest: Path) -> Path:
         old = mf["steps"]["render:base"]
         for edits in [[], *rcp.record_grid(base)]:
             steps[f"render:{rcp.edit_key(edits)}"] = {**old, "recipe": rcp.apply_edits(base, edits)}
+        mf.pop("quiet_edits", None)  # measured on other renders
         (out / "manifest.json").write_text(json.dumps({**mf, "steps": steps}))
     return dest
 

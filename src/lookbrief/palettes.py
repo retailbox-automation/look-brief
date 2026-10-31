@@ -20,7 +20,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-from .color import hex_delta_e2000, hex_to_lab, lab_to_hex
+from .color import hex_delta_e2000, hex_to_lab
 
 GROUPS = ("light", "medium", "olive", "deep")
 ZONES = {  # zone -> Makeup VTO category, in the order of the request body
@@ -58,19 +58,19 @@ FAMILY_HUE = 30.0  # the next shade differs by at most this much of hue h* ...
 FAMILY_CHROMA_RISE = 15.0  # ... and gains at most this much chroma C*
 NEUTRAL_CHROMA = 6.0  # below this a colour has no hue to keep
 
-# Concealer: a layer under every look, not a zone. Its colour is her skin 4 L* lighter; the two faces of the approved
-# looks keep the colours measured on them.
-CONCEALER_LIFT_L = 4.0
-CONCEALER_FINISH = {"colorIntensity": 55, "colorUnderEyeIntensity": 85, "coverageLevel": 70}
-CONCEALER_FINISH_DEEP = {"colorIntensity": 45, "colorUnderEyeIntensity": 55, "coverageLevel": 45}
-CONCEALER_MEASURED = {"#dfa588": "#E8B79C", "#be8567": "#C88F6E"}
+# Concealer: a layer under every look, not a zone, in her own colour. colorIntensity lands on the whole face (at 45 a
+# lighter colour made s2's face lighter than her neck), so the strength sits under the eyes.
+CONCEALER_FINISH = {"colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
 # A red lip takes the lip liner under it: shade of the lips -> (lip liner, strength).
 LIP_LINE_UNDER = {"ruby": ("red", 45)}
 # Strength and shimmer of the two lid colours (lid, outer corner) on the ladder shades.
-EYE_SLOTS = {"light": ((92, 88), (70, 0)), "medium": ((93, 89), (74, 0)), "olive": ((94, 89), (76, 0)),
+EYE_SLOTS = {"light": ((92, 88), (70, 0)), "medium": ((92, 88), (70, 0)), "olive": ((94, 89), (76, 0)),
              "deep": ((95, 90), (80, 0))}
 EYE_PATTERN = "2colors279"
 LASH_COLOR = "#17110f"
+# Glow of the highlighter; numbers accepted by the API in the probes. Medium skin takes a quieter shine.
+HIGHLIGHT_GLOW = {"glowIntensity": 45, "shimmerIntensity": 25, "shimmerDensity": 35, "shimmerSize": 25}
+HIGHLIGHT_GLOW_MEDIUM = {"glowIntensity": 35, "shimmerIntensity": 15, "shimmerDensity": 35, "shimmerSize": 25}
 ZONE_PATTERNS = {"eyes": EYE_PATTERN, "brows": "color", "bronzer": "Bronzer1", "highlight": "OvalFace28",
                  "lips": "original", "lip_line": "Natural1"}
 
@@ -178,38 +178,38 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _gloss("rose-gloss", "Rose gloss", "#B96F78")),
         "lip_line": (_style("natural", "Natural", "#A63A50", 40), _style("defined", "Defined", "#A85A62", 55)),
     },
-    "medium": {
+    "medium": {  # the ladders of the light group around the warm base of s2
         "eyes": _ladder(
-            _eye("rose-gold", "Rose gold", "#B8705C", "#5C342A"),
-            _eye("champagne", "Champagne", "#D4A87C", "#7A5240", "metallic"),
-            _eye("bronze", "Bronze", "#A8613A", "#3F2620", "metallic"),
-            _eye("plum", "Plum", "#6E4A5E", "#3F2430"),
-            _eye("chocolate", "Chocolate", "#6E4A38", "#2B1B17", "matte"),
-            _eye("warm-taupe", "Warm taupe", "#9C7B6B", "#4A2F27", "matte")),
-        "liner": _liner(("#2B1B17", 64), ("#2B1B17", 70), ("#2B1B17", 78)),
-        "lashes": _lashes(78, 82, 82),
-        "brows": (_style("natural", "Natural", "#5A4034", 36), _style("soft", "Soft", "#7A5C52", 20),
-                  _style("defined", "Defined", "#3B2F2F", 85)),
+            _eye("rose-gold", "Rose gold", "#B9745F", "#5C342A"),
+            _eye("champagne", "Champagne", "#D9B080", "#7A5240", "metallic"),
+            _eye("bronze", "Bronze", "#A8683F", "#4A2A1E", "metallic"),
+            _eye("plum", "Plum", "#8A5570", "#3F2430"),
+            _eye("chocolate", "Chocolate", "#7A5040", "#2F1C16", "matte"),
+            _eye("warm-taupe", "Warm taupe", "#A88670", "#4F3A30", "matte")),
+        "liner": _liner(("#2B1B17", 60), ("#2B1B17", 68), ("#2B1B17", 76)),
+        "lashes": _lashes(75, 80, 80),
+        "brows": (_style("natural", "Natural", "#5A4034", 35), _style("soft", "Soft", "#8A6A5C", 18),
+                  _style("defined", "Defined", "#3B2A22", 85)),
         "cheeks": _ladder(
-            _blush("muted-rose", "Muted rose", "#C97C84", 40),
-            _blush("warm-peach", "Warm peach", "#F2A27E", 50),
-            _blush("radiant-coral", "Radiant coral", "#F08A6E", 48),
-            _blush("warm-pink", "Warm pink", "#E27A8A", 46),
-            _blush("warm-berry", "Warm berry", "#B04A5E", 44)),
-        "bronzer": (_bare("natural", "Natural", "#B97A4C", 21),),
-        "highlight": (_bare("natural", "Natural", "#E5BE8A", 41), _bare("radiant", "Radiant", "#F0CFA8", 70)),
+            _blush("warm-pink", "Warm pink", "#E27A8A", 38),
+            _blush("peach", "Peach", "#EE8F6A", 50),
+            _blush("terracotta", "Terracotta", "#C8603C", 50),
+            _blush("rose", "Rose", "#DE6A72", 46),
+            _blush("plum-rose", "Plum rose", "#A84868", 44)),
+        "bronzer": (_bare("natural", "Natural", "#B97A4C", 30),),
+        "highlight": (_bare("natural", "Natural", "#EBC8A0", 22), _bare("radiant", "Radiant", "#F0CFA8", 60)),
         "lips": _ladder(
-            _lip("rose-brown", "Rose brown", "#A5685E"),
-            _lip("warm-nude", "Warm nude", "#B9776E"),
-            _lip("coral-rose", "Coral rose", "#C8736B", "sheer"),
-            _lip("cool-brown", "Cool brown", "#8D5F58"),
-            _lip("dusty-mauve", "Dusty mauve", "#A8697A"),
-            _lip("warm-coral", "Warm coral", "#D9705F"),
-            _lip("raspberry", "Raspberry", "#B03050"),
             _lip("ruby", "Ruby", "#B0102E", "matte"),
-            _lip("wine", "Wine", "#6A1B2C", "matte"),
-            _gloss("rose-gloss", "Rose gloss", "#A5685E")),
-        "lip_line": (_style("natural", "Natural", "#A63A50", 46), _style("defined", "Defined", "#A85A62", 58)),
+            _lip("dusty-rose", "Dusty rose", "#B96F78"),
+            _lip("light-pink", "Light pink", "#E8A0A8", "sheer"),
+            _lip("peach-pink", "Peach pink", "#E9A08C", "sheer"),
+            _lip("rosy-peach", "Rosy peach", "#D98C86", "sheer"),
+            _lip("nude-rose", "Nude rose", "#B9766F"),
+            _lip("warm-coral", "Warm coral", "#D9705F"),
+            _lip("warm-rose", "Warm rose", "#B0605C"),
+            _lip("raspberry", "Raspberry", "#B03050"),
+            _gloss("rose-gloss", "Rose gloss", "#B96F78")),
+        "lip_line": (_style("natural", "Natural", "#A63A50", 40), _style("defined", "Defined", "#A85A62", 55)),
     },
     "olive": {
         "eyes": _ladder(
@@ -286,11 +286,12 @@ LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
         "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
     },
     "medium": {
-        "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D4A87C", "#8A6450"),
+        "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D9B08C", "#8A6450"),
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
-        "liner": (_style("chocolate", "Chocolate", "#4A2F27", pattern="Upper283"),),
+        "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
+        "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"), _blush("deep-rose", "Deep rose", "#D0707E")),
         "bronzer": (_bare("honey", "Honey", "#C08A55"),),
-        "lip_line": (_style("cool-brown", "Cool brown", "#8D5F58"), _style("red", "Red", "#8E0F1A")),
+        "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
     },
     "olive": {
         "eyes": (_eye("warm-gold-taupe", "Warm gold taupe", "#C9A24A", "#8A5A3A"),
@@ -337,15 +338,14 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
                          ("ruby-line", 40)),
     },
     "medium": {
-        "fresh": _look(("sunlit-taupe", (72, 64), (62, 0)), ("chocolate", 52), ("natural", 65), ("natural", 36),
-                       ("warm-peach", 34, "1color2", 30), ("honey", 16), ("radiant", 36), ("coral-rose", 58),
-                       ("cool-brown", 42)),
-        "softglam": _look(("rose-gold", (93, 89), (74, 0)), ("classic", 64), ("natural", 78), ("natural", 36),
-                          ("muted-rose", 40, "1color2", 30), ("natural", 21), ("natural", 41), ("rose-brown", 72),
-                          ("natural", 46)),
-        "evening": _look(("copper-umber", (94, 92), (76, 0)), ("wing", 78), ("volume", 82), ("defined", 42),
-                         ("warm-berry", 42, "1color2", 30), ("natural", 26), ("natural", 45), ("ruby", 82),
-                         ("red", 56)),
+        "fresh": _look(("sunlit-taupe", (70, 62), (60, 0)), ("taupe-brown", 50), ("natural", 60), ("natural", 35),
+                       ("soft-peach", 30, "1color2", 30), ("honey", 20), ("natural", 18), ("rosy-peach", 55)),
+        "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
+                          ("warm-pink", 38, "1color2", 30), ("natural", 30), ("natural", 22), ("ruby", 80),
+                          ("red", 45)),
+        "evening": _look(("copper-umber", (94, 92), (75, 0)), ("wing", 76), ("volume", 80), ("natural", 42),
+                         ("deep-rose", 40, "1color2", 30), ("natural", 30), ("natural", 22), ("ruby", 80),
+                         ("ruby-line", 40)),
     },
     "olive": {
         "fresh": _look(("warm-gold-taupe", (74, 66), (62, 0)), ("plum-brown", 55), ("natural", 66), ("natural", 36),
@@ -429,15 +429,6 @@ def step_from(group: str, zone: str, skin_hex: str, shade_id: str, op: str) -> s
     candidates = (s for s in way if s.id in ladder_ids and s.step and s.main != here.main
                   and same_family(here.main, s.main))
     return next((s.id for s in candidates), None)
-
-
-def concealer_hex(skin_hex: str) -> str:
-    measured = CONCEALER_MEASURED.get(skin_hex.lower())
-    if measured:
-        return measured
-    lab = hex_to_lab(skin_hex)
-    lab[0] += CONCEALER_LIFT_L
-    return lab_to_hex(lab)
 
 
 def ita(lab: NDArray[np.float64]) -> float:
