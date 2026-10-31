@@ -50,6 +50,11 @@ class ReviewIn(BaseModel):
     note: str = ""
 
 
+def canon(snapshot: dict) -> str:
+    """Canonical JSON of a brief snapshot: two snapshots of the same look compare equal."""
+    return json.dumps(snapshot, sort_keys=True, ensure_ascii=False)
+
+
 def iso(t: float | None) -> str | None:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t else None
 
@@ -299,8 +304,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return templates.TemplateResponse(request, "live.html", {"live": live_status(client_ip(request)),
                                                                  "look_units": LOOK_UNITS})
 
+    def expired_page(request: Request) -> HTMLResponse:
+        """Sessions and briefs live until the server restarts (the data dir is not persisted): old links get a page
+        for people, not JSON. A wrong token gets the same page, so it never tells whether a brief exists."""
+        return templates.TemplateResponse(request, "expired.html", {}, status_code=404)
+
     @app.get("/s/{sid}", response_class=HTMLResponse)
     def session_page(sid: str, request: Request):
+        if store.session(sid) is None:
+            return expired_page(request)
         sess = owned_session(sid, request)
         sample = samples.get(sess["sample_id"] or "")
         return templates.TemplateResponse(request, "session.html", {
@@ -310,14 +322,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def brief_page(bid: str, request: Request, t: str = ""):
         role = store.role_for(bid, t)
         if role is None:
-            raise HTTPException(404, "brief not found")
+            return expired_page(request)
         return templates.TemplateResponse(request, "brief.html", {"bid": bid, "token": t, "role": role})
 
     @app.get("/card/{bid}", response_class=HTMLResponse)
     def card_page(bid: str, request: Request, t: str = ""):
         role = store.role_for(bid, t)
         if role is None:
-            raise HTTPException(404, "brief not found")
+            return expired_page(request)
         view = brief_view(bid, role, t)
         site = s.public_url or str(request.base_url).rstrip("/")
         return templates.TemplateResponse(request, "card.html", {"v": view, "token": t, "site": site,
@@ -483,9 +495,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             zones.append({"zone": "skin", "label": "Skin", "product_hex": ev["skin_hex"],
                           "intensity": ev["coverage"], "on_face_hex": None, "coverage": None})
             review_zones.append("skin")
+        # the photo the bride agrees to, as the look screen shows it (session.js renderHero)
+        if st["edits"] and "render" in images:
+            target = "render"
+        elif st.get("order") == "hair_first" and "even" in images:
+            target = "even"
+        else:
+            target = "look"
         return {
             "mode": sess["mode"], "sample_id": sess["sample_id"], "order": st.get("order", "transfer_first"),
-            "images": images, "images_sha256": {k: attest.sha256_file(d / v) for k, v in images.items()},
+            "images": images, "target": target,
+            "images_sha256": {k: attest.sha256_file(d / v) for k, v in images.items()},
             "zones": zones, "review_zones": review_zones, "recipe": st["recipe"],
             "recipe_sha256": st["recipe_sha256"], "edits": st["edits"], "gaps": st["gaps"],
             "map": st["map"], "steps": {k: {kk: v.get(kk) for kk in ("mode", "task_id", "recorded_at", "seconds")}
@@ -500,6 +520,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         reviews = store.reviews(bid, v)
         agreed = store.agreements(bid, v)
         snap = {k: val for k, val in b["snapshot"].items() if k != "session_id"}
+        if snap.get("target") not in snap["images"]:  # snapshots made before the target was recorded
+            snap["target"] = "look"
         missing = [z for z in snap["review_zones"] if z not in reviews]
         discuss = [z for z, r in reviews.items() if r["status"] == "discuss"]
         return {
@@ -520,7 +542,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(409, "session is not ready")
         if sess.get("deleted_at"):
             raise HTTPException(410, "the photos of this session were deleted")
-        b = store.create_brief(sid, snapshot_from(sess))
+        snap = snapshot_from(sess)
+        b = store.latest_brief_for_session(sid)
+        if b is None or canon(b["snapshot"]) != canon(snap):  # same look again: same links, not a new brief
+            b = store.create_brief(sid, snap)
         return {"brief_id": b["id"], "bride_url": f"/b/{b['id']}?t={b['bride_token']}",
                 "artist_url": f"/b/{b['id']}?t={b['artist_token']}"}
 
@@ -558,7 +583,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(409, "session is not ready")
         if sess.get("deleted_at"):
             raise HTTPException(410, "the photos of this session were deleted")
-        store.revise_brief(bid, snapshot_from(sess))
+        snap = snapshot_from(sess)
+        if canon(snap) == canon(b["snapshot"]):  # nothing changed: keep the version and the artist's answers
+            return {**brief_view(bid, role, body.t), "unchanged": True}
+        store.revise_brief(bid, snap)
         return brief_view(bid, role, body.t)
 
     @app.post("/api/briefs/{bid}/agree")

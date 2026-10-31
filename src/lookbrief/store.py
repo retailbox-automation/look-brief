@@ -160,6 +160,11 @@ class Store:
         d["snapshot"] = json.loads(d.pop("snapshot_json"))
         return d
 
+    def latest_brief_for_session(self, session_id: str) -> dict | None:
+        row = self._one("SELECT id FROM briefs WHERE session_id=? ORDER BY created_at DESC, rowid DESC LIMIT 1",
+                        (session_id,))
+        return self.brief(row["id"]) if row else None
+
     def revise_brief(self, bid: str, snapshot: dict) -> int:
         b = self.brief(bid)
         if b is None:

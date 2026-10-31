@@ -14,17 +14,27 @@
     return { ok: r.ok, body };
   }
 
+  // the photo the bride agrees to (snapshot.target): what it is, for the alt text and the visible caption
+  function targetText(snap) {
+    if (snap.target === "even") return "foundation in her shade over the transfer (YouCam Makeup VTO)";
+    if (snap.target === "render") return `${role === "bride" ? "your" : "the bride's"} adjusted look, re-rendered with YouCam Makeup VTO`;
+    return snap.order === "hair_first" ? "YouCam Hair Transfer + Makeup Transfer" : "YouCam Makeup Transfer";
+  }
+
   function zoneInfo(z) { return view.snapshot.zones.find((x) => x.zone === z) || { zone: z, label: "Hair" }; }
 
   function render() {
     const im = view.images;
-    $("b-before").src = im.bride || ""; $("b-after").src = im.look || ""; $("b-inspo").src = im.inspiration || "";
+    $("b-before").src = im.bride || ""; $("b-inspo").src = im.inspiration || "";
+    $("b-after").src = im[view.snapshot.target] || im.look || "";
+    $("b-after").alt = `Agreed target look: ${targetText(view.snapshot)}`;
+    $("b-after-cap").textContent = `Agreed target: ${targetText(view.snapshot)}`;
     if (im.hair) $("b-hair").src = im.hair; else $("b-hair").closest("figure").hidden = true;
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
       const detail = z === "skin"
-        ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> Foundation in her own shade ${esc(zi.product_hex)} · coverage ${esc(zi.intensity)} — evens redness, applied over the transfer`
+        ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> Foundation in her own shade ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} — evens redness, applied over the transfer`
         : zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
@@ -41,12 +51,13 @@
       el.addEventListener("input", () => { dirty[el.name.slice(5)] = el.value; });
       el.addEventListener("change", () => save(el.name.slice(5)));
     });
-    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">${z.zone === "skin" ? `foundation in her shade · coverage ${esc(z.intensity)}` : `intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%`}</span></li>`).join("");
+    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">${z.zone === "skin" ? `foundation in her shade · intensity ${esc(z.intensity)}` : `intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%`}</span></li>`).join("");
     const a = view.agreed;
     const me = a[role];
     const other = role === "artist" ? "bride" : "artist";
     let help = "";
     if (signed) help = "Both agreed — this version is signed by the server.";
+    else if (!view.can_agree && role === "bride") help = view.open_discussions.length ? "Your artist wants to discuss a zone — talk it through, then they update the answer." : "Waiting for your makeup artist to answer every zone.";
     else if (!view.can_agree) help = view.open_discussions.length ? "Resolve “Let's discuss” zones with the bride first." : "Choose an answer for every zone first.";
     else help = me ? `You agreed at ${me}. Waiting for the ${other}.` : (a[other] ? `The ${other} agreed ✓ · waiting for you.` : "");
     $("agree-help").textContent = help;
@@ -108,7 +119,9 @@
   const rev = $("revise");
   if (rev) rev.addEventListener("click", async () => {
     const { ok, body } = await api(`/api/briefs/${bid}/revise`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token }) });
-    if (ok) { view = body; render(); }
+    if (!ok) { $("agree-help").textContent = body.detail || "Couldn't update the brief."; return; }
+    view = body; render();
+    if (body.unchanged) $("agree-help").textContent = "Your brief is already up to date — no new edits.";
   });
   load();
   setInterval(load, 8000);

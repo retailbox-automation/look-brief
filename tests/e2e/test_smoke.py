@@ -12,6 +12,7 @@ from playwright.sync_api import expect, sync_playwright
 
 pytestmark = pytest.mark.e2e
 AXE = Axe()
+HELD_ONE = "Updated. Samples hold one recorded change at a time — undo it to try another."
 WCAG = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]}}
 
 
@@ -57,7 +58,7 @@ def test_guided_path_both_roles(base_url, browser_ctx):
 
     page.get_by_role("button", name="Cheeks", exact=True).click()  # open the Cheeks zone in the sheet
     page.get_by_role("button", name=re.compile("Cheeks: softer", re.I)).click()
-    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#edit-msg")).to_have_text(HELD_ONE, timeout=20_000)
     expect(page.locator("#cap-render")).to_contain_text("Makeup VTO re-render")
 
     page.get_by_role("button", name="Send brief to my makeup artist").click()
@@ -66,6 +67,18 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     bride_url = page.get_by_test_id("bride-link").get_attribute("href")
     assert artist_url and bride_url and artist_url != bride_url
 
+    # the bride opens her link before the artist answered: she is told what she is waiting for, and she sees
+    # her adjusted look (not the raw transfer) as the agreed target, with visible captions
+    bride = browser_ctx.new_page()
+    bride.goto(base_url + bride_url)
+    expect(bride.locator("#agree-help")).to_have_text("Waiting for your makeup artist to answer every zone.")
+    expect(bride.locator("#b-after")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
+    expect(bride.locator("#b-after-cap")).to_contain_text("Agreed target: your adjusted look")
+    expect(bride.locator("#b-after-cap")).to_be_visible()
+    bride.get_by_role("button", name="Update the brief from my latest edits").click()
+    expect(bride.locator("#agree-help")).to_have_text("Your brief is already up to date — no new edits.")
+    expect(bride.locator("#b-status")).to_contain_text("Version 1")
+
     artist = browser_ctx.new_page()
     artist.goto(base_url + artist_url)
     expect(artist.get_by_text("For your makeup artist · no account needed")).to_be_visible()
@@ -73,6 +86,8 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(reviews).to_have_count(5 if hair_first else 4)  # eyelids, cheeks, lips, hair (+ skin: even out redness)
     if hair_first:
         expect(artist.get_by_test_id("review-skin")).to_be_visible()
+        expect(artist.locator("#shades")).to_contain_text("foundation in her shade · intensity 30")
+        expect(artist.locator("#shades")).not_to_contain_text("foundation in her shade · coverage")
     for i in range(reviews.count()):
         fs = reviews.nth(i)
         cheeks = fs.get_attribute("data-testid") == "review-cheeks"
@@ -84,7 +99,6 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     artist.get_by_role("button", name="Agree to this look").click()
     expect(artist.locator("#agree-help")).to_contain_text("Waiting for the bride")
 
-    bride = browser_ctx.new_page()
     bride.goto(base_url + bride_url)
     expect(bride.locator("#agree-help")).to_contain_text("The artist agreed")
     bride.get_by_role("button", name="Agree to this look").click()
@@ -121,7 +135,7 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     # an edit is shown over her even tone, never on the raw transfer
     page.get_by_role("button", name="Cheeks", exact=True).click()
     page.get_by_role("button", name="Cheeks: softer").click()
-    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#edit-msg")).to_have_text(HELD_ONE, timeout=20_000)
     expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("same foundation in her shade")
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
@@ -129,6 +143,22 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
         page.set_viewport_size({"width": width, "height": height})
         assert_caption_clear(page, width)
     check_a11y(page, "hair-first look")
+    # sending the same look twice keeps the links; a changed look gets new links and a fresh Copy button
+    send, copy, link = (page.get_by_role("button", name="Send brief to my makeup artist"),
+                        page.locator('[data-copy="artist-link"]'), page.get_by_test_id("artist-link"))
+    send.click()
+    expect(link).to_have_attribute("href", re.compile(r"^/b/"))
+    first = link.get_attribute("href")
+    copy.click()
+    expect(copy).to_have_text("Copied")
+    send.click()
+    page.wait_for_load_state("networkidle")
+    assert link.get_attribute("href") == first
+    page.get_by_role("button", name="Undo last change").click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    send.click()
+    expect(link).not_to_have_attribute("href", first)
+    expect(copy).to_have_text("Copy")
 
 
 CAPTION_LAYOUT_JS = """() => {

@@ -255,7 +255,11 @@
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
     state = body;
     if (state.order === "hair_first" && (state.images || {}).even) heroView = "even"; // the edit shows over her even tone
-    else if (payload.action === "reset") heroView = "makeup"; $("edit-msg").textContent = "Updated."; render();
+    else if (payload.action === "reset") heroView = "makeup";
+    const opts = state.edit_options || [];
+    const heldOne = state.mode === "replay" && (state.edits || []).length > 0 && opts.length > 0 && !opts.some((o) => o.available);
+    $("edit-msg").textContent = heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another." : "Updated.";
+    render();
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
     if (refocus && usable(back)) back.focus();
@@ -270,6 +274,7 @@
     const { ok, body } = await api(`/api/sessions/${sid}/brief`, { method: "POST" });
     if (!ok) { $("edit-msg").textContent = body.detail || "Couldn't create the brief link."; return; }
     const a = $("artist-link"), b = $("bride-link");
+    if (a.getAttribute("href") !== body.artist_url) document.querySelector('[data-copy="artist-link"]').textContent = "Copy"; // new links: nothing copied yet
     a.href = body.artist_url; a.textContent = location.origin + body.artist_url;
     b.href = body.bride_url; b.textContent = location.origin + body.bride_url;
     $("brief-links").hidden = false;

@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -372,8 +373,9 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
 
 
 @pytest.mark.parametrize(("sample", "label", "not_label"), [
-    ("s2-classic-red", "Target (Makeup Transfer)", "Hair Transfer + Makeup Transfer"),
-    ("s0-champagne-rose", "Target (Hair Transfer + Makeup Transfer)", "Target (Makeup Transfer)"),
+    ("s2-classic-red", "Agreed target: Makeup Transfer", "Hair Transfer + Makeup Transfer"),
+    # hair first: the target is the evened look; the raw transfer is named as the step before it
+    ("s0-champagne-rose", "Before evening out: Hair Transfer + Makeup Transfer", "Agreed target: Makeup Transfer"),
 ])
 def test_card_names_the_transfers_that_made_the_target(client, sample, label, not_label):
     r = client.get(f"/try/{sample}", follow_redirects=False)
@@ -404,3 +406,100 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
         assert f["color"] == skin and f["coverageIntensity"] == 30
     assert "foundation" in [x["category"] for x in st["vto_effects"]]
     assert st["gaps"]["reference"] == "even", "accuracy is measured against the evened look she is shown"
+
+
+# ---------------- click-test fixes of 2026-10-31 (CT3110-YCBQ) ----------------
+def _sample_session(client, sample: str) -> str:
+    r = client.get(f"/try/{sample}", follow_redirects=False)
+    sid = r.headers["location"].rsplit("/", 1)[1]
+    assert client.get(f"/api/sessions/{sid}").json()["status"] == "ready"
+    return sid
+
+
+def _links(b: dict) -> tuple[str, str, str]:
+    return b["brief_id"], b["bride_url"].split("t=")[1], b["artist_url"].split("t=")[1]
+
+
+@pytest.mark.parametrize(("sample", "edit", "target"), [
+    ("s0-champagne-rose", None, "even"),  # hair first: her look is the evened one
+    ("s2-classic-red", None, "look"),  # transfer first, no even-out
+    ("s2-classic-red", ("cheeks", "softer"), "render"),  # her adjusted look
+])
+def test_brief_target_is_the_look_she_agrees_to(client, sample, edit, target):
+    sid = _sample_session(client, sample)
+    if edit:
+        r = client.post(f"/api/sessions/{sid}/edits", json={"zone": edit[0], "op": edit[1]})
+        assert r.status_code == 200, r.text
+    bid, bride, artist = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    for t in (bride, artist):
+        v = client.get(f"/api/briefs/{bid}?t={t}").json()
+        assert v["snapshot"]["target"] == target
+        assert client.get(v["images"][target]).status_code == 200
+    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
+    assert sum("target" in f.lower() for f in figs) == 1, f"exactly one photo is called the target: {figs}"
+    assert figs[0] == "Bare face" and figs[1].startswith("Agreed target")
+    if target == "even":
+        assert "Before evening out: Hair Transfer + Makeup Transfer" in figs
+
+
+def test_old_snapshot_without_target_falls_back_to_the_transfer(client):
+    sid = _sample_session(client, "s0-champagne-rose")
+    bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    store = client.app.state.store
+    snap = store.brief(bid)["snapshot"]
+    snap.pop("target")
+    store._exec("UPDATE briefs SET snapshot_json=? WHERE id=?", (json.dumps(snap), bid))
+    assert client.get(f"/api/briefs/{bid}?t={bride}").json()["snapshot"]["target"] == "look"
+    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
+    assert figs[1] == "Agreed target: Hair Transfer + Makeup Transfer"
+    assert sum("target" in f.lower() for f in figs) == 1, figs
+
+
+def test_revise_without_changes_keeps_the_version_and_answers(client):
+    sid = _sample_session(client, SID)
+    bid, bride, artist = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    zones = client.get(f"/api/briefs/{bid}?t={artist}").json()["snapshot"]["review_zones"]
+    for z in zones:
+        client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": z, "status": "do"})
+    client.post(f"/api/briefs/{bid}/agree", json={"t": artist})
+    r = client.post(f"/api/briefs/{bid}/revise", json={"t": bride})
+    assert r.status_code == 200
+    v = r.json()
+    assert v["unchanged"] is True and v["version"] == 1
+    assert set(v["reviews"]) == set(zones) and "artist" in v["agreed"], "nothing the artist did is wiped"
+    # a real change still makes a new version
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
+    v = client.post(f"/api/briefs/{bid}/revise", json={"t": bride}).json()
+    assert v["version"] == 2 and not v.get("unchanged") and v["reviews"] == {} and v["agreed"] == {}
+    assert v["snapshot"]["edits"] == [["cheeks", "softer"]]
+
+
+def test_send_brief_twice_reuses_the_links_until_the_look_changes(client):
+    sid = _sample_session(client, SID)
+    first = client.post(f"/api/sessions/{sid}/brief").json()
+    again = client.post(f"/api/sessions/{sid}/brief").json()
+    assert again == first, "same look, same links"
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
+    changed = client.post(f"/api/sessions/{sid}/brief").json()
+    assert changed["brief_id"] != first["brief_id"] and set(changed) == set(first)
+    assert client.post(f"/api/sessions/{sid}/brief").json() == changed
+
+
+@pytest.mark.parametrize("path", ["/s/{sid}", "/b/{bid}?t={t}", "/card/{bid}?t={t}"])
+def test_expired_links_get_a_human_page(client, path):
+    sid, bid, bride, _ = _brief(client)
+    fresh = TestClient(client.app)
+    for url in (path.format(sid="nosuchsession", bid="nosuchbrief", t="x"),  # gone after a restart
+                path.format(sid="nosuchsession", bid=bid, t="wrong")):  # wrong token: same page, nothing leaked
+        r = fresh.get(url)
+        assert r.status_code == 404 and r.headers["content-type"].startswith("text/html")
+        assert "This link has expired" in r.text and 'href="/"' in r.text and "Start from a sample" in r.text
+        assert "Demo links live until the demo server restarts" in r.text
+    assert client.get("/api/briefs/nosuchbrief?t=x").json() == {"detail": "brief not found"}, "API stays JSON"
+    assert client.get("/api/sessions/nosuchsession").json() == {"detail": "session not found"}
+
+
+def test_footer_live_status_opens_the_live_page(client):
+    html = client.get("/").text
+    assert 'href="/live">Live status' in html and 'href="/api/limits"' not in html
+    assert "Try a recorded sample instead" in client.get("/live").text
