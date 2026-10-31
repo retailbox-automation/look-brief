@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 import pytest
-from conftest import SAMPLE_IDS, SAMPLES, load_rgb
+from helpers import SAMPLE_IDS, SAMPLES, load_rgb
 
 from lookbrief import landmarks, makeup_map
 from lookbrief.color import hex_delta_e2000

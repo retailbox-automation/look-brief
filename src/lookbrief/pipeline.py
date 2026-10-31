@@ -45,6 +45,17 @@ def render_name(edits: list[list[str]]) -> str:
     return f"render-{key}"
 
 
+def zone_outlines(face: landmarks.FaceGeometry) -> dict[str, list[list[list[float]]]]:
+    """Zone outlines for drawing on the photo: polygons in 0..1 image coordinates (from face landmarks)."""
+    polys = landmarks.core_polygons(face)
+    out: dict[str, list[list[list[float]]]] = {}
+    for zone in ("eyes", "cheeks", "lips"):
+        shapes = polys[zone][:1] + polys[zone][3:4] if zone == "eyes" else polys[zone]  # eyelid area of each eye
+        out[zone] = [[[round(float(x) / face.width, 4), round(float(y) / face.height, 4)] for x, y in poly]
+                     for poly in shapes]
+    return out
+
+
 def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) -> dict:
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "bride.jpg").write_bytes(ctx.bride_jpeg)
@@ -76,6 +87,7 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) ->
     makeup_map.heatmap(bare, look).save(workdir / "layer.png")
     state["images"]["layer"] = "layer.png"
     state["map"] = mmap.to_dict()
+    state["outlines"] = zone_outlines(face)
 
     base = engine.recorded_recipe([]) if isinstance(engine, ReplayEngine) else None
     base = base or rcp.base_recipe(mmap)

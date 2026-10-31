@@ -1,8 +1,8 @@
 import json
 
 import pytest
-from conftest import SAMPLE_IDS, SAMPLES
 from fastapi.testclient import TestClient
+from helpers import SAMPLE_IDS, SAMPLES
 
 from lookbrief import app as app_mod
 from lookbrief import attest
@@ -51,6 +51,8 @@ def test_replay_session_state(client):
     assert set(st["images"]) >= {"bride", "inspiration", "look", "hair", "layer", "render"}
     assert st["steps"]["mu_transfer"]["mode"] == "replay" and st["steps"]["mu_transfer"]["task_id"]
     assert set(st["gaps"]["zones"]) == {"eyes", "cheeks", "lips"}
+    assert len(st["outlines"]["eyes"]) == 2 and len(st["outlines"]["cheeks"]) == 2 and len(st["outlines"]["lips"]) == 1
+    assert all(0 <= c <= 1 for poly in st["outlines"]["lips"] for pt in poly for c in pt)
     assert all(o["available"] for o in st["edit_options"])
     for url in st["images"].values():
         assert client.get(url).status_code == 200

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from conftest import SAMPLE_IDS, SAMPLES
+from helpers import SAMPLE_IDS, SAMPLES
 from PIL import Image
 
 from lookbrief import photo_check

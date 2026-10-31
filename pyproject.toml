@@ -23,6 +23,7 @@ dev = [
     "pytest-playwright>=0.5",
     "ruff>=0.7",
     "mypy>=1.13",
+    "axe-playwright-python>=0.1.8",
 ]
 
 [project.scripts]

@@ -3,7 +3,7 @@ import json
 import re
 
 import pytest
-from conftest import SAMPLE_IDS, SAMPLES
+from helpers import SAMPLE_IDS, SAMPLES
 
 from lookbrief import recipe as rcp
 from lookbrief.engine import NotRecorded, ReplayEngine, SessionCtx

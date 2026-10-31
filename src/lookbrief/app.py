@@ -182,7 +182,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out["error_hint"] = {"title": h.title, "fix": h.fix}
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
-                                                "shades", "recipe_sha256", "vto_effects", "notes")})
+                                                "shades", "recipe_sha256", "vto_effects", "notes", "outlines")})
             if sess["mode"] == "replay":
                 keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
                 out["edit_options"] = pipeline.edit_options(st, keys)
