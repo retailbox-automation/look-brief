@@ -154,6 +154,9 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     expect(page.get_by_test_id("hero-caption")).to_contain_text("Hair Transfer + Makeup Transfer")
     # an edit is shown over her even tone, never on the raw transfer
     page.get_by_role("button", name="Cheeks", exact=True).click()
+    # on a phone she scrolls down to the zone card to press a change: the photo leaves the screen
+    page.get_by_role("button", name="Cheeks: softer").evaluate("el => el.scrollIntoView({block: 'start'})")
+    assert not page.evaluate(HERO_ON_SCREEN_JS), "precondition: the photo is above the viewport"
     page.get_by_role("button", name="Cheeks: softer").click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     page.wait_for_function(HERO_ON_SCREEN_JS, timeout=5_000)  # 390x844: the change itself is on screen
