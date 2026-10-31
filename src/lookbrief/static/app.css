@@ -170,6 +170,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .chip { font: 14px/1.2 var(--sans); color: var(--ink); background: #f4eee9; border: 1px solid #e6ded6; border-radius: 999px; padding: 6px 8px; min-height: 44px; cursor: pointer; }
 .chip:hover:not(:disabled):not([aria-pressed=true]) { border-color: var(--line-2); background: #efe7e0; }
 .chip[aria-pressed=true] { background: var(--rose); border-color: var(--rose); color: #fff; cursor: default; }
+.zone-note { margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
 .styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 7px; margin-top: 12px; }
 .edit-msg { font-size: .85rem; color: var(--ink-2); margin-top: 8px; }
 .edit-msg:empty { margin: 0; }

@@ -136,17 +136,18 @@ def test_the_none_choice_drops_the_zone_from_the_request(client):
     assert "highlight" not in [x["zone"] for x in r.json()["shades"]] and len(r.json()["shades"]) == 8
 
 
-def test_none_is_a_named_style_of_three_zones(client):
+def test_none_is_a_named_style_of_two_zones(client):
     opts = client.get(f"/api/sessions/{_replay_session(client)}").json()["edit_options"]
-    assert {o["zone"]: o["name"] for o in opts if o["op"] == "shade:none"} == {
-        "liner": "None", "highlight": "None", "lip_line": "None"}
+    assert {o["zone"]: o["name"] for o in opts if o["op"] == "shade:none"} == {"highlight": "None", "lip_line": "None"}
 
 
 def test_the_state_marks_the_zones_of_named_styles(client):
     st = client.get(f"/api/sessions/{_replay_session(client)}").json()
     style = {z["zone"]: z["style"] for g in st["zone_groups"] for z in g["zones"]}
     assert not style["eyes"] and not style["cheeks"] and not style["lips"]
-    assert all(style[z] for z in ("liner", "lashes", "brows", "bronzer", "highlight", "lip_line"))
+    assert all(style[z] for z in ("liner", "lashes", "brows", "highlight", "lip_line"))
+    bronzer = next(z for g in st["zone_groups"] for z in g["zones"] if z["zone"] == "bronzer")
+    assert bronzer["note"] == "A light warm layer is part of this look." and not bronzer["style"]
 
 
 def test_a_quiet_edit_is_hidden_and_refused(tmp_path, monkeypatch):
@@ -156,13 +157,13 @@ def test_a_quiet_edit_is_hidden_and_refused(tmp_path, monkeypatch):
     shutil.copytree(V2_SAMPLES / SID, samples / SID, symlinks=True)
     mf_path = samples / SID / "manifest.json"
     mf = json.loads(mf_path.read_text())
-    mf["quiet_edits"] = ["lips:shade:rosewood"]
+    mf["quiet_edits"] = ["lips:shade:warm-rose"]
     mf_path.write_text(json.dumps(mf))
     c = TestClient(app_mod.create_app(_settings(tmp_path / "x", samples_dir=samples)))
     sid = _replay_session(c)
     opts = c.get(f"/api/sessions/{sid}").json()["edit_options"]
-    assert ("lips", "shade:rosewood") not in {(o["zone"], o["op"]) for o in opts}
-    r = c.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:rosewood"})
+    assert ("lips", "shade:warm-rose") not in {(o["zone"], o["op"]) for o in opts}
+    r = c.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:warm-rose"})
     assert r.status_code == 400 and r.json()["error"] == "quiet"
     assert c.get(f"/api/sessions/{sid}").json()["edits"] == []
 
@@ -516,7 +517,7 @@ def test_card_lists_every_zone_of_the_recipe_with_its_shade(client):
     assert "highlight" not in snap["review_zones"], "a product she left out is not reviewed"
     assert len(snap["review_zones"]) == 8 + 2, "eight zones, the hair and the skin"
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
-    assert "Ruby" in html and "Rose gold smoke" in html and "#B0102E" in html
+    assert "Ruby" in html and "Rose gold" in html and "#B0102E" in html
     assert "Highlighter" not in html.split("</table>")[0].split("<table")[1]
 
 
@@ -541,7 +542,7 @@ def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
     r = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
     sid = r.json()["session_id"]
     st = live_client.get(f"/api/sessions/{sid}").json()
-    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:rosewood"}).json()
+    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:warm-rose"}).json()
     skin = st["even_out"]["skin_hex"]
     vto = [b["effects"] for n, b in FakeYouCam.calls if n == "makeup-vto"]
     makeup = {"eye_shadow", "blush", "lip_color"}

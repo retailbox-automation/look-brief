@@ -41,7 +41,7 @@ TONE_WEIGHTS = np.array([0.25, 1.0, 1.0])  # L*, a*, b*
 NO_SMOOTHING = {"category": "skin_smooth", "skinSmoothStrength": 0, "skinSmoothColorIntensity": 0}
 # Finish numbers accepted by the API in the probes of 2026-10-31 (the same in every look).
 HIGHLIGHT_FINISH = {"glowIntensity": 45, "shimmerIntensity": 25, "shimmerDensity": 35, "shimmerSize": 25}
-LIP_FINISH = {"sheer": {"gloss": 45, "transparencyIntensity": 30}, "gloss": {"gloss": 22, "transparencyIntensity": 15}}
+LIP_FINISH = {"sheer": {"gloss": 45, "transparencyIntensity": 30}}  # texture gloss leaves drops of shine: not used
 LIP_LINE_FINISH = {"thickness": 30, "smoothness": 70}
 FOUNDATION_INTENSITY = 40  # 50 lifted the heroine's forehead L* by 1.7; the target is 1.5 at most
 FOUNDATION_GLOW = 20
@@ -114,7 +114,7 @@ def _check(recipe: dict, zone: object, op: object) -> None:
     if op.startswith(SHADE_PREFIX):
         s = palettes.shade(recipe["group"], str(zone), op.removeprefix(SHADE_PREFIX))
         if not any(c.id == s.id for c in palettes.circles(recipe["group"], str(zone))):
-            raise ValueError(f"{s.id} belongs to a look, it is not a choice")
+            raise ValueError(f"{s.id} is not a choice")
 
 
 def _step(recipe: dict, zone: str, op: str) -> str | None:
@@ -156,9 +156,9 @@ def apply_edit(recipe: dict, zone: str, op: str) -> dict:
         z["intensity"] = s.intensity
     if s.pattern:
         z["pattern"] = s.pattern
-    if zone == "eyes":  # every circle of the lids is three colours on the same slots
+    if zone == "eyes":  # every circle of the lids carries the strengths of the base look
         slots, shimmer = palettes.EYE_SLOTS[recipe["group"]]
-        z |= {"slot_intensity": list(slots), "shimmer": list(shimmer), "intensity": slots[1]}
+        z |= {"slot_intensity": list(slots), "shimmer": list(shimmer), "intensity": slots[0]}
     return out
 
 
@@ -248,7 +248,7 @@ def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
     effects: list[dict] = [dict(NO_SMOOTHING)]
     if even_out:
         effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
-    effects.append(concealer_effect(recipe["skin_hex"]))
+    effects.append(concealer_effect(recipe["skin_hex"], recipe["group"]))
     zones = recipe["zones"]
     effects += [_effect(zones[z]) for z in palettes.ZONES if z in zones and zones[z]["palette"]]  # "none": left out
     return effects
@@ -263,10 +263,10 @@ def foundation_effect(skin_hex: str, coverage: int = 30) -> dict:
          "coverageIntensity": int(coverage)}]}
 
 
-def concealer_effect(skin_hex: str) -> dict:
+def concealer_effect(skin_hex: str, group: str) -> dict:
     """A layer under every look, not a zone: nothing to choose, the artist reads it in the Skin row of the brief."""
-    return {"category": "concealer", "palettes": [{"color": palettes.concealer_hex(skin_hex),
-                                                   **palettes.CONCEALER_FINISH}]}
+    finish = palettes.CONCEALER_FINISH_DEEP if group == "deep" else palettes.CONCEALER_FINISH
+    return {"category": "concealer", "palettes": [{"color": palettes.concealer_hex(skin_hex), **finish}]}
 
 
 def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:
@@ -304,7 +304,7 @@ def shade_list(recipe: dict, m: MakeupMap) -> list[dict]:
             "palette": z["palette"],
             "texture": z["texture"],
             "pattern": z["pattern"],
-            "product_hex": z["palette"][1] if len(z["palette"]) == 3 else z["palette"][0],
+            "product_hex": z["palette"][0],
             "intensity": z["intensity"],
             "on_face_hex": zs.color_after if zs else None,
             "coverage": zs.coverage if zs else None,

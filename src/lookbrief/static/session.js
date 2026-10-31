@@ -211,14 +211,14 @@
     $("look-row").innerHTML = opts.map((o) => `<button type="button" class="look-btn" data-zone="look" data-op="${esc(o.op)}" aria-pressed="${o.selected}" ${o.available || o.selected ? "" : "disabled"}>${esc(o.label)}</button>`).join("");
   }
 
-  function zonePanel(z, label, style) {
+  function zonePanel(z, label, style, note) {
     const opts = (state.edit_options || []).filter((o) => o.zone === z);
     const r = state.recipe.zones[z];
     const steps = opts.filter((o) => o.op === "softer" || o.op === "bolder");
     const shades = opts.filter((o) => o.op.startsWith("shade:"));
     const notes = [...new Set(steps.filter((o) => !o.available && o.note).map((o) => o.note))];
     const finish = !style && r.texture ? ` · ${esc(cap(r.texture))}` : "";
-    const choice = style
+    const choice = note ? `<p class="zone-note" data-testid="note-${esc(z)}">${esc(note)}</p>` : style
       ? `<div class="styles" role="group" aria-label="${esc(label)} styles">${shades.map((o) => styleHtml(o, label)).join("")}</div>`
       : `<div class="circles" role="group" aria-label="${esc(label)} shades">${shades.map((o) => circleHtml(o, label)).join("")}</div>`;
     return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${esc(z)}" aria-labelledby="zone-h-${esc(z)}">
@@ -237,7 +237,7 @@
     const scroll = $("zone-tabs").scrollLeft;
     $("zone-tabs").innerHTML = groups.map((g) => `<div class="tab-group"><span class="tab-group-name">${esc(g.label)}</span><div class="tab-row">${g.zones.filter((z) => z.zone in zones).map((z) => `<button type="button" class="tab" data-zone="${esc(z.zone)}" aria-pressed="false">${esc(z.label)}</button>`).join("")}</div></div>`).join("");
     $("zone-tabs").scrollLeft = scroll;
-    $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label, z.style)).join("");
+    $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label, z.style, z.note)).join("");
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone, true)));
     document.querySelectorAll("#zones button[data-op], #look-row button[data-op]").forEach((b) => b.addEventListener("click", () => {
       if (b.getAttribute("aria-pressed") !== "true") doEdit({ zone: b.dataset.zone, op: b.dataset.op });

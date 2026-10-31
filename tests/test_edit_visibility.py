@@ -128,10 +128,10 @@ def test_the_gate_is_the_90th_percentile_only():
 
 def test_a_style_is_read_inside_its_own_mask(synthetic):
     sd, steps = synthetic
-    _paint(sd, steps, "render:bronzer:shade:sculpted", "bronzer")
+    _paint(sd, steps, "render:brows:shade:soft", "brows")
     rep = visibility.edit_visibility(sd)
-    assert "bronzer:shade:sculpted" not in rep["quiet"]
-    assert rep["edits"]["bronzer:shade:sculpted"]["p90"] > 10
+    assert "brows:shade:soft" not in rep["quiet"]
+    assert rep["edits"]["brows:shade:soft"]["p90"] > 10
     assert "highlight:shade:none" in rep["quiet"]
 
 

@@ -1,5 +1,5 @@
 {
- "_source": "Request bodies approved after the critic of the s0 recording (PALETTE-V2, 2026-10-31): softglam light p7 B-open, softglam deep p8 B-gold, evening p7 C-open; fresh is v1 A-fresh with the concealer layer and foundation 40. light = heroine s0, deep = s3.",
+ "_source": "Request bodies after the second critic (PALETTE-V3, 2026-10-31): probes/p10-spec.json A, B, C of s0 and B, C of s3; deep fresh is v1 A-fresh with the eye row of the PALETTE-V3 table. light = heroine s0, deep = s3.",
  "light": {
   "fresh": [
    {
@@ -23,29 +23,29 @@
     "palettes": [
      {
       "color": "#E8B79C",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "colorIntensity": 55,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 70
      }
     ]
    },
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors1"
+     "name": "2colors279"
     },
     "palettes": [
      {
-      "color": "#E6CFA8",
+      "color": "#D9B08C",
       "texture": "shimmer",
-      "shimmerColor": "#E6CFA8",
-      "shimmerIntensity": 55,
-      "colorIntensity": 55
+      "shimmerColor": "#D9B08C",
+      "shimmerIntensity": 60,
+      "colorIntensity": 70
      },
      {
-      "color": "#9C7B6B",
+      "color": "#8A6450",
       "texture": "matte",
-      "colorIntensity": 55
+      "colorIntensity": 62
      }
     ]
    },
@@ -81,9 +81,9 @@
     },
     "palettes": [
      {
-      "color": "#8A6A5C",
-      "colorIntensity": 28,
-      "texture": "matte"
+      "color": "#5A4034",
+      "texture": "matte",
+      "colorIntensity": 35
      }
     ]
    },
@@ -108,8 +108,8 @@
     },
     "palettes": [
      {
-      "color": "#D9A57A",
-      "colorIntensity": 14
+      "color": "#C08A55",
+      "colorIntensity": 20
      }
     ]
    },
@@ -125,7 +125,7 @@
       "shimmerIntensity": 25,
       "shimmerDensity": 35,
       "shimmerSize": 25,
-      "colorIntensity": 35
+      "colorIntensity": 40
      }
     ]
    },
@@ -170,36 +170,29 @@
     "palettes": [
      {
       "color": "#E8B79C",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "colorIntensity": 55,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 70
      }
     ]
    },
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "3colors1"
+     "name": "2colors279"
     },
     "palettes": [
      {
-      "color": "#EAD0BC",
+      "color": "#B9745F",
       "texture": "shimmer",
-      "shimmerColor": "#EAD0BC",
-      "shimmerIntensity": 60,
-      "colorIntensity": 70
-     },
-     {
-      "color": "#C98F7E",
-      "texture": "shimmer",
-      "shimmerColor": "#C98F7E",
-      "shimmerIntensity": 60,
-      "colorIntensity": 85
+      "shimmerColor": "#B9745F",
+      "shimmerIntensity": 70,
+      "colorIntensity": 92
      },
      {
       "color": "#5C342A",
       "texture": "matte",
-      "colorIntensity": 85
+      "colorIntensity": 88
      }
     ]
    },
@@ -337,36 +330,29 @@
     "palettes": [
      {
       "color": "#E8B79C",
-      "colorIntensity": 45,
-      "colorUnderEyeIntensity": 55,
-      "coverageLevel": 45
+      "colorIntensity": 55,
+      "colorUnderEyeIntensity": 85,
+      "coverageLevel": 70
      }
     ]
    },
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "3colors8"
+     "name": "2colors279"
     },
     "palettes": [
-     {
-      "color": "#EAD0BC",
-      "texture": "shimmer",
-      "shimmerColor": "#EAD0BC",
-      "shimmerIntensity": 60,
-      "colorIntensity": 72
-     },
      {
       "color": "#A8613A",
       "texture": "shimmer",
       "shimmerColor": "#A8613A",
-      "shimmerIntensity": 60,
-      "colorIntensity": 85
+      "shimmerIntensity": 75,
+      "colorIntensity": 94
      },
      {
-      "color": "#3F2620",
+      "color": "#2F1C16",
       "texture": "matte",
-      "colorIntensity": 88
+      "colorIntensity": 92
      }
     ]
    },
@@ -377,21 +363,21 @@
     },
     "palettes": [
      {
-      "color": "#17110f",
+      "color": "#2B1B17",
       "texture": "matte",
-      "colorIntensity": 70
+      "colorIntensity": 76
      }
     ]
    },
    {
     "category": "eyelashes",
     "pattern": {
-     "name": "Upper&Lower4"
+     "name": "UpperDense1"
     },
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 78
+      "colorIntensity": 80
      }
     ]
    },
@@ -473,9 +459,9 @@
     },
     "palettes": [
      {
-      "color": "#8E0F1A",
+      "color": "#A01028",
       "texture": "matte",
-      "colorIntensity": 55,
+      "colorIntensity": 40,
       "thickness": 30,
       "smoothness": 70
      }
@@ -504,20 +490,20 @@
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "2colors1"
+     "name": "2colors279"
     },
     "palettes": [
      {
-      "color": "#C9A24A",
+      "color": "#C9A050",
       "texture": "shimmer",
-      "shimmerColor": "#C9A24A",
-      "shimmerIntensity": 60,
-      "colorIntensity": 65
+      "shimmerColor": "#C9A050",
+      "shimmerIntensity": 65,
+      "colorIntensity": 80
      },
      {
-      "color": "#A8683F",
+      "color": "#6E4A2A",
       "texture": "matte",
-      "colorIntensity": 65
+      "colorIntensity": 70
      }
     ]
    },
@@ -653,27 +639,20 @@
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "3colors1"
+     "name": "2colors279"
     },
     "palettes": [
      {
-      "color": "#E8C070",
+      "color": "#C9A050",
       "texture": "shimmer",
-      "shimmerColor": "#E8C070",
+      "shimmerColor": "#C9A050",
       "shimmerIntensity": 80,
-      "colorIntensity": 85
-     },
-     {
-      "color": "#C99A50",
-      "texture": "shimmer",
-      "shimmerColor": "#C99A50",
-      "shimmerIntensity": 80,
-      "colorIntensity": 92
+      "colorIntensity": 95
      },
      {
       "color": "#3F1F14",
       "texture": "matte",
-      "colorIntensity": 85
+      "colorIntensity": 90
      }
     ]
    },
@@ -809,27 +788,20 @@
    {
     "category": "eye_shadow",
     "pattern": {
-     "name": "3colors8"
+     "name": "2colors279"
     },
     "palettes": [
      {
-      "color": "#D4A94E",
+      "color": "#C98A48",
       "texture": "shimmer",
-      "shimmerColor": "#D4A94E",
-      "shimmerIntensity": 72,
-      "colorIntensity": 80
+      "shimmerColor": "#C98A48",
+      "shimmerIntensity": 80,
+      "colorIntensity": 96
      },
      {
-      "color": "#A8683F",
-      "texture": "shimmer",
-      "shimmerColor": "#A8683F",
-      "shimmerIntensity": 65,
-      "colorIntensity": 88
-     },
-     {
-      "color": "#2F1710",
+      "color": "#2A140E",
       "texture": "matte",
-      "colorIntensity": 88
+      "colorIntensity": 92
      }
     ]
    },
@@ -840,7 +812,7 @@
     },
     "palettes": [
      {
-      "color": "#0d0908",
+      "color": "#17110f",
       "texture": "matte",
       "colorIntensity": 80
      }
@@ -849,12 +821,12 @@
    {
     "category": "eyelashes",
     "pattern": {
-     "name": "Upper&Lower4"
+     "name": "UpperDense1"
     },
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 82
+      "colorIntensity": 84
      }
     ]
    },

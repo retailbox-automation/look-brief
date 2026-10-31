@@ -35,7 +35,8 @@ def test_options_cover_looks_steps_and_every_circle():
         assert {(z, f"shade:{s.id}") for s in palettes.circles("light", z)} <= set(opts), z
         steps = {(z, op) for op in rcp.EDIT_OPS}
         assert (steps <= set(opts)) is (z in palettes.STEP_ZONES), z
-    assert len(opts) == 3 + 6 + 43
+    assert len(opts) == 3 + 6 + 36
+    assert not [k for k in opts if k[0] == "bronzer"], "bronzer is no choice"
 
 
 def test_no_finish_buttons_are_left():
@@ -55,11 +56,11 @@ def test_a_circle_carries_what_the_sheet_draws():
     now = opts[("lips", f"shade:{base['zones']['lips']['shade_id']}")]
     assert now["selected"] is True and now["available"] is False and now["reason"] == "current"
     eyes = opts[("eyes", f"shade:{base['zones']['eyes']['shade_id']}")]
-    assert eyes["colors"] == ["#EAD0BC", "#C98F7E", "#5C342A"] and eyes["hex"] == "#C98F7E"
+    assert eyes["colors"] == ["#B9745F", "#5C342A"] and eyes["hex"] == "#B9745F"
 
 
 def test_the_none_choice_has_no_colour():
-    o = _options(_state())[("liner", "shade:none")]
+    o = _options(_state())[("highlight", "shade:none")]
     assert o["hex"] is None and o["colors"] == [] and o["name"] == "None" and o["available"] is True
 
 
@@ -80,11 +81,11 @@ def test_the_softer_gate_of_the_old_rule_is_gone():
 def test_a_quiet_button_is_not_offered_and_the_server_refuses_it():
     base = _look()
     key = rcp.quiet_key(base, "lips", "softer")
-    st = _state(base, quiet=[key, "lips:shade:ruby", "liner:shade:none"])
+    st = _state(base, quiet=[key, "lips:shade:ruby", "lip_line:shade:none"])
     opts = _options(st)
     assert ("lips", "softer") not in opts and ("lips", "bolder") in opts
     assert ("lips", "shade:ruby") not in opts and ("lips", "shade:nude-rose") in opts
-    assert ("liner", "shade:none") not in opts and ("highlight", "shade:none") in opts
+    assert ("lip_line", "shade:none") not in opts and ("highlight", "shade:none") in opts
     assert pipeline.plan_edit(st, "lips", "softer") == {"reason": "quiet"}
     assert pipeline.plan_edit(st, "lips", "shade:ruby") == {"reason": "quiet"}
 

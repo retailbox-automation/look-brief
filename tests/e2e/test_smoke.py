@@ -383,6 +383,9 @@ def test_named_styles_are_chips_in_thin_zones(base_url, browser_ctx):
     expect(zone.locator(".styles .chip").first).to_be_visible()
     assert zone.locator(".circle").count() == 0 and zone.locator(".chips").count() == 0, "no circles, no Softer"
     expect(zone.get_by_role("button", name="Eyeliner: Classic", exact=True)).to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Bronzer", exact=True).click()
+    expect(page.get_by_test_id("note-bronzer")).to_have_text("A light warm layer is part of this look.")
+    assert page.get_by_test_id("zone-bronzer").locator("button").count() == 0, "bronzer is part of the look"
 
 
 @needs("s0-champagne-rose")

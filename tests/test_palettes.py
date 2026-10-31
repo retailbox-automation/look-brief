@@ -15,9 +15,9 @@ from lookbrief.color import hex_delta_e2000, hex_to_lab
 
 APPROVED = json.loads((Path(__file__).parent / "fixtures" / "approved_looks.json").read_text())
 DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.json").read_text())
-LIGHT_SIZES = {"eyes": 8, "liner": 3, "lashes": 3, "brows": 3, "cheeks": 7, "bronzer": 2, "highlight": 2, "lips": 10,
+LIGHT_SIZES = {"eyes": 6, "liner": 3, "lashes": 3, "brows": 3, "cheeks": 5, "bronzer": 1, "highlight": 2, "lips": 10,
                "lip_line": 2}
-DEEP_SIZES = {**LIGHT_SIZES, "cheeks": 6, "lips": 9}
+DEEP_SIZES = {**LIGHT_SIZES, "cheeks": 4, "lips": 9}
 ALL = [(g, z) for g in palettes.GROUPS for z in palettes.ZONES]
 
 
@@ -39,7 +39,7 @@ def test_nine_zones_map_to_the_api_categories_in_request_order():
 
 
 @pytest.mark.parametrize(("group", "sizes"), [("light", LIGHT_SIZES), ("deep", DEEP_SIZES)])
-def test_ladders_have_the_steps_of_palette_v2(group, sizes):
+def test_ladders_have_the_steps_of_palette_v3(group, sizes):
     assert {z: len(palettes.ladder(group, z)) for z in palettes.ZONES} == sizes
 
 
@@ -47,14 +47,20 @@ def test_ladders_have_the_steps_of_palette_v2(group, sizes):
 def test_medium_and_olive_are_built_the_same_way(group):
     sizes = {z: len(palettes.ladder(group, z)) for z in palettes.ZONES}
     assert {z: sizes[z] for z in palettes.STYLE_ZONES} == {z: LIGHT_SIZES[z] for z in palettes.STYLE_ZONES}
-    assert sizes["eyes"] == 8 and sizes["cheeks"] == 7 and sizes["lips"] >= 9
+    assert sizes["eyes"] == 6 and sizes["cheeks"] == 5 and sizes["lips"] >= 9 and sizes["bronzer"] == 1
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
-def test_none_is_offered_on_liner_highlighter_and_lip_liner_only(group):
+def test_none_is_offered_on_highlighter_and_lip_liner_only(group):
     for zone in palettes.ZONES:
         ids = [s.id for s in palettes.circles(group, zone)]
-        assert (palettes.NONE_ID in ids) is (zone in ("liner", "highlight", "lip_line")), zone
+        assert (palettes.NONE_ID in ids) is (zone in ("highlight", "lip_line")), zone
+
+
+@pytest.mark.parametrize("group", palettes.GROUPS)
+def test_bronzer_is_no_choice(group):
+    assert palettes.circles(group, "bronzer") == ()
+    assert palettes.FIXED_ZONES == {"bronzer": "A light warm layer is part of this look."}
 
 
 @pytest.mark.parametrize(("group", "zone"), [(g, z) for g in palettes.GROUPS for z in palettes.STYLE_ZONES])
@@ -87,19 +93,22 @@ def test_skin_order_runs_from_her_skin_outwards(group, zone):
     assert d == sorted(d) and {s.id for s in order} == {s.id for s in palettes.ladder(group, zone)}
 
 
-def test_gloss_and_metallic_are_ordinary_shades():
-    assert palettes.shade("light", "lips", "rose-gloss").texture == "gloss"
-    assert palettes.shade("deep", "lips", "berry-gloss").texture == "gloss"
-    assert {s.id for s in palettes.ladder("light", "eyes") if s.texture == "metallic"} == {"copper", "chocolate-gold"}
+def test_gloss_is_a_sheer_circle_and_metallic_an_ordinary_shade():
+    assert palettes.shade("light", "lips", "rose-gloss").texture == "sheer"
+    assert palettes.shade("deep", "lips", "berry-gloss").texture == "sheer"
+    assert {s.id for s in palettes.ladder("light", "eyes") if s.texture == "metallic"} == {"champagne", "bronze"}
 
 
-def test_shades_left_out_of_palette_v2_are_gone():
+def test_shades_left_out_of_the_palette_are_gone():
     lips = {s.id for s in palettes.circles("light", "lips")} | {s.id for s in palettes.circles("deep", "lips")}
-    assert not lips & {"candy-pink", "orchid-berry", "smoky-rose", "fuchsia"}
+    assert not lips & {"candy-pink", "orchid-berry", "smoky-rose", "fuchsia", "rosewood"}
+    for group in ("light", "deep"):
+        assert {s.id for s in palettes.circles(group, "liner")} == {"classic", "flick", "wing"}
+        assert {s.id for s in palettes.circles(group, "lashes")} == {"natural", "fluttery", "volume"}
 
 
 def test_a_look_only_shade_is_no_circle():
-    assert palettes.shade("light", "eyes", "copper-umber").colors == ("#EAD0BC", "#A8613A", "#3F2620")
+    assert palettes.shade("light", "eyes", "copper-umber").colors == ("#A8613A", "#2F1C16")
     assert "copper-umber" not in {s.id for s in palettes.circles("light", "eyes")}
 
 
@@ -120,9 +129,8 @@ def test_shades_are_named_and_safe_for_file_names(group, zone):
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
-def test_eye_shades_carry_three_colours_on_the_open_pattern(group):
-    for s in palettes.ladder(group, "eyes"):
-        assert len(s.colors) == 3 and s.pattern == "3colors1", s.id
+def test_eye_shades_carry_lid_and_outer_corner(group):
+    assert {len(s.colors) for s in palettes.ladder(group, "eyes")} == {2}
 
 
 @pytest.mark.parametrize(("group", "zone"), [(g, z) for g, z in ALL if z != "eyes"])
@@ -136,7 +144,7 @@ def test_looks_use_shades_of_the_palette(group, look):
     for zone, z in palettes.LOOKS[group][look].items():
         assert palettes.shade(group, zone, z.shade), (group, look, zone)
         assert 0 <= z.intensity <= 100, (group, look, zone)
-    assert "2colors168" not in {rcp.look_recipe(group, look, SKIN[group])["zones"]["eyes"]["pattern"]}
+    assert rcp.look_recipe(group, look, SKIN[group])["zones"]["eyes"]["pattern"] == "2colors279"
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
@@ -160,7 +168,7 @@ def test_deep_blush_has_no_orange_and_nothing_loud():
     """Nadya's complaint about orange cheeks; the matte red shouted. Warm deep shades took their place."""
     colors = {s.colors[0] for s in palettes.ladder("deep", "cheeks")}
     assert not colors & {"#D9785E", "#C86A5A", "#C0262C"}
-    assert {"#A8553F", "#8C3A4A", "#94503F"} <= colors
+    assert {"#A8553F", "#8C3A4A"} <= colors
     assert palettes.LOOKS["deep"]["softglam"]["cheeks"].shade == "mulled-rose"
 
 

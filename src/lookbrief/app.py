@@ -213,7 +213,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
                                                 "checks", "order", "even_out", "map_reference", "views")})
             out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z],
-                                                              "style": z in palettes.STYLE_ZONES} for z in zs]}
+                                                              "style": z in palettes.STYLE_ZONES,
+                                                              "note": palettes.FIXED_ZONES.get(z, "")} for z in zs]}
                                   for label, zs in palettes.ZONE_GROUPS]
             if sess["mode"] == "replay":
                 out["edit_options"] = pipeline.edit_options(st, replay_keys(sess))
