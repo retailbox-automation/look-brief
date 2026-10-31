@@ -31,11 +31,14 @@
       const hint = zi.product_hex ? "" : `<p class="rv-detail">${detail}</p>`;
       return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend>
         <div class="segs">${radios}</div>
-        <label class="rv-note"><span class="sr-only">Note for the bride about ${esc(zi.label)}</span><input type="text" maxlength="300" name="note-${z}" value="${esc(r.note || "")}" placeholder="Note for the bride"></label>${hint}</fieldset>`;
+        <label class="rv-note"><span class="sr-only">Note for the bride about ${esc(zi.label)}</span><input type="text" maxlength="300" name="note-${z}" value="${esc(z in dirty ? dirty[z] : (r.note || ""))}" placeholder="Note for the bride"></label>${hint}</fieldset>`;
     }).join("");
     $("reviews").innerHTML = rows;
     $("reviews").querySelectorAll("input[type=radio]").forEach((el) => el.addEventListener("change", () => save(el.name.slice(3))));
-    $("reviews").querySelectorAll("input[type=text]").forEach((el) => el.addEventListener("change", () => save(el.name.slice(5))));
+    $("reviews").querySelectorAll("input[type=text]").forEach((el) => {
+      el.addEventListener("input", () => { dirty[el.name.slice(5)] = el.value; });
+      el.addEventListener("change", () => save(el.name.slice(5)));
+    });
     $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%</span></li>`).join("");
     const a = view.agreed;
     const me = a[role];
@@ -66,15 +69,37 @@
     view = body; keepFocus(render);
   }
 
-  async function save(zone) {
+  let pending = Promise.resolve();  // reviews are saved one after another, never racing an agreement
+  const dirty = {};  // notes typed but not yet confirmed by the server survive re-renders
+
+  async function saveNow(zone) {
     const st = document.querySelector(`input[name="st-${zone}"]:checked`);
     if (!st) return;
-    const note = (document.querySelector(`input[name="note-${zone}"]`) || {}).value || "";
+    const note = zone in dirty ? dirty[zone] : ((document.querySelector(`input[name="note-${zone}"]`) || {}).value || "");
     const { ok, body } = await api(`/api/briefs/${bid}/review`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token, zone, status: st.value, note }) });
-    if (ok) { view = body; keepFocus(render); }
+    if (ok) {
+      if (dirty[zone] !== undefined && ((body.reviews[zone] || {}).note || "") === dirty[zone].trim()) delete dirty[zone];
+      view = body; keepFocus(render);
+    }
+  }
+
+  function save(zone) {
+    pending = pending.then(() => saveNow(zone)).catch(() => {});
+    return pending;
+  }
+
+  function flushNotes() {
+    // a note typed but not yet saved (no blur yet) is saved before agreeing
+    if (!view || role !== "artist") return pending;
+    Object.keys(dirty).forEach((zone) => {
+      const saved = (view.reviews[zone] || {}).note || "";
+      if (dirty[zone].trim() !== saved) save(zone);
+    });
+    return pending;
   }
 
   $("agree").addEventListener("click", async () => {
+    await flushNotes();
     const { ok, body } = await api(`/api/briefs/${bid}/agree`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token }) });
     if (ok) { view = body; render(); } else { $("agree-help").textContent = body.detail || "Couldn't agree yet."; }
   });

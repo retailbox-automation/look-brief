@@ -66,6 +66,15 @@ class Store:
         with self._lock:
             return self._conn.execute(sql, args)
 
+    def _one(self, sql: str, args: tuple = ()) -> sqlite3.Row | None:
+        """Execute and fetch under the same lock: one connection is shared by request threads."""
+        with self._lock:
+            return self._conn.execute(sql, args).fetchone()
+
+    def _all(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:
+        with self._lock:
+            return self._conn.execute(sql, args).fetchall()
+
     def ip_hash(self, ip: str) -> str:
         return hashlib.sha256((self._salt + ip).encode()).hexdigest()[:20]
 
@@ -80,7 +89,7 @@ class Store:
         return sid, owner
 
     def is_owner(self, sid: str, token: str | None) -> bool:
-        row = self._exec("SELECT owner_token FROM sessions WHERE id=?", (sid,)).fetchone()
+        row = self._one("SELECT owner_token FROM sessions WHERE id=?", (sid,))
         return bool(row and token and row["owner_token"] and secrets.compare_digest(token, row["owner_token"]))
 
     def interrupt_stale_runs(self, older_than: float) -> int:
@@ -90,12 +99,12 @@ class Store:
         return cur.rowcount
 
     def oldest_replay_sessions(self, keep: int) -> list[str]:
-        rows = self._exec("SELECT id FROM sessions WHERE mode='replay' AND deleted_at IS NULL "
-                          "ORDER BY created_at DESC LIMIT -1 OFFSET ?", (keep,)).fetchall()
+        rows = self._all("SELECT id FROM sessions WHERE mode='replay' AND deleted_at IS NULL "
+                          "ORDER BY created_at DESC LIMIT -1 OFFSET ?", (keep,))
         return [r["id"] for r in rows]
 
     def session(self, sid: str) -> dict | None:
-        row = self._exec("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
+        row = self._one("SELECT * FROM sessions WHERE id=?", (sid,))
         if row is None:
             return None
         d = dict(row)
@@ -112,8 +121,8 @@ class Store:
         self._exec("UPDATE sessions SET units_spent = units_spent + ? WHERE id=?", (units, sid))
 
     def expired_sessions(self, mode: str, older_than: float) -> list[str]:
-        rows = self._exec("SELECT id FROM sessions WHERE mode=? AND deleted_at IS NULL AND created_at < ?",
-                          (mode, older_than)).fetchall()
+        rows = self._all("SELECT id FROM sessions WHERE mode=? AND deleted_at IS NULL AND created_at < ?",
+                          (mode, older_than))
         return [r["id"] for r in rows]
 
     # ---------- ledger / limits ----------
@@ -122,12 +131,12 @@ class Store:
                    (time.time(), sid, op, units, task_id, 1 if ok else 0))
 
     def live_units_spent(self) -> int:
-        row = self._exec("SELECT COALESCE(SUM(units),0) AS u FROM ledger WHERE ok=1").fetchone()
-        return int(row["u"])
+        row = self._one("SELECT COALESCE(SUM(units),0) AS u FROM ledger WHERE ok=1")
+        return int(row["u"]) if row else 0
 
     def ip_sessions_today(self, ip: str, kind: str = "live") -> int:
-        row = self._exec("SELECT sessions FROM ip_usage WHERE ip_hash=? AND day=?",
-                         (self.ip_hash(f"{kind}:{ip}"), day_utc())).fetchone()
+        row = self._one("SELECT sessions FROM ip_usage WHERE ip_hash=? AND day=?",
+                         (self.ip_hash(f"{kind}:{ip}"), day_utc()))
         return int(row["sessions"]) if row else 0
 
     def count_ip_session(self, ip: str, kind: str = "live") -> None:
@@ -144,7 +153,7 @@ class Store:
         return {"id": bid, "bride_token": bride, "artist_token": artist, "version": 1}
 
     def brief(self, bid: str) -> dict | None:
-        row = self._exec("SELECT * FROM briefs WHERE id=?", (bid,)).fetchone()
+        row = self._one("SELECT * FROM briefs WHERE id=?", (bid,))
         if row is None:
             return None
         d = dict(row)
@@ -185,8 +194,8 @@ class Store:
         return True
 
     def reviews(self, bid: str, version: int) -> dict[str, dict]:
-        rows = self._exec("SELECT zone, status, note, updated_at FROM reviews WHERE brief_id=? AND version=?",
-                          (bid, version)).fetchall()
+        rows = self._all("SELECT zone, status, note, updated_at FROM reviews WHERE brief_id=? AND version=?",
+                          (bid, version))
         return {r["zone"]: dict(r) for r in rows}
 
     def reviews_sha(self, bid: str, version: int) -> str:
@@ -200,12 +209,12 @@ class Store:
                    (bid, version, role, time.time(), self.reviews_sha(bid, version)))
 
     def agreements(self, bid: str, version: int) -> dict[str, float]:
-        rows = self._exec("SELECT role, at FROM agreements WHERE brief_id=? AND version=?", (bid, version)).fetchall()
+        rows = self._all("SELECT role, at FROM agreements WHERE brief_id=? AND version=?", (bid, version))
         return {r["role"]: r["at"] for r in rows}
 
     def agreement_shas(self, bid: str, version: int) -> dict[str, str]:
-        rows = self._exec("SELECT role, reviews_sha FROM agreements WHERE brief_id=? AND version=?",
-                          (bid, version)).fetchall()
+        rows = self._all("SELECT role, reviews_sha FROM agreements WHERE brief_id=? AND version=?",
+                          (bid, version))
         return {r["role"]: r["reviews_sha"] for r in rows}
 
     def save_attestation(self, bid: str, version: int, att: dict) -> None:
@@ -213,5 +222,5 @@ class Store:
                    (bid, version, json.dumps(att), time.time()))
 
     def attestation(self, bid: str, version: int) -> dict | None:
-        row = self._exec("SELECT json FROM attestations WHERE brief_id=? AND version=?", (bid, version)).fetchone()
+        row = self._one("SELECT json FROM attestations WHERE brief_id=? AND version=?", (bid, version))
         return json.loads(row["json"]) if row else None

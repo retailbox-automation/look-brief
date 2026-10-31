@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from lookbrief import photo_check, pipeline  # noqa: E402
 from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief.config import youcam_key  # noqa: E402
-from lookbrief.engine import LiveEngine, Recorder, SessionCtx  # noqa: E402
+from lookbrief.engine import LiveEngine, Recorder, SessionCtx, StepMeta, StepResult  # noqa: E402
 from lookbrief.makeup_map import MakeupMap  # noqa: E402
 from lookbrief.youcam import UNITS, YouCamClient  # noqa: E402
 
@@ -36,6 +36,8 @@ def main() -> int:
     ap.add_argument("--grid", choices=["single", "none"], default="single")
     ap.add_argument("--max-units", type=int, default=25)
     ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
+    ap.add_argument("--reuse-transfer", type=Path, metavar="META_JSON",
+                    help="use an already paid Makeup Transfer result (JSON with task_id etc.; .jpg next to it)")
     ap.add_argument(
         "--rerender",
         action="store_true",
@@ -83,6 +85,20 @@ def main() -> int:
     work = ROOT / "data" / "record" / sd.name
     credit_before = client.credit()
     print(f"credit before: {credit_before}")
+    if args.reuse_transfer:
+        meta_in = json.loads(args.reuse_transfer.read_text())
+        img_path = args.reuse_transfer.with_suffix(".jpg")
+        reused = StepResult(img_path.read_bytes(), StepMeta("mu_transfer", "live", meta_in["task_id"], meta_in["seconds"],
+                                                            meta_in["units"], meta_in["recorded_at"]))
+
+        def reuse(ctx_: SessionCtx) -> StepResult:
+            ctx_.ids["mu_jpeg"] = reused.image
+            recorder.add("mu_transfer", reused.image, reused.meta, {"reused": str(args.reuse_transfer.name)},
+                         {"note": "recorded earlier by the same script family; see the source JSON"})
+            return reused
+
+        engine.makeup_transfer = reuse  # type: ignore[method-assign]
+        planned -= UNITS["mu-transfer"]
     if args.rerender:
         state = json.loads((work / "state.json").read_text())
         for key in [k for k in recorder.manifest["steps"] if k.startswith("render:")]:
