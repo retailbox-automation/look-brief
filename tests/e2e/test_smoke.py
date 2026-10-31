@@ -128,7 +128,9 @@ CAPTION_LAYOUT_JS = """() => {
   const range = document.createRange(); range.selectNodeContents(cap);
   const text = range.getBoundingClientRect();
   const over = ["hero-toggle", "hero-check"].map((id) => box(document.getElementById(id))).filter(Boolean);
-  return {textTop: text.top, textBottom: text.bottom, overBottom: Math.max(0, ...over.map((b) => b.bottom)),
+  const [tg, ck] = over.length === 2 ? over : [null, null];
+  const clash = !!(tg && ck && ck.left < tg.right && tg.left < ck.right && ck.top < tg.bottom && tg.top < ck.bottom);
+  return {clash, textTop: text.top, textBottom: text.bottom, overBottom: Math.max(0, ...over.map((b) => b.bottom)),
           sheetTop: document.querySelector(".sheet").getBoundingClientRect().top};
 }"""
 
@@ -138,5 +140,6 @@ def assert_caption_clear(page, width: int) -> None:
     makeup-map sheet (which overlaps the hero by 18px) does not cover its last line."""
     page.evaluate("window.scrollTo(0, 0)")
     m = page.evaluate(CAPTION_LAYOUT_JS)
+    assert not m["clash"], f"{width}px: the photo-check pill and the preview toggle overlap {m}"
     assert m["textTop"] >= m["overBottom"], f"{width}px: photo controls overlap the caption {m}"
     assert m["textBottom"] <= m["sheetTop"], f"{width}px: the sheet covers the caption {m}"
