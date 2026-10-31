@@ -116,4 +116,27 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.get_by_role("button", name="Even out redness").click()
     expect(page.get_by_test_id("hero-caption")).to_contain_text("foundation in her shade over the transfer")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("Recorded real YouCam API result")
+    for width, height in ((390, 844), (1440, 900)):
+        page.set_viewport_size({"width": width, "height": height})
+        assert_caption_clear(page, width)
     check_a11y(page, "hair-first look")
+
+
+CAPTION_LAYOUT_JS = """() => {
+  const box = (el) => el && !el.hidden ? el.getBoundingClientRect() : null;
+  const cap = document.getElementById("hero-cap");
+  const range = document.createRange(); range.selectNodeContents(cap);
+  const text = range.getBoundingClientRect();
+  const over = ["hero-toggle", "hero-check"].map((id) => box(document.getElementById(id))).filter(Boolean);
+  return {textTop: text.top, textBottom: text.bottom, overBottom: Math.max(0, ...over.map((b) => b.bottom)),
+          sheetTop: document.querySelector(".sheet").getBoundingClientRect().top};
+}"""
+
+
+def assert_caption_clear(page, width: int) -> None:
+    """The Replay label under the photo must be fully readable: nothing on the photo overlaps it and the
+    makeup-map sheet (which overlaps the hero by 18px) does not cover its last line."""
+    page.evaluate("window.scrollTo(0, 0)")
+    m = page.evaluate(CAPTION_LAYOUT_JS)
+    assert m["textTop"] >= m["overBottom"], f"{width}px: photo controls overlap the caption {m}"
+    assert m["textBottom"] <= m["sheetTop"], f"{width}px: the sheet covers the caption {m}"
