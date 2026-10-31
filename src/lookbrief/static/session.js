@@ -29,7 +29,17 @@
     if (!meta) return "";
     const src = meta.mode === "replay" ? "Recorded real YouCam API result" : "Live YouCam API result";
     const when = meta.recorded_at ? ` · ${meta.recorded_at}` : "";
-    return `${what} — ${src} · task ${String(meta.task_id).slice(0, 10)}… · ${meta.seconds}s${when}`;
+    return `${what} — ${src} · task ${taskFragment(meta.task_id)} · ${meta.seconds}s${when}`;
+  }
+  // YouCam ids of one session share a long prefix and a 22-char suffix: show a part that differs between tasks
+  function taskFragment(id) {
+    const t = String(id);
+    return t.length >= 40 ? `${t.slice(0, 4)}…${t.slice(-30, -22)}` : `${t.slice(0, 10)}…`;
+  }
+  function setCaption(el, meta, what, fallback) {
+    const known = !!(meta && meta.task_id);
+    el.textContent = known || fallback === undefined ? stepCaption(meta, what) : fallback;
+    el.title = known ? `YouCam task ${meta.task_id}` : "";
   }
 
   // ---------- photo: outlines + pins ----------
@@ -104,19 +114,19 @@
     const hairFirst = state.order === "hair_first";
     let src = im.look, alt = hairFirst ? "You with the inspiration hair and makeup (YouCam Hair Transfer, then Makeup Transfer)"
       : "You wearing the inspiration makeup (YouCam Makeup Transfer)";
-    let cap = stepCaption(st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer");
+    let cap = [st.mu_transfer, hairFirst ? "Hair Transfer + Makeup Transfer" : "Makeup Transfer"];
     const renderStep = st["render:" + (state.edits || []).map((e) => e.join(":")).join("+")];
-    if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; cap = stepCaption(st.hair_transfer, "Hair Transfer"); }
+    if (heroView === "hair" && im.hair) { src = im.hair; alt = "You with the inspiration makeup and hair (YouCam Hair Transfer)"; cap = [st.hair_transfer, "Hair Transfer"]; }
     else if (heroView === "even" && im.even && edited && im.render) {
       src = im.render; alt = "Your adjusted look: your edits re-rendered with YouCam Makeup VTO, with foundation in her shade";
-      cap = stepCaption(renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade");
+      cap = [renderStep, "Your edits, re-rendered by Makeup VTO with the same foundation in her shade"];
     }
-    else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = stepCaption(st.even_out, "Even out redness: foundation in her shade over the transfer"); }
+    else if (heroView === "even" && im.even) { src = im.even; alt = "Your look with foundation in her shade over the transfer (YouCam Makeup VTO)"; cap = [st.even_out, "Even out redness: foundation in her shade over the transfer"]; }
     else if (edited && im.render && !hairFirst) {
       src = im.render; alt = "Your adjusted look, re-rendered with YouCam Makeup VTO";
-      cap = stepCaption(st["render:" + state.edits.map((e) => e.join(":")).join("+")], "Makeup VTO re-render");
+      cap = [renderStep, "Makeup VTO re-render"];
     }
-    $("hero-cap").textContent = cap;
+    setCaption($("hero-cap"), ...cap);
     const hero = $("img-hero");
     if (src && hero.getAttribute("src") !== src) hero.src = src;
     hero.alt = alt;
@@ -182,7 +192,7 @@
       </article>`;
     }).join("");
     $("zones").innerHTML = html;
-    const extra = map.nose && map.nose.changed_px > 200
+    const extra = map.nose && map.nose.changed_px > 200 && map.nose.coverage >= 0.05 // 1% reads like a false warning
       ? `Also changed: nose &amp; contour (${Math.round(map.nose.coverage * 100)}% of that area) — not re-rendered, flag it with your artist.` : "";
     $("zone-extra").innerHTML = extra;
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone)));
@@ -214,13 +224,15 @@
     const evenAfter = state.order === "hair_first" && im.even; // her look is the evened one
     $("img-before").src = im.bride; $("img-after").src = evenAfter ? im.even : im.look;
     $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-render").src = im.render;
-    if (im.hair) { $("img-hair").src = im.hair; } else { $("img-hair").closest("figure").hidden = true; }
+    const hairImg = im.hair || (state.order === "hair_first" && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
+    if (hairImg) { $("img-hair").src = hairImg; } else { $("img-hair").closest("figure").hidden = true; }
+    if (!im.hair && hairImg) $("img-hair").alt = "Your selfie with the inspiration hair (YouCam Hair Transfer)";
     const st = state.steps || {};
-    $("cap-after").textContent = evenAfter ? stepCaption(st.even_out, "Hair Transfer + Makeup Transfer, then even out redness (foundation in her shade, Makeup VTO)")
-      : stepCaption(st.mu_transfer, "Makeup Transfer");
-    $("cap-hair").textContent = st.hair_transfer && st.hair_transfer.task_id ? stepCaption(st.hair_transfer, "Hair Transfer") : "Hair preview unavailable";
+    if (evenAfter) setCaption($("cap-after"), st.even_out, "Hair Transfer + Makeup Transfer, then even out redness (foundation in her shade, Makeup VTO)");
+    else setCaption($("cap-after"), st.mu_transfer, "Makeup Transfer");
+    setCaption($("cap-hair"), st.hair_transfer, im.hair ? "Hair Transfer" : "Hair (YouCam Hair Transfer on your selfie)", "Hair preview unavailable");
     const key = (state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base";
-    $("cap-render").textContent = stepCaption(st[key], "Makeup VTO re-render");
+    setCaption($("cap-render"), st[key], "Makeup VTO re-render");
     if (!heroInit) { heroInit = true; if (state.order === "hair_first" && im.even) heroView = "even"; }
     renderHero(); renderPhoto(); renderZones(); renderGaps();
     $("tech").textContent = JSON.stringify({ steps: state.steps, recipe: state.recipe, vto_effects: state.vto_effects, map: state.map }, null, 2);
@@ -263,12 +275,18 @@
     const replaced = state.mode === "replay" && payload.zone && before > 0 && after === before;
     const heldOne = state.mode === "replay" && after > 0 && opts.length > 0 && !opts.some((o) => o.available);
     $("edit-msg").textContent = replaced ? "Updated. Samples hold one recorded change at a time — this replaced your previous change."
-      : heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another." : "Updated.";
+      : heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another."
+      : payload.action === "undo" ? "Undone."
+      : payload.action === "reset" ? (state.order === "hair_first" && (state.images || {}).even ? "Back to your look." : "Back to the transferred look.")
+      : "Updated.";
     render();
+    const hr = $("img-hero").getBoundingClientRect(); // after a zone change, show the photo if less than half is on screen
+    const scrolled = !!payload.zone && Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
+    if (scrolled) $("img-hero").scrollIntoView({ behavior: "smooth", block: "start" });
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
-    if (refocus && usable(back)) back.focus();
-    else if (refocus && usable($("undo"))) $("undo").focus(); // the button pressed is gone or disabled
+    if (refocus && usable(back)) back.focus({ preventScroll: scrolled });
+    else if (refocus && usable($("undo"))) $("undo").focus({ preventScroll: scrolled }); // the button pressed is gone or disabled
   }
 
   $("ba").addEventListener("input", (e) => { $("img-after").style.clipPath = `inset(0 0 0 ${e.target.value}%)`; });

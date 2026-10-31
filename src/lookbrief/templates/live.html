@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Your photos · Look Brief{% endblock %}
+{% block title %}{% if live.available %}Your photos{% else %}Upload is off in this demo{% endif %} · Look Brief{% endblock %}
 {% block content %}
-<h1>Your photos</h1>
+<h1>{% if live.available %}Your photos{% else %}Upload is off in this demo{% endif %}</h1>
 {% if not live.available %}
 <p class="note" role="status">{{ live.reason }}</p>
 <p><a class="btn primary" href="/">Try a recorded sample instead</a></p>

@@ -535,3 +535,41 @@ def test_replay_edit_options_without_a_recorded_single_edit():
     assert opts[("lips", "bolder")]["available"] and not opts[("lips", "bolder")]["replaces"], "recorded combination"
     assert opts[("cheeks", "softer")]["available"] and opts[("cheeks", "softer")]["replaces"]
     assert not opts[("lips", "lighter")]["available"], "neither the combination nor the single change is recorded"
+
+
+# ---------------- click-test fixes, second batch (CT3110-YCBQ) ----------------
+def test_hair_first_brief_serves_the_hair_transfer_on_her_selfie(client):
+    """s0 has no "hair" image: the Hair Transfer on her selfie is "base", and the brief shows it as the hair."""
+    sid = _sample_session(client, "s0-champagne-rose")
+    bid, bride, artist = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    for t in (bride, artist):
+        v = client.get(f"/api/briefs/{bid}?t={t}").json()
+        assert "hair" not in v["images"] and v["snapshot"]["order"] == "hair_first"
+        r = client.get(v["images"]["base"])
+        assert r.status_code == 200 and r.headers["content-type"].startswith("image/")
+
+
+def test_card_heading_says_not_agreed_until_both_agreed(client):
+    _, bid, bride, artist = _brief(client)
+    zones = client.get(f"/api/briefs/{bid}?t={artist}").json()["snapshot"]["review_zones"]
+    for z in zones:
+        client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": z, "status": "do"})
+    client.post(f"/api/briefs/{bid}/agree", json={"t": artist})  # the artist can open the card after agreeing alone
+    html = client.get(f"/card/{bid}?t={artist}").text
+    assert "<h1>Look card · not agreed yet</h1>" in html and "<h1>Agreed look</h1>" not in html
+    assert "<title>Look card · not agreed yet · Look Brief</title>" in html
+    client.post(f"/api/briefs/{bid}/agree", json={"t": bride})
+    html = client.get(f"/card/{bid}?t={artist}").text
+    assert "<h1>Agreed look</h1>" in html and "not agreed yet" not in html
+    assert "<title>Agreed look card · Look Brief</title>" in html
+
+
+def test_home_and_live_page_say_uploads_are_off(client, live_client):
+    html = client.get("/").text
+    assert "On this demo server uploads are off — try a recorded sample below" in html
+    assert 'href="#samples-h">Try the sample look</a>' in html
+    live = client.get("/live").text
+    assert "<h1>Upload is off in this demo</h1>" in live and "<h1>Your photos</h1>" not in live
+    # where Live is available the copy stays as it was
+    assert "uploads are off" not in live_client.get("/").text
+    assert "<h1>Your photos</h1>" in live_client.get("/live").text

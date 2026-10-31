@@ -3,6 +3,7 @@
 <section class="hero-intro">
   <h1>See your wedding makeup before you pay for the trial</h1>
   <p class="lead">Upload your selfie and the photo you love. Look Brief puts that exact makeup on <em>your</em> face, measures it zone by zone, and turns it into a brief your makeup artist confirms — so the trial only has to execute what you both already agreed on.</p>
+  {% if not live.available %}<p class="note" data-testid="uploads-off">On this demo server uploads are off — try a recorded sample below; every result is a real YouCam API call recorded earlier.</p>{% endif %}
   <ol class="how">
     <li><strong>Your photo + your inspiration</strong> — YouCam Makeup Transfer and Hair Transfer.</li>
     <li><strong>Your makeup map</strong> — eyelids, cheeks, lips: shade, strength, coverage, measured from pixels.</li>
@@ -34,6 +35,7 @@
   <p><a class="btn primary" href="/live">Start with my photos</a></p>
   {% else %}
   <p class="note" data-testid="live-off">{{ live.reason }}</p>
+  <p><a class="btn ghost" href="#samples-h">Try the sample look</a></p>
   {% endif %}
 </section>
 {% endblock %}

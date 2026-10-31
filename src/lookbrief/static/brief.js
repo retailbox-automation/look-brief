@@ -6,6 +6,8 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const LABELS = { do: "I'll do this", swap: "I'll swap the product", discuss: "Let's discuss" };
   let view = null;
+  let noteUntil = 0; // "already up to date" stays next to the state line for a few seconds, across poll re-renders
+  const UP_TO_DATE = "Your brief is already up to date — no new edits.";
 
   async function api(path, opts) {
     const r = await fetch(path, opts);
@@ -29,21 +31,28 @@
     $("b-after").src = im[view.snapshot.target] || im.look || "";
     $("b-after").alt = `Agreed look: ${targetText(view.snapshot)}`;
     $("b-after-cap").textContent = `Agreed look: ${targetText(view.snapshot)}`;
-    if (im.hair) $("b-hair").src = im.hair; else $("b-hair").closest("figure").hidden = true;
+    const hairFirst = view.snapshot.order === "hair_first";
+    const hairImg = im.hair || (hairFirst && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
+    if (hairImg) $("b-hair").src = hairImg; else $("b-hair").closest("figure").hidden = true;
+    if (!im.hair && hairImg) {
+      $("b-hair").alt = "Bride's selfie with the inspiration hair (YouCam Hair Transfer)";
+      $("b-hair-cap").textContent = "Hair (YouCam Hair Transfer on her selfie)";
+      $("more-photos-h").textContent = "Inspiration photo and hair preview";
+    }
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
       const detail = z === "skin"
         ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> Foundation in her own shade ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} — evens redness, applied over the transfer`
-        : zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%` : "Hair as in the makeup + hair preview below";
+        : zi.product_hex ? `<span class="swatch" style="background:${esc(zi.product_hex)}" aria-hidden="true"></span> ${esc(zi.product_hex)} · intensity ${esc(zi.intensity)} · coverage ${Math.round((zi.coverage || 0) * 100)}%`
+        : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
       }
       const radios = Object.entries(LABELS).map(([k, l]) => `<label class="seg"><input type="radio" name="st-${z}" value="${k}" ${r.status === k ? "checked" : ""}><span>${esc(l)}</span></label>`).join("");
-      const hint = zi.product_hex ? "" : `<p class="rv-detail">${detail}</p>`;
-      return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend>
+      return `<fieldset class="review" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p>
         <div class="segs">${radios}</div>
-        <label class="rv-note"><span class="sr-only">Note for the bride about ${esc(zi.label)}</span><input type="text" maxlength="300" name="note-${z}" value="${esc(z in dirty ? dirty[z] : (r.note || ""))}" placeholder="Note for the bride"></label>${hint}</fieldset>`;
+        <label class="rv-note"><span class="sr-only">Note for the bride about ${esc(zi.label)}</span><input type="text" maxlength="300" name="note-${z}" value="${esc(z in dirty ? dirty[z] : (r.note || ""))}" placeholder="Note for the bride"></label></fieldset>`;
     }).join("");
     $("reviews").innerHTML = rows;
     $("reviews").querySelectorAll("input[type=radio]").forEach((el) => el.addEventListener("change", () => save(el.name.slice(3))));
@@ -60,7 +69,7 @@
     else if (!view.can_agree && role === "bride") help = view.open_discussions.length ? "Your artist wants to discuss a zone — talk it through, then they update the answer." : "Waiting for your makeup artist to answer every zone.";
     else if (!view.can_agree) help = view.open_discussions.length ? "Resolve “Let's discuss” zones with the bride first." : "Choose an answer for every zone first.";
     else help = me ? `You agreed at ${me}. Waiting for the ${other}.` : (a[other] ? `The ${other} agreed ✓ · waiting for you.` : "");
-    $("agree-help").textContent = help;
+    $("agree-help").textContent = Date.now() < noteUntil ? `${help} ${UP_TO_DATE}`.trim() : help;
     $("agree").disabled = signed || !view.can_agree || !!me;
     $("b-status").textContent = `Version ${view.version}${view.snapshot.mode === "replay" ? " · sample (recorded real YouCam API results)" : ""}`;
     if (signed || a.bride || a.artist) { $("card-a").href = `/card/${bid}?t=${token}`; $("card-link").hidden = false; }
@@ -120,8 +129,8 @@
   if (rev) rev.addEventListener("click", async () => {
     const { ok, body } = await api(`/api/briefs/${bid}/revise`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token }) });
     if (!ok) { $("agree-help").textContent = body.detail || "Couldn't update the brief."; return; }
+    noteUntil = body.unchanged ? Date.now() + 6000 : 0;
     view = body; render();
-    if (body.unchanged) $("agree-help").textContent = "Your brief is already up to date — no new edits.";
   });
   load();
   setInterval(load, 8000);

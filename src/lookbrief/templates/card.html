@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Agreed look card · Look Brief{% endblock %}
+{% block title %}{% if v.attestation %}Agreed look card{% else %}Look card · not agreed yet{% endif %} · Look Brief{% endblock %}
 {% block content %}
 {% set snap = v.snapshot %}
 <article class="card" data-testid="card">
   <header>
-    <h1>Agreed look</h1>
+    <h1>{% if v.attestation %}Agreed look{% else %}Look card · not agreed yet{% endif %}</h1>
     <p class="note">Brief {{ v.id }} · version {{ v.version }} · {% if snap.mode == 'replay' %}sample, recorded real YouCam API results{% else %}live YouCam API session{% endif %}</p>
   </header>
   <div class="compare small">

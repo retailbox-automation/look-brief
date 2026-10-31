@@ -13,6 +13,9 @@ from playwright.sync_api import expect, sync_playwright
 pytestmark = pytest.mark.e2e
 AXE = Axe()
 REPLACED = "Updated. Samples hold one recorded change at a time — this replaced your previous change."
+UP_TO_DATE = "Your brief is already up to date — no new edits."
+HERO_ON_SCREEN_JS = "() => { const r = document.getElementById('img-hero').getBoundingClientRect(); " \
+    "return r.height > 0 && r.bottom > 0 && r.top < innerHeight; }"
 WCAG = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]}}
 
 
@@ -80,7 +83,8 @@ def test_guided_path_both_roles(base_url, browser_ctx):
         box = cap.bounding_box()
         assert box and box["width"] > 40 and box["height"] > 8, f"caption not visible: {box}"
     bride.get_by_role("button", name="Update the brief from my latest edits").click()
-    expect(bride.locator("#agree-help")).to_have_text("Your brief is already up to date — no new edits.")
+    waiting = "Waiting for your makeup artist to answer every zone."
+    expect(bride.locator("#agree-help")).to_have_text(f"{waiting} {UP_TO_DATE}")
     expect(bride.locator("#b-status")).to_contain_text("Version 1")
 
     artist = browser_ctx.new_page()
@@ -88,6 +92,9 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(artist.get_by_text("For your makeup artist · no account needed")).to_be_visible()
     reviews = artist.locator("fieldset.review")
     expect(reviews).to_have_count(5 if hair_first else 4)  # eyelids, cheeks, lips, hair (+ skin: even out redness)
+    snap = artist.request.get(base_url + artist_url.replace("/b/", "/api/briefs/")).json()["snapshot"]
+    cheeks_hex = next(z["product_hex"] for z in snap["zones"] if z["zone"] == "cheeks")
+    expect(artist.get_by_test_id("review-cheeks")).to_contain_text(cheeks_hex)  # not only in the shades list below
     if hair_first:
         expect(artist.get_by_test_id("review-skin")).to_be_visible()
         expect(artist.locator("#shades")).to_contain_text("foundation in her shade · intensity 30")
@@ -103,8 +110,17 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     artist.get_by_role("button", name="Agree to this look").click()
     expect(artist.locator("#agree-help")).to_contain_text("Waiting for the bride")
 
+    bride.clock.install()  # to run the 8 s poll on demand
     bride.goto(base_url + bride_url)
     expect(bride.locator("#agree-help")).to_contain_text("The artist agreed")
+    bride.clock.run_for(7_500)
+    bride.get_by_role("button", name="Update the brief from my latest edits").click()
+    help_text = re.compile(r"The artist agreed ✓ · waiting for you\. " + re.escape(UP_TO_DATE))
+    expect(bride.locator("#agree-help")).to_have_text(help_text)
+    with bride.expect_response(lambda r: "/api/briefs/" in r.url and r.request.method == "GET"):
+        bride.clock.run_for(1_000)  # the poll fires within a second of the click
+    bride.wait_for_timeout(300)
+    expect(bride.locator("#agree-help")).to_have_text(help_text)
     bride.get_by_role("button", name="Agree to this look").click()
     expect(bride.locator("#agree-help")).to_contain_text("signed by the server")
     bride.locator("#card-a").click()
@@ -140,7 +156,16 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.get_by_role("button", name="Cheeks", exact=True).click()
     page.get_by_role("button", name="Cheeks: softer").click()
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.wait_for_function(HERO_ON_SCREEN_JS, timeout=5_000)  # 390x844: the change itself is on screen
     expect(page.locator("#reset")).to_have_text("Back to my look")
+    expect(page.locator("#zone-extra")).to_have_text("")  # 1% of the nose area is not a warning
+    # the caption names a part of the task id that differs between re-renders; the full id is in the title
+    sid = page.url.rsplit("/", 1)[1]
+    steps = page.evaluate(f"async () => (await (await fetch('/api/sessions/{sid}')).json()).steps")
+    softer, base = steps["render:cheeks:softer"]["task_id"], steps["render:base"]["task_id"]
+    assert task_fragment(softer) != task_fragment(base), (softer, base)
+    expect(page.get_by_test_id("hero-caption")).to_contain_text(f"task {task_fragment(softer)}")
+    expect(page.get_by_test_id("hero-caption")).to_have_attribute("title", f"YouCam task {softer}")
     expect(page.get_by_role("button", name="Even out redness")).to_have_attribute("aria-pressed", "true")
     expect(page.get_by_test_id("hero-caption")).to_contain_text("same foundation in her shade")
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
@@ -160,10 +185,44 @@ def test_hair_first_sample_by_link_with_even_out(base_url, browser_ctx):
     page.wait_for_load_state("networkidle")
     assert link.get_attribute("href") == first
     page.get_by_role("button", name="Undo last change").click()
-    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#edit-msg")).to_have_text("Undone.", timeout=20_000)
     send.click()
     expect(link).not_to_have_attribute("href", first)
     expect(copy).to_have_text("Copy")
+    # hair first has no "hair" image: the Hair Transfer on her selfie is shown as the hair, here and in the brief
+    page.get_by_text("Inspiration, hair and the measured map").click()
+    assert page.evaluate("document.getElementById('img-hair').naturalWidth") > 0
+    expect(page.locator("#cap-hair")).to_contain_text("Hair (YouCam Hair Transfer on your selfie)")
+    bride = browser_ctx.new_page()
+    bride.goto(base_url + page.get_by_test_id("bride-link").get_attribute("href"))
+    expect(bride.get_by_test_id("review-hair")).to_contain_text(
+        "Hair as in the agreed look photo above (YouCam Hair Transfer)")
+    bride.get_by_text("Inspiration photo and hair preview").click()
+    expect(bride.locator("#b-hair-cap")).to_have_text("Hair (YouCam Hair Transfer on her selfie)")
+    bride.wait_for_function("document.getElementById('b-hair').naturalWidth > 0", timeout=5_000)
+    expect(bride.locator("#b-hair")).to_be_visible()
+    # back to her look after a change
+    page.get_by_role("button", name="Cheeks: softer").click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.get_by_role("button", name="Back to my look").click()
+    expect(page.locator("#edit-msg")).to_have_text("Back to your look.", timeout=20_000)
+
+
+def task_fragment(task_id: str) -> str:
+    """The part of a YouCam task id the captions show (session.js taskFragment)."""
+    return f"{task_id[:4]}…{task_id[-30:-22]}" if len(task_id) >= 40 else f"{task_id[:10]}…"
+
+
+def test_transfer_first_sample_keeps_the_nose_note_and_reset_text(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s2-classic-red")  # the transfer changed 12% of her nose area
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    expect(page.locator("#zone-extra")).to_contain_text("Also changed: nose & contour")
+    page.get_by_role("button", name="Cheeks", exact=True).click()
+    page.get_by_role("button", name="Cheeks: softer").click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.get_by_role("button", name="Back to the transferred look").click()
+    expect(page.locator("#edit-msg")).to_have_text("Back to the transferred look.", timeout=20_000)
 
 
 CAPTION_LAYOUT_JS = """() => {
