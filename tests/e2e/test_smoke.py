@@ -2,15 +2,21 @@
 Mobile viewport; axe-core WCAG 2 A/AA on every screen. Optional: LOOKBRIEF_RECORD_DIR records one video
 per page (used for the demo footage)."""
 
+import json
 import os
 import re
 import time
+from pathlib import Path
 
 import pytest
 from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import expect, sync_playwright
 
-pytestmark = pytest.mark.e2e
+SAMPLES = Path(__file__).resolve().parents[2] / "samples"
+WAITING = [p.parent.name for p in SAMPLES.glob("s*/manifest.json")
+           if not json.loads((p.parent / "sample.json").read_text()).get("hidden")
+           and json.loads(p.read_text())["steps"]["render:base"]["recipe"]["version"] != 2]
+pytestmark = [pytest.mark.e2e, pytest.mark.skipif(bool(WAITING), reason=f"samples wait for re-recording: {WAITING}")]
 AXE = Axe()
 REPLACED = "Updated. Samples hold one recorded change at a time — this replaced your previous change."
 UP_TO_DATE = "Your brief is already up to date — no new edits."

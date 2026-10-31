@@ -4,22 +4,21 @@ the zone outline, and every pair of edits of one zone against each other (thresh
 These tests failed on the recordings of b05012a (edits moved the zone by dE2000 0.5-1.5)."""
 
 import pytest
-from helpers import SAMPLE_IDS, SAMPLES
+from helpers import SAMPLES, parse_edit_key, recorded_samples
 
+from lookbrief import recipe as rcp
 from lookbrief import visibility
 
 
-@pytest.fixture(scope="module", params=SAMPLE_IDS)
+@pytest.fixture(scope="module", params=recorded_samples())
 def report(request):
     return request.param, visibility.edit_visibility(SAMPLES / request.param)
 
 
 def test_every_offered_edit_is_recorded(report):
-    """12 edits minus "softer" on zones too light to soften visibly (decision B, 31.10)."""
     sid, rep = report
     assert not rep["missing"], (sid, rep["missing"])
-    light = [z for z, v in rep["strength"].items() if v < visibility.LIGHT_ZONE]
-    assert len(rep["edits"]) == 12 - len(light), (sid, sorted(rep["edits"]), light)
+    assert len(rep["edits"]) == len(rep["offered"]), sid
 
 
 def test_each_edit_visibly_changes_its_zone(report):
@@ -59,23 +58,14 @@ def test_the_metric_sees_a_real_change_and_ignores_none():
     assert float(delta_e2000(base[masks["lips"]], transfer[masks["lips"]]).mean()) > visibility.MIN_PAIR_MEAN
 
 
-@pytest.mark.parametrize("sid", SAMPLE_IDS)
+@pytest.mark.parametrize("sid", recorded_samples())
 def test_recorded_edit_recipes_follow_the_edit_rule(sid):
-    """Replay serves what was recorded: each recorded edit must be exactly what recipe.apply_edit makes today
-    (a changed step with stale recordings would show one thing and claim another)."""
+    """Replay serves what was recorded: each recorded render must be exactly what recipe.apply_edits makes today
+    (a changed palette with stale recordings would show one thing and claim another)."""
     import json
-
-    from lookbrief import recipe as rcp
 
     steps = json.loads((SAMPLES / sid / "manifest.json").read_text())["steps"]
     base = steps["render:base"]["recipe"]
-    stale = []
-    for key, rec in steps.items():
-        if not key.startswith("render:") or key == "render:base":
-            continue
-        zone, op = key.split(":")[1:]
-        want = rcp.apply_edit(base, zone, op)["zones"][zone]
-        got = rec["recipe"]["zones"][zone]
-        if (want["color"], want["intensity"]) != (got["color"], got["intensity"]):
-            stale.append((key, got["color"], got["intensity"], want["color"], want["intensity"]))
-    assert not stale, f"{sid}: recorded edits made under an older rule: {stale}"
+    stale = [key for key, rec in steps.items() if key.startswith("render:")
+             and rec["recipe"] != rcp.apply_edits(base, parse_edit_key(key))]
+    assert not stale, f"{sid}: recorded under an older palette: {stale}"

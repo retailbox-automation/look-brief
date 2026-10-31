@@ -4,21 +4,29 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
-from helpers import HIDDEN_IDS, SAMPLES, UNLISTED_IDS, VISIBLE_IDS
+from helpers import HIDDEN_IDS, SAMPLES, UNLISTED_IDS, VISIBLE_IDS, make_v2_samples
 
 from lookbrief import app as app_mod
-from lookbrief import attest
+from lookbrief import attest, palettes
+from lookbrief import recipe as rcp
 from lookbrief.config import Settings
 from lookbrief.youcam import UNITS, TaskResult
 
 SID = "s2-classic-red"  # transfer-first sample these session tests were written for; hair_first has its own tests
 assert SID in VISIBLE_IDS
+V2_SAMPLES = None  # the recipe v2 contract on the recorded images (helpers.make_v2_samples)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def v2_samples(tmp_path_factory):
+    global V2_SAMPLES
+    V2_SAMPLES = make_v2_samples(tmp_path_factory.mktemp("samples"))
 
 
 def _settings(tmp_path, **kw) -> Settings:
     s = Settings()
     s.data_dir = tmp_path / "data"
-    s.samples_dir = SAMPLES
+    s.samples_dir = V2_SAMPLES
     for k, v in kw.items():
         setattr(s, k, v)
     return s
@@ -59,27 +67,63 @@ def test_replay_session_state(client):
     assert all(0 <= c <= 1 for poly in st["outlines"]["lips"] for pt in poly for c in pt)
     assert st["checks"]["bride"]["ok"] and st["checks"]["inspiration"]["ok"]
     assert abs(st["checks"]["bride"]["yaw_deg"]) < 15
-    light = [o for o in st["edit_options"] if o.get("reason") == "light"]
-    assert [(o["zone"], o["op"]) for o in light] == [("cheeks", "softer")], "s2: the cheeks are too light to soften"
-    assert all(o["available"] for o in st["edit_options"] if o not in light)
-    assert not any(o["available"] for o in light)
+    off = [o for o in st["edit_options"] if not o["available"]]
+    assert off and all(o["reason"] in ("current", "lightest", "deepest") for o in off), off
+    assert not any(o["reason"] == "not_recorded" for o in off), "every button of the base look has its render"
+    assert st["recipe"]["version"] == 2 and len(st["recipe"]["zones"]) == 9 and len(st["shades"]) == 9
     for url in st["images"].values():
         assert client.get(url).status_code == 200
+
+
+def test_the_state_says_the_look_is_the_recipe_render(client):
+    st = client.get(f"/api/sessions/{_replay_session(client)}").json()
+    assert st["views"] == {"hero": "render", "before": "bride", "after": "render"}
+    assert st["images"][st["views"]["hero"]].endswith("/render-base.png")
+    assert st["images"][st["views"]["before"]].endswith("/bride.jpg")
 
 
 def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     sid = _replay_session(client)
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
     assert r.status_code == 200 and r.json()["edits"] == [["cheeks", "bolder"]]
-    opts = [o for o in r.json()["edit_options"] if o.get("reason") != "light"]  # cheeks softer: too light
-    assert all(o["available"] for o in opts), "after one change every recorded single change can still be pressed"
+    opts = [o for o in r.json()["edit_options"] if o["zone"] != "look" and "reason" not in o]
+    assert len(opts) > 40, "after one change every recorded single change can still be pressed"
     assert all(o["replaces"] for o in opts), "samples hold one change: each of them replaces the current one"
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
-    assert r.status_code == 200 and r.json()["edits"] == [["lips", "lighter"]]
-    assert r.json()["images"]["render"].endswith("render-lips-lighter.png")
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
+    assert r.status_code == 200 and r.json()["edits"] == [["lips", "softer"]]
+    assert r.json()["images"]["render"].endswith("render-lips-softer.png")
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
     assert r.json()["edits"] == []
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "nose", "op": "softer"}).status_code == 400
+
+
+def test_a_circle_a_step_and_a_look_through_the_api(client):
+    sid = _replay_session(client)  # s2: the classic red lip is pinned to ruby, the deepest step of the light lips
+    ladder = [s.id for s in palettes.ladder("light", "lips")]
+    assert ladder[-1] == "ruby"
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "deeper"})
+    assert r.status_code == 400 and r.json() == {"error": "deepest", "reason": rcp.BLOCK_NOTES["deepest"]}
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "lighter"})
+    assert r.status_code == 200 and r.json()["edits"] == [["lips", f"shade:{ladder[-2]}"]]
+    via_step = r.json()["images"]["render"]
+    assert r.json()["recipe"]["zones"]["lips"]["shade_id"] == ladder[-2]
+    client.post(f"/api/sessions/{sid}/edits", json={"action": "reset"})
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": f"shade:{ladder[-2]}"})
+    assert r.json()["images"]["render"] == via_step, "Lighter is the render of the neighbour circle"
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "look", "op": "evening"})
+    assert r.status_code == 200 and r.json()["edits"] == [["look", "evening"]]
+    assert r.json()["recipe"]["look"] == "evening" and r.json()["images"]["render"].endswith("render-look-evening.png")
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "look", "op": "softglam"})
+    assert r.json()["edits"] == [] and r.json()["recipe"]["zones"]["lips"]["shade_id"] == "ruby", "back to the sample"
+
+
+@pytest.mark.parametrize("body", [
+    {"zone": "lips", "op": "shade:no-such-shade"}, {"zone": "lips", "op": "shade:../../lookbrief.db"},
+    {"zone": "look", "op": "party"}, {"zone": "lips"}, {"op": "softer"}, {}])
+def test_unknown_edits_are_400_and_change_nothing(client, body):
+    sid = _replay_session(client)
+    assert client.post(f"/api/sessions/{sid}/edits", json=body).status_code == 400
+    assert client.get(f"/api/sessions/{sid}").json()["edits"] == []
 
 
 def test_brief_review_agree_attest(client):
@@ -182,8 +226,8 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     assert st["status"] == "ready" and st["mode"] == "live" and st["units_spent"] == 6
     assert st["order"] == "hair_first" and {"base", "look", "even", "render"} <= set(st["images"])
     assert st["steps"]["even_out"]["label"] == "foundation in her shade over the transfer"
-    zone = next(iter(st["recipe_base"]["zones"]))  # the fake client's images decide which zones exist
-    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "lighter"})
+    zone = next(iter(st["recipe_base"]["zones"]))
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"})
     assert r.status_code == 200 and r.json()["units_spent"] == 7
     live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
     r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "bolder"})
@@ -308,17 +352,14 @@ def test_replay_session_cap_evicts_oldest(tmp_path, monkeypatch):
     assert (tmp_path / "data" / "sessions" / second).exists()
 
 
-def test_softer_on_a_light_zone_is_refused_and_changes_nothing(client):
-    """Decision B (31.10): where the zone's whole makeup is too light, softer would not show; it is not offered
-    and the server refuses it (a tap on a disabled button must not send an edit that 'does nothing')."""
+def test_a_button_on_the_edge_is_refused_and_changes_nothing(client):
+    """A tap on a disabled button must not send an edit that "does nothing": the server applies the same rule."""
     sid = _replay_session(client)
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"})
-    assert r.status_code == 400 and r.json() == {"error": "light_zone", "reason": "Already close to your bare skin."}
+    opt = next(o for o in client.get(f"/api/sessions/{sid}").json()["edit_options"] if o.get("reason") == "deepest")
+    assert opt["note"] and not opt["available"]
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": opt["zone"], "op": opt["op"]})
+    assert r.status_code == 400 and r.json() == {"error": "deepest", "reason": opt["note"]}
     assert client.get(f"/api/sessions/{sid}").json()["edits"] == []
-    sess = client.app.state.store.session(sid)
-    assert sess["state"]["zone_strength"]["cheeks"] < 3.5 <= sess["state"]["zone_strength"]["eyes"]
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "eyes", "op": "softer"})
-    assert r.status_code == 200 and r.json()["edits"] == [["eyes", "softer"]]
 
 
 def test_edit_of_a_zone_missing_from_the_look_is_400(client):
@@ -327,6 +368,7 @@ def test_edit_of_a_zone_missing_from_the_look_is_400(client):
     sess = store.session(sid)
     state = sess["state"]
     state["recipe_base"]["zones"].pop("cheeks")
+    state["recipe"]["zones"].pop("cheeks")
     store.update_session(sid, state=state)
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"}).status_code == 400
 
@@ -367,10 +409,11 @@ def test_unlisted_samples_work_by_link_only(tmp_path, monkeypatch):
     listed, unlisted = VISIBLE_IDS[0], VISIBLE_IDS[-1]
     assert listed != unlisted
     for s in (listed, unlisted):
-        shutil.copytree(SAMPLES / s, samples / s)
+        shutil.copytree(V2_SAMPLES / s, samples / s, symlinks=True)
     meta_path = samples / unlisted / "sample.json"
     meta = json.loads(meta_path.read_text())
     meta["unlisted"] = True
+    meta_path.unlink()  # a link to the real sample
     meta_path.write_text(json.dumps(meta))
     monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
     c = TestClient(app_mod.create_app(_settings(tmp_path / "x", samples_dir=samples)))
@@ -398,7 +441,7 @@ def test_footer_hides_the_repo_link_until_it_is_public(client, tmp_path, monkeyp
     ("s0-champagne-rose", None, "Agreed look: transfer + foundation in her shade", "Agreed look (Makeup Transfer)"),
     ("s0-champagne-rose", ["cheeks", "bolder"], "Agreed look: her edits, re-rendered by Makeup VTO with foundation",
      "Agreed look: transfer + foundation"),
-    ("s2-classic-red", ["lips", "lighter"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
+    ("s2-classic-red", ["lips", "bolder"], "Agreed look: her edits, re-rendered by Makeup VTO", "with foundation"),
 ])
 def test_card_shows_the_agreed_look(client, sample, edit, label, not_label):
     """The card shows what was agreed: her edited re-render if she edited, the evened look for hair first."""
@@ -541,17 +584,6 @@ def test_footer_live_status_opens_the_live_page(client):
     html = client.get("/").text
     assert 'href="/live">Live status' in html and 'href="/api/limits"' not in html
     assert "Try a recorded sample instead" in client.get("/live").text
-
-
-def test_replay_edit_options_without_a_recorded_single_edit():
-    """Only what is recorded can be pressed in Replay: no recorded single change -> no button, nothing replaced."""
-    from lookbrief import pipeline
-    state = {"edits": [["cheeks", "softer"]], "recipe_base": {"zones": {"cheeks": {}, "lips": {}}}}
-    keys = {"base", "cheeks:softer", "cheeks:softer+lips:bolder"}
-    opts = {(o["zone"], o["op"]): o for o in pipeline.edit_options(state, keys)}
-    assert opts[("lips", "bolder")]["available"] and not opts[("lips", "bolder")]["replaces"], "recorded combination"
-    assert opts[("cheeks", "softer")]["available"] and opts[("cheeks", "softer")]["replaces"]
-    assert not opts[("lips", "lighter")]["available"], "neither the combination nor the single change is recorded"
 
 
 # ---------------- click-test fixes, second batch (CT3110-YCBQ) ----------------

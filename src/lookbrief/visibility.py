@@ -6,8 +6,8 @@ pair of edits of one zone is compared the same way (tapping one button after ano
 Thresholds (visible at a glance on a phone, checked by eye on 1:1 zone crops, decision 31.10): mean >= 3.5 with
 >= 60 % of pixels over 2.3 against the base render, and mean >= 3.0 between two edits of one zone.
 
-"Softer" cannot go past her bare skin: where the zone's whole makeup (bare face -> base render) is below 3.5, softer
-would not show, so it is not offered there ("Already close to your bare skin", decision B 31.10).
+Covers the zones with an outline (eyes, cheeks, lips); a button on the edge of its ladder or range is off and not
+measured. Lighter / Deeper are read from the render of the neighbour circle.
 """
 
 from __future__ import annotations
@@ -21,11 +21,10 @@ from PIL import Image
 
 from . import landmarks, makeup_map
 from .color import delta_e2000
-from .recipe import EDIT_OPS, EDIT_ZONES
+from .recipe import EDIT_OPS, blocked, edit_key, resolve_edit
 
 JND = 2.3
 MIN_MEAN = 3.5
-LIGHT_ZONE = 3.5  # whole makeup of a zone below this: "softer" is not offered
 MIN_SHARE = 0.60
 MIN_PAIR_MEAN = 3.0
 
@@ -56,10 +55,6 @@ def zone_strength(bare: np.ndarray, render: np.ndarray, masks: dict[str, np.ndar
     return {z: round(float(delta_e2000(bare[m], render[m]).mean()), 2) for z, m in masks.items() if m.any()}
 
 
-def softer_offered(strength: dict[str, float] | None, zone: str) -> bool:
-    return strength is None or zone not in strength or strength[zone] >= LIGHT_ZONE
-
-
 def edit_visibility(sample_dir: Path) -> dict:
     """{'edits': {'lips:bolder': {'mean', 'share', 'ok'}}, 'pairs': {'lips:bolder>lighter': {...}},
     'strength': {zone: dE}, 'offered': ['lips:bolder', ...], 'missing': [...], 'ok': bool}."""
@@ -78,14 +73,17 @@ def edit_visibility(sample_dir: Path) -> dict:
 
     base = lab("render:base")
     bare_lab = makeup_map._lab(makeup_map.to_rgb_array(bare))
-    zones = [z for z in EDIT_ZONES if z in (steps["render:base"].get("recipe") or {}).get("zones", {})]
+    recipe = steps["render:base"]["recipe"]
+    zones = [z for z in masks if z in recipe["zones"]]
     strength = zone_strength(bare_lab, base, {z: masks[z] for z in zones})
-    offered = [f"{z}:{op}" for z in zones for op in EDIT_OPS if op != "softer" or softer_offered(strength, z)]
-    missing = [k for k in offered if f"render:{k}" not in steps]
+    renders = {(z, op): f"render:{edit_key([resolve_edit(recipe, z, op)])}" for z in zones for op in EDIT_OPS
+               if not blocked(recipe, z, op)}
+    offered = [f"{z}:{op}" for z, op in renders]
+    missing = [f"{z}:{op}" for (z, op), key in renders.items() if key not in steps]
     edits, pairs = {}, {}
     for z in zones:
-        ops = [op for op in EDIT_OPS if f"{z}:{op}" in offered and f"render:{z}:{op}" in steps]
-        imgs = {op: lab(f"render:{z}:{op}") for op in ops}
+        ops = [op for op in EDIT_OPS if renders.get((z, op)) in steps]
+        imgs = {op: lab(renders[(z, op)]) for op in ops}
         for op in ops:
             s = _stat(base, imgs[op], masks[z])
             edits[f"{z}:{op}"] = {**s, "ok": s["mean"] >= MIN_MEAN and s["share"] >= MIN_SHARE}

@@ -1,9 +1,13 @@
-"""One bride session, end to end: transfer -> hair -> makeup map -> recipe -> re-render -> metric.
+"""One bride session, end to end: transfer -> makeup map -> recipe -> re-render -> metric, with hair before or after.
 
-Two orders. transfer_first (the recorded samples s2/s3): Makeup Transfer on the selfie, Hair Transfer on that.
-hair_first: Hair Transfer on the selfie gives the "base" (her face with the inspiration hair), Makeup Transfer runs
-on the base, and the map, metric and every re-render use the base, so Hair Transfer's relighting never reads as
-makeup. hair_first also records "Even out redness": a foundation in her own shade over the transfer.
+Two orders. transfer_first (the recorded samples s2/s3): Makeup Transfer on the selfie, then the recipe's base render,
+then Hair Transfer on that render, so the hair preview wears the new look. hair_first: Hair Transfer on the selfie
+gives the "base" (her face with the inspiration hair), Makeup Transfer runs on the base, and the map, metric and every
+re-render use the base, so Hair Transfer's relighting never reads as makeup. hair_first also records "Even out
+redness": a foundation in her own shade over the transfer.
+
+The look she is shown is the recipe's render (`views`), not the transfer: the transfer only gives the map and the
+colour family, and stays visible further down the page.
 
 All files of a session live in one folder; the returned `state` dict is what the API serves.
 """
@@ -16,8 +20,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from . import landmarks, makeup_map, visibility
+from . import landmarks, makeup_map, palettes
 from . import recipe as rcp
+from .color import hex_to_lab
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx, StepResult, image_ext
 from .youcam import YouCamError
 
@@ -73,7 +78,10 @@ def skin_hex_of(workdir: Path, bare_name: str, face: landmarks.FaceGeometry) -> 
     return lab_to_hex(np.median(srgb_to_lab(arr[forehead].astype(np.float64) / 255.0), axis=0))
 
 
-def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, order: str = "transfer_first") -> dict:
+def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, order: str = "transfer_first",
+               pins: dict | None = None) -> dict:
+    """`pins` (sample.json `recipe_pins`: group, look, shades): the recipe of a sample, exactly as approved; without
+    pins the group comes from her forehead and the inspiration picks the shades of lips, cheeks and lids."""
     if order not in ORDERS:
         raise ValueError(f"unknown order {order}")
     workdir.mkdir(parents=True, exist_ok=True)
@@ -97,18 +105,10 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
         mu = engine.makeup_transfer(ctx)
         state["steps"]["mu_transfer"] = asdict(mu.meta)
         state["images"]["look"] = _save(workdir, "look", mu)
-        try:
-            hair = engine.hair_transfer(ctx)
-            state["steps"]["hair_transfer"] = asdict(hair.meta)
-            state["images"]["hair"] = _save(workdir, "hair", hair)
-        except (YouCamError, NotRecorded) as e:  # the hair preview is optional; the brief still works
-            code = getattr(e, "code", "not_recorded")
-            state["steps"]["hair_transfer"] = {"error": code}
-            state["notes"].append(f"Hair preview unavailable ({code}).")
 
     face = face_of(workdir, state["bare"])
+    skin = skin_hex_of(workdir, state["bare"], face)
     if order == "hair_first":
-        skin = skin_hex_of(workdir, state["bare"], face)
         try:
             ev = engine.even_out(ctx, skin)
             state["steps"]["even_out"] = asdict(ev.meta)
@@ -123,10 +123,22 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
         recorder.set_map(mmap.to_dict())
 
     base = engine.recorded_recipe([]) if isinstance(engine, ReplayEngine) else None
-    base = base or rcp.base_recipe(mmap)
-    state["recipe_base"] = base
+    if base is None and pins:
+        base = rcp.base_recipe(None, pins["group"], pins["look"], pins.get("shades"))
+    state["recipe_base"] = base or rcp.base_recipe(mmap, palettes.skin_group(hex_to_lab(skin)))
     state["edits"] = []
-    return rerender(engine, ctx, workdir, state, [], face=face)
+    state["views"] = {"hero": "render", "before": "base" if order == "hair_first" else "bride", "after": "render"}
+    state = rerender(engine, ctx, workdir, state, [], face=face)
+    if order == "transfer_first":
+        try:
+            hair = engine.hair_transfer(ctx, on="render")
+            state["steps"]["hair_transfer"] = asdict(hair.meta)
+            state["images"]["hair"] = _save(workdir, "hair", hair)
+        except (YouCamError, NotRecorded) as e:  # the hair preview is optional; the brief still works
+            code = getattr(e, "code", "not_recorded")
+            state["steps"]["hair_transfer"] = {"error": code}
+            state["notes"].append(f"Hair preview unavailable ({code}).")
+    return state
 
 
 def map_reference(state: dict) -> str:
@@ -177,9 +189,6 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
     gaps["reference"] = "even" if even else "transfer"
-    if not edits:  # her whole makeup per zone: where it is too light, "softer" would not show and is not offered
-        state["zone_strength"] = visibility.zone_strength(makeup_map._lab(bare), makeup_map._lab(render),
-                                                          visibility.zone_masks(face))
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name
     state["edits"] = edits
@@ -193,29 +202,46 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
     return state
 
 
+def plan_edit(state: dict, zone: str, op: str, recorded: set[str] | None = None) -> dict:
+    """What pressing a button does now. {"edits": [...], "replaces": bool}, or {"reason": <key of rcp.BLOCK_NOTES>}.
+    `recorded` (Replay): the edit must land on a recorded render; if the combination is not recorded but the single
+    change is, it replaces the current one (one change at a time). Buttons and the server share this rule."""
+    base = state["recipe_base"]
+    now = state.get("recipe") or base
+    edits = state.get("edits") or []
+    reason = rcp.blocked(now, zone, op)
+    if reason:
+        return {"reason": reason}
+    step = rcp.resolve_edit(now, zone, op)
+    nxt = rcp.add_edit(base, edits, *step)
+    if recorded is None or rcp.edit_key(nxt) in recorded:
+        return {"edits": nxt, "replaces": False}
+    single = rcp.add_edit(base, [], *step)
+    if single != edits and rcp.edit_key(single) in recorded:
+        return {"edits": single, "replaces": True}
+    return {"reason": "not_recorded"}
+
+
+def _option(state: dict, zone: str, op: str, label: str, recorded: set[str] | None, **extra) -> dict:
+    plan = plan_edit(state, zone, op, recorded)
+    reason = plan.get("reason")
+    opt = {"zone": zone, "op": op, "label": label, "available": reason is None,
+           "replaces": bool(plan.get("replaces")), **extra}
+    if reason:
+        opt |= {"reason": reason, "note": rcp.BLOCK_NOTES[reason]}
+    return opt
+
+
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
-    """Edits offered next. With `recorded_keys` (Replay) an edit is available when the combination is recorded,
-    or when the single edit is recorded: then it replaces the current one (`replaces`; one change at a time).
-    "softer" is never offered on a zone whose whole makeup is too light to soften visibly (`reason`: "light")."""
-    current = state.get("edits") or []
-    zones = list((state.get("recipe_base") or {}).get("zones", {}))
-    strength = state.get("zone_strength")
-    opts = []
-    for z in zones:
-        for op in rcp.EDIT_OPS:
-            if op == "softer" and not visibility.softer_offered(strength, z):
-                opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": False,
-                             "replaces": False, "reason": "light"})
-                continue
-            nxt = [*current, [z, op]]
-            available = recorded_keys is None or rcp.edit_key(nxt) in recorded_keys
-            replaces = not available and bool(current) and rcp.edit_key([[z, op]]) in (recorded_keys or ())
-            opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": available or replaces,
-                         "replaces": replaces})
+    """Every button of the look screen: {zone, op, label, available, replaces[, reason, note]}, where `zone` "look"
+    holds the look buttons (+`selected`), and op "shade:<id>" the circles of a zone (+`name`, `hex`, `colors`,
+    `texture`, `selected`). A button that is off says why."""
+    now = state.get("recipe") or state["recipe_base"]
+    opts = [_option(state, rcp.LOOK_ZONE, look, palettes.LOOK_LABELS[look], recorded_keys, selected=look == now["look"])
+            for look in palettes.LOOK_IDS]
+    for zone, z in now["zones"].items():
+        opts += [_option(state, zone, op, rcp.EDIT_LABELS[op], recorded_keys) for op in rcp.EDIT_OPS]
+        opts += [_option(state, zone, rcp.SHADE_PREFIX + s.id, s.name, recorded_keys, name=s.name, hex=s.colors[0],
+                         colors=list(s.colors), texture=s.texture, selected=s.id == z["shade_id"])
+                 for s in palettes.ladder(now["group"], zone)]
     return opts
-
-
-def softer_blocked(state: dict, edits: list[list[str]]) -> bool:
-    """True if `edits` asks for "softer" on a zone too light to soften visibly (the server refuses it too)."""
-    strength = state.get("zone_strength")
-    return any(op == "softer" and not visibility.softer_offered(strength, z) for z, op in edits)

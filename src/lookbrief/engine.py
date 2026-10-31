@@ -1,26 +1,36 @@
-"""Two engines behind one interface.
+"""Engines behind one interface.
 
 * LiveEngine — real YouCam calls (server-side key), optionally recording every result into a
   sample folder so the same run can be replayed later.
 * ReplayEngine — serves recorded real YouCam results from samples/<id>/manifest.json. This is the
   default for judges (allowed by the organiser, Devpost forum thread 45693): no key, no units, and
   every result is labelled as recorded with its original task_id and timestamp.
+* GridEngine — a LiveEngine for recording a sample's grid: what the sample already holds is served
+  from it for free, and spending stops at a ceiling.
 """
 
 from __future__ import annotations
 
+import io
 import json
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from .recipe import EVEN_OUT_LABEL, edit_key, even_out_effects, vto_body
-from .youcam import YouCamClient, redact
+from PIL import Image
+
+from .photo_check import to_jpeg
+from .recipe import EVEN_OUT_LABEL, edit_key, even_out_effects, recipe_sha256, vto_body
+from .youcam import UNITS, YouCamClient, redact
 
 
 class NotRecorded(Exception):
     """Replay has no recording for this request."""
+
+
+class BudgetReached(Exception):
+    """The next paid call would pass the recording ceiling."""
 
 
 @dataclass
@@ -57,6 +67,17 @@ def image_ext(content: bytes) -> str:
 
 def _now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def hair_label(recipe: dict) -> str:
+    """Marks a Hair Transfer with the base render it ran on: a new base means the recorded hair shows old makeup."""
+    return f"on base render {recipe_sha256(recipe)[:12]}"
+
+
+def keep_base_render(ctx: SessionCtx, image: bytes, recipe: dict) -> None:
+    """Makeup VTO returns a PNG; uploads are declared JPEG."""
+    ctx.ids["render_jpeg"] = to_jpeg(Image.open(io.BytesIO(image)).convert("RGB"))
+    ctx.ids["render_label"] = hair_label(recipe)
 
 
 class LiveEngine:
@@ -97,18 +118,21 @@ class LiveEngine:
         ctx.ids["mu_jpeg"] = out.image
         return out
 
-    def hair_transfer(self, ctx: SessionCtx, on: str = "look") -> StepResult:
-        """on="look": hair on the makeup-transfer result (transfer_first); on="selfie": hair on the bare selfie,
-        which becomes the base for the makeup transfer (hair_first)."""
+    def hair_transfer(self, ctx: SessionCtx, on: str = "render") -> StepResult:
+        """on="render": hair on the base render of the recipe, so the preview wears the new look (transfer_first);
+        on="selfie": hair on the bare selfie, which becomes the base for the makeup transfer (hair_first)."""
         ref = self._file_id(ctx, "inspiration", ctx.inspiration_jpeg, "inspiration.jpg")
+        label = ""
         if on == "selfie":
             src = self._source(ctx, "bride")
         else:
-            mu = ctx.ids.get("mu_jpeg")
-            if mu is None:
-                raise RuntimeError("hair transfer runs on the makeup-transfer result; run that first")
-            src = self._file_id(ctx, "mu_result", mu, "look.jpg")
-        out = self._run("hair_transfer", "hair-transfer", {"src_file_id": src, "ref_file_id": ref, "hair_color": "ref"})
+            rendered = ctx.ids.get("render_jpeg")
+            if rendered is None:
+                raise RuntimeError("hair transfer runs on the base render; render it first")
+            src = self._file_id(ctx, "render_result", rendered, "render.jpg")
+            label = ctx.ids["render_label"]
+        body = {"src_file_id": src, "ref_file_id": ref, "hair_color": "ref"}
+        out = self._run("hair_transfer", "hair-transfer", body, label=label)
         if on == "selfie":
             ctx.ids["base_jpeg"] = out.image
         return out
@@ -125,7 +149,10 @@ class LiveEngine:
                even_out: dict | None = None) -> StepResult:
         src = self._source(ctx, on)
         body = {"src_file_id": src, **vto_body(recipe, even_out)}
-        return self._run(f"render:{edit_key(edits)}", "makeup-vto", body, label=edit_key(edits), recipe=recipe)
+        out = self._run(f"render:{edit_key(edits)}", "makeup-vto", body, label=edit_key(edits), recipe=recipe)
+        if not edits:
+            keep_base_render(ctx, out.image, recipe)
+        return out
 
 
 class ReplayEngine:
@@ -145,7 +172,7 @@ class ReplayEngine:
     def makeup_transfer(self, ctx: SessionCtx, on: str = "bride") -> StepResult:
         return self._step("mu_transfer")
 
-    def hair_transfer(self, ctx: SessionCtx, on: str = "look") -> StepResult:
+    def hair_transfer(self, ctx: SessionCtx, on: str = "render") -> StepResult:
         return self._step("hair_transfer")
 
     def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
@@ -212,3 +239,58 @@ class Recorder:
 
     def save(self) -> None:
         (self.dir / "manifest.json").write_text(json.dumps(self.manifest, indent=1, ensure_ascii=False))
+
+
+class GridEngine(LiveEngine):
+    """Live calls only for what the sample does not hold yet: Makeup Transfer, a hair-first Hair Transfer and the
+    even-out are never paid twice, a render with the same recipe is kept, and a stopped run resumes where it stopped.
+    The manifest is saved after every paid step, so `max_units` can stop it anywhere."""
+
+    def __init__(self, client: YouCamClient, recorder: Recorder, max_units: int, ledger: Ledger | None = None):
+        super().__init__(client, ledger=ledger, recorder=recorder)
+        self.steps = recorder.manifest["steps"]
+        self.dir = recorder.dir
+        self.max_units = max_units
+        self.spent = 0
+
+    def _run(self, step: str, task: str, body: dict, label: str = "", recipe: dict | None = None) -> StepResult:
+        if self.spent + UNITS[task] > self.max_units:
+            raise BudgetReached(step)
+        out = super()._run(step, task, body, label, recipe)
+        self.spent += out.meta.units
+        return out
+
+    def _recorded(self, key: str) -> StepResult | None:
+        rec = self.steps.get(key)
+        if rec is None:
+            return None
+        meta = StepMeta(key, "live", rec["task_id"], rec["seconds"], 0, rec["recorded_at"], rec.get("label", ""))
+        return StepResult((self.dir / rec["image"]).read_bytes(), meta)
+
+    def makeup_transfer(self, ctx: SessionCtx, on: str = "bride") -> StepResult:
+        got = self._recorded("mu_transfer")
+        if got is None:
+            return super().makeup_transfer(ctx, on)
+        ctx.ids["mu_jpeg"] = got.image
+        return got
+
+    def hair_transfer(self, ctx: SessionCtx, on: str = "render") -> StepResult:
+        got = self._recorded("hair_transfer")
+        if got is None or (on == "render" and got.meta.label != ctx.ids.get("render_label")):
+            return super().hair_transfer(ctx, on)
+        if on == "selfie":
+            ctx.ids["base_jpeg"] = got.image
+        return got
+
+    def even_out(self, ctx: SessionCtx, skin_hex: str, coverage: int = 30) -> StepResult:
+        return self._recorded("even_out") or super().even_out(ctx, skin_hex, coverage)
+
+    def render(self, ctx: SessionCtx, recipe: dict, edits: list[list[str]], on: str = "bride",
+               even_out: dict | None = None) -> StepResult:
+        key = f"render:{edit_key(edits)}"
+        got = self._recorded(key)
+        if got is None or self.steps[key].get("recipe") != recipe:
+            return super().render(ctx, recipe, edits, on, even_out)
+        if not edits:
+            keep_base_render(ctx, got.image, recipe)
+        return got

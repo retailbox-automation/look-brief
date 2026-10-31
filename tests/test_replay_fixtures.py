@@ -3,10 +3,9 @@ import json
 import re
 
 import pytest
-from helpers import SAMPLE_IDS, SAMPLES
+from helpers import SAMPLE_IDS, SAMPLES, parse_edit_key, recorded_samples
 
 from lookbrief import recipe as rcp
-from lookbrief import visibility
 from lookbrief.engine import NotRecorded, ReplayEngine, SessionCtx
 
 SIGNED = re.compile(r"X-Amz-|Signature=|Expires=")
@@ -20,15 +19,36 @@ def test_manifest_complete_and_files_present(sid):
     assert {"mu_transfer", "hair_transfer", "render:base"} <= set(steps)
     if mf.get("order") == "hair_first":
         assert "even_out" in steps, "hair_first samples record the even-out step"
-    offered = visibility.edit_visibility(sd)["offered"]  # softer is not offered on zones too light to soften
-    for key in offered:
-        assert f"render:{key}" in steps, f"missing recorded edit {key}"
-    for key, st in steps.items():
+    for st in steps.values():
         assert (sd / st["image"]).is_file()
         assert st["task_id"] and st["recorded_at"].endswith("Z") and st["mode"] == "live"
+
+
+@pytest.mark.parametrize("sid", recorded_samples())
+def test_the_whole_grid_is_recorded_and_follows_the_recipe(sid):
+    steps = json.loads((SAMPLES / sid / "manifest.json").read_text())["steps"]
+    base = steps["render:base"]["recipe"]
+    for edits in rcp.record_grid(base):
+        assert f"render:{rcp.edit_key(edits)}" in steps, f"missing recorded edit {edits}"
+    for key, st in steps.items():
         if key.startswith("render:"):
-            edits = [] if key == "render:base" else [p.split(":") for p in key.split(":", 1)[1].split("+")]
-            assert st["recipe"] == rcp.apply_edits(steps["render:base"]["recipe"], edits), key
+            assert st["recipe"] == rcp.apply_edits(base, parse_edit_key(key)), key
+
+
+@pytest.mark.parametrize("sid", recorded_samples())
+def test_samples_are_recorded_on_their_pins(sid):
+    meta = json.loads((SAMPLES / sid / "sample.json").read_text())
+    pins = meta["recipe_pins"]
+    base = json.loads((SAMPLES / sid / "manifest.json").read_text())["steps"]["render:base"]["recipe"]
+    assert base == rcp.base_recipe(None, pins["group"], pins["look"], pins["shades"])
+
+
+@pytest.mark.parametrize("sid", recorded_samples(["s2-classic-red", "s3-mauve-smoky"]))
+def test_hair_of_transfer_first_samples_wears_the_new_look(sid):
+    from lookbrief.engine import hair_label
+
+    steps = json.loads((SAMPLES / sid / "manifest.json").read_text())["steps"]
+    assert steps["hair_transfer"]["label"] == hair_label(steps["render:base"]["recipe"])
 
 
 @pytest.mark.parametrize("sid", SAMPLE_IDS)

@@ -58,8 +58,8 @@ def test_compare_is_zero_for_identical_and_bounded_for_render(sample):
     assert all(g["color_gap_de2000"] == 0 for g in same["zones"].values())
     render = load_rgb(sd / mf["steps"]["render:base"]["image"], size=(bare.shape[1], bare.shape[0]))
     gaps = makeup_map.compare(bare, look, render, face)
-    for g in gaps["zones"].values():
-        assert 0 < g["color_gap_de2000"] < 8
+    for g in gaps["zones"].values():  # the recipe is no longer fitted to the transfer: the gap is reported, not bounded
+        assert g["color_gap_de2000"] > 0
         assert 0 <= g["coverage_render"] <= 1
     assert gaps["skin_control_render_de76"] < 1.5, "skin_smooth=0 must leave the forehead untouched"
 

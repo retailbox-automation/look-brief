@@ -29,16 +29,15 @@ HERE = Path(__file__).resolve().parent
 SAFE_NAME = re.compile(r"^[a-z0-9_.-]+\.(jpg|png)$")
 REVIEW_LABELS = {"do": "I'll do this", "swap": "I'll swap the product", "discuss": "Let's discuss"}
 LIVE_ORDER = "hair_first"
+NOT_RECORDED = {"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
+                "Undo or try another single edit — or use Live with your own photos."}
 # hair 2 + transfer 2 + base re-render 1 + even-out 1
 LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-vto"]
 
 
-LIGHT_ZONE_NOTE = "Already close to your bare skin."  # "softer" on a zone too light to soften visibly
-
-
 class EditIn(BaseModel):
-    zone: str | None = None
-    op: str | None = None
+    zone: str | None = None  # a zone, or "look" for the look buttons
+    op: str | None = None  # softer | bolder | lighter | deeper | shade:<id>; zone "look": fresh | softglam | evening
     action: str = "add"  # add | undo | reset
 
 
@@ -193,6 +192,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ctx.ids["mu_jpeg"] = (d / images["look"]).read_bytes()
         return ctx
 
+    def replay_keys(sess: dict) -> set[str]:
+        return set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
+
     def public_state(sess: dict) -> dict:
         st = dict(sess.get("state") or {})
         st.pop("_ids", None)
@@ -209,10 +211,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
-                                                "checks", "order", "even_out", "map_reference")})
+                                                "checks", "order", "even_out", "map_reference", "views")})
             if sess["mode"] == "replay":
-                keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
-                out["edit_options"] = pipeline.edit_options(st, keys)
+                out["edit_options"] = pipeline.edit_options(st, replay_keys(sess))
             else:
                 room = sess["units_spent"] + UNITS["makeup-vto"] <= s.live_session_unit_cap
                 out["edit_options"] = [{**o, "available": o["available"] and room} for o in pipeline.edit_options(st)]
@@ -419,17 +420,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             elif body.action == "undo":
                 edits = edits[:-1]
             else:
-                if body.zone not in rcp.EDIT_ZONES or body.op not in rcp.EDIT_OPS:
-                    raise HTTPException(400, "unknown edit")
-                if body.zone not in (state.get("recipe_base") or {}).get("zones", {}):
-                    raise HTTPException(400, f"this look has no {body.zone} makeup to adjust")
-                if pipeline.softer_blocked(state, [[body.zone, body.op]]):
-                    return JSONResponse({"error": "light_zone", "reason": LIGHT_ZONE_NOTE}, status_code=400)
-                edits.append([body.zone, body.op])
-                if sess["mode"] == "replay":  # samples hold one recorded change at a time: a new one replaces it
-                    keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
-                    if rcp.edit_key(edits) not in keys and rcp.edit_key([[body.zone, body.op]]) in keys:
-                        edits = [[body.zone, body.op]]
+                keys = replay_keys(sess) if sess["mode"] == "replay" else None
+                try:
+                    plan = pipeline.plan_edit(state, body.zone or "", body.op or "", keys)
+                except ValueError as e:
+                    raise HTTPException(400, str(e)) from e
+                if plan.get("reason") == "not_recorded":
+                    return JSONResponse(NOT_RECORDED, status_code=409)
+                if "reason" in plan:  # the button is off on the page too: the server refuses the same tap
+                    return JSONResponse({"error": plan["reason"], "reason": rcp.BLOCK_NOTES[plan["reason"]]},
+                                        status_code=400)
+                edits = plan["edits"]
             engine = engine_for(sess)
             if sess["mode"] == "live":
                 if sess["units_spent"] + UNITS["makeup-vto"] > s.live_session_unit_cap:
@@ -443,9 +444,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 with heavy:
                     state = pipeline.rerender(engine, ctx, session_dir(sid), state, edits)
             except NotRecorded:
-                return JSONResponse({"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
-                                     "Undo or try another single edit — or use Live with your own photos."},
-                                    status_code=409)
+                return JSONResponse(NOT_RECORDED, status_code=409)
             except YouCamError as e:
                 h = hint_for(e.code)
                 return JSONResponse({"error": e.code, "reason": f"{h.title}. {h.fix}"}, status_code=502)
