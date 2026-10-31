@@ -39,7 +39,9 @@ files committed here; dates are 2026-10-31 (UTC). Nothing here is a complaint: m
 ## 5. Hair Transfer also changes the forehead area
 - **Got:** after Hair Transfer (custom reference) the forehead differs from the makeup-only result by median
   ΔE76 2.65 / 1.92 / 3.27 (new hairline/fringe and light), vs 0.37–0.73 for Makeup Transfer.
-- **What we did:** the makeup map is always measured on the Makeup Transfer result, before hair.
+- **What we did:** in the transfer-first samples the makeup map is measured on the Makeup Transfer result,
+  before hair. The newer **hair_first** order runs Hair Transfer on the selfie first and Makeup Transfer on that
+  "base", so the map, the metric and every re-render share the same light (`src/lookbrief/pipeline.py`).
 
 ## 6. Output formats and sizes differ between endpoints
 - Makeup Transfer and Hair Transfer return JPEG at the input size; Makeup VTO returns **PNG (RGBA)**, and for a
@@ -66,3 +68,20 @@ files committed here; dates are 2026-10-31 (UTC). Nothing here is a complaint: m
   `fixtures/feature-cost-skus.json` — we verify prices by reading credit before/after (`samples/*/recording.json`).
 - Result links expire after 2 hours (`X-Amz-Expires=7200`): results are downloaded immediately and signed URLs
   are redacted from every stored fixture (`youcam.redact`, test `test_fixtures_are_sanitized`).
+
+## 10. Makeup Transfer adds blotchy blush to a face with natural cheek redness — whatever the inspiration
+- **Expected:** blush in the result roughly follows the inspiration (some inspirations have almost none).
+- **Got:** on one selfie with natural redness and freckles, five different inspirations gave a visibly patchy red
+  blush every time. Share of the cheek area the transfer changed: A 30 %, B 14 %, C 22 %, D 32 %, E 16 % — even C
+  and E, whose blush is nearly invisible. Changing the inspiration does not fix it. Running Hair Transfer after
+  the blush was softened brings the redness back (cheek area 5 % → 17 %): Hair Transfer relights the face (§5).
+- **What worked (all real API calls, no retouching):** Hair Transfer on the selfie → Makeup Transfer on that →
+  Makeup VTO **on top of the transfer** with a foundation in her own shade (forehead colour), coverage 30, no
+  smoothing. Blush area fell to 4 % (measured against the haired base), the lips stayed as transferred (ΔE2000 to
+  the inspiration 0.66), eyelids 2.6. Freckles get softer too — it is a foundation. In the app this is the
+  "Even out redness" step, labelled "foundation in her shade over the transfer", and the artist confirms it as a zone.
+- **Also tried:** re-rendering from the bare face with "Cheeks: softer" removes the patches but VTO paints its own,
+  darker lips (ΔE 4.8–7.5); a recipe read straight from the inspiration photo gives no patches but flatter colours
+  (eyes and lips ΔE 5.5–9.2).
+- **Evidence:** `docs/platform-findings/transfer-blush/` — selfie, inspirations A–E, transfers A–E, the three fix
+  steps (`fix-1-hair`, `fix-2-transfer`, `fix-3-foundation`) and `evidence.json` with task ids and numbers.

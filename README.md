@@ -20,9 +20,10 @@ the server, so the paid trial only executes what both already saw.
 | The editable recipe is measured against the transfer | [`docs/ACCURACY.md`](docs/ACCURACY.md), `uv run python scripts/accuracy_report.py` | Mean shade gap ΔE2000 **1.97** over 9 zones of 3 faces (eyelids 1.02, cheeks 2.55, lips 2.34) |
 | Calibrated with data, not by eye | [`docs/CALIBRATION.md`](docs/CALIBRATION.md), `uv run python scripts/calibration_report.py` | v1 rule **3.2 → v2 1.97**, both measured on images committed here |
 | The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
+| Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → "Even out redness" (foundation in her shade over the transfer) gives 4 %, lips stay at ΔE 0.66 |
 | The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
-| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 100 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
-| Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/*.json` | YouCam credit read before and after every recording: 3 samples 90 units, calibration evidence 3, findings 1 |
+| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 124 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
+| Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
 | No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
 
 ## Why
@@ -64,6 +65,13 @@ and coverage (`src/lookbrief/makeup_map.py`, `landmarks.py`).
 transfer's coverage, lips lifted by L* +8 because VTO lands lip colour darker, and `skin_smooth: 0` always
 (`src/lookbrief/recipe.py`). Edits move one zone one step and re-render for 1 unit.
 
+**Two orders and "Even out redness".** The recorded samples s2 and s3 run Makeup Transfer, then Hair Transfer. The
+heroine sample and Live run **hair first**: Hair Transfer on the selfie, then Makeup Transfer on her face with the
+new hair, so the map, the metric and every re-render share the same light. They also record **Even out redness**:
+Makeup VTO puts a foundation in her own shade (read from her forehead) on top of the transfer — lips and eyes stay
+as transferred — and the artist confirms it as its own zone. The step is always labelled "foundation in her shade
+over the transfer".
+
 **Replay and Live.** Replay serves recorded real API results from `samples/` with their original task ids and
 timestamps — the organiser confirmed this is acceptable for judging (Devpost forum, thread 45693). Live calls the
 API from the server only, behind a consent screen, with a unit budget, a per-network daily limit and a
@@ -82,7 +90,7 @@ uv run lookbrief            # http://127.0.0.1:8731 — three recorded samples, 
 
 Or with Docker: `docker build -t lookbrief . && docker run -p 8080:8080 lookbrief` → http://127.0.0.1:8080
 
-**Live mode with your own YouCam key** (about 5 units per look, 1 per zone edit):
+**Live mode with your own YouCam key** (6 units per look — hair, transfer, re-render, even-out — then 1 per zone edit):
 
 ```bash
 cp .env.example .env        # put your key in YOUCAM_API_KEY (server side only, never in the browser)
@@ -113,7 +121,7 @@ python scripts/verify_card.py look-brief-<id>.json \
 ## Tests and checks
 
 ```bash
-uv run pytest -q                 # 99 unit tests + 1 Playwright smoke (run `uv run playwright install chromium` once)
+uv run pytest -q                 # 123 unit tests + 1 Playwright smoke (run `uv run playwright install chromium` once)
 uv run ruff check src tests scripts && uv run mypy src
 ```
 
@@ -126,15 +134,17 @@ smoke walks the bride and artist paths on a 390×844 phone viewport and runs axe
 
 ## Platform findings
 
-Nine findings with evidence in this repo — [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md). The three
+Ten findings with evidence in this repo — [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md). The four
 that shaped the product: Makeup VTO smooths the whole face unless `skin_smooth` is set to 0; Makeup VTO is not
-deterministic for eye shadow and lips (identical recipe, up to 2.13 ΔE2000 apart) while blush is; and lip colour
-lands darker than the hex it is given.
+deterministic for eye shadow and lips (identical recipe, up to 2.13 ΔE2000 apart) while blush is; lip colour
+lands darker than the hex it is given; and Makeup Transfer paints patchy blush on a face with natural redness,
+which the hair-first order plus "Even out redness" fixes with the API itself.
 
 ## Honest limits
 
-- Previews, not photos: Hair Transfer also changes the forehead area (ΔE76 1.9–3.3), so the makeup map is
-  measured before hair.
+- Previews, not photos: Hair Transfer also changes the forehead area (ΔE76 1.9–3.3). Transfer-first samples
+  measure the map before hair; the hair-first order measures it on her face with the new hair.
+- "Even out redness" is a foundation: it also softens freckles.
 - The editable recipe approximates the transfer; the accuracy table shows how closely, zone by zone.
 - Nose and contour changes are reported but not re-rendered.
 - No external users yet; the samples are fictional, AI-generated faces.

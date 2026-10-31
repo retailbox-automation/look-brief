@@ -1,0 +1,79 @@
+{
+ "what": "Makeup Transfer on one selfie with natural cheek redness, five different inspirations (2026-10-31)",
+ "blush_area_by_inspiration": {
+  "A": 0.303,
+  "B": 0.14,
+  "C": 0.218,
+  "D": 0.325,
+  "E": 0.162
+ },
+ "transfer_vs_inspiration_dE2000": {
+  "A": {
+   "eyes": 1.13,
+   "cheeks": 4.37,
+   "lips": 2.85
+  },
+  "B": {
+   "eyes": 3.53,
+   "cheeks": 5.68,
+   "lips": 2.98
+  },
+  "C": {
+   "eyes": 3.9,
+   "cheeks": 7.06,
+   "lips": 1.52
+  },
+  "D": {
+   "eyes": 2.04,
+   "cheeks": 7.87,
+   "lips": 4.14
+  },
+  "E": {
+   "eyes": 4.55,
+   "cheeks": 6.41,
+   "lips": 3.15
+  }
+ },
+ "task_ids": {
+  "B": "NMXA11tJ3SYneFiIVT3PGpGHoVL4lNRhoBdxM-wsP0h8hiSGenTsTHJNcSScJw2WL1tdL0WuaKpao2rhLgDDpA",
+  "C": "BatCRMV1WvsWrN6PP2z3r9jpsscSrY4WMB96OiuVfa87476FG6Cr_iy9A7O7Mxp8L1tdL0WuaKpao2rhLgDDpA",
+  "D": "BatCRMV1WvsWrN6PP2z3r9jpsscSrY4WMB96OiuVfa9IT_ldKJ8V7JBjwfpX-CYWL1tdL0WuaKpao2rhLgDDpA",
+  "E": "BatCRMV1WvsWrN6PP2z3r9jpsscSrY4WMB96OiuVfa_SYSDAm_Q0zGtdHHqaVqzoL1tdL0WuaKpao2rhLgDDpA",
+  "A": "JZkdTLqWfruHLdY7I6grDj3H87xxlFa_iqrpWz3OxwngWotkWzC2AqykWpCacmM4L1tdL0WuaKpao2rhLgDDpA"
+ },
+ "fix_hair_first_then_foundation": {
+  "hair_task": "NV8FCkI7j_1Nha9VKxdcMVPom2Uw3FG4BFJpgNO9S2mnwglq9bBn5GVeCcRDlZqNAO6h9Y273R6RR5V6m9KYNQ",
+  "transfer_task": "rjmdvyRwV5TN3n9vKVAdm9j5tRGtBi5EFnVAcMj24wHwR_guDvJDTPVxtAp8cKbiL1tdL0WuaKpao2rhLgDDpA",
+  "transfer_blush_area_vs_haired_base": 0.228,
+  "foundation_task": "lxyy0bVgOjk0yk-lxQf95qHYpuP7tNhSGbViJ-9zhCwE8PQQA6nyoxP4Ih63pGsLd-BTT-LvvMAmKHuvXEbI5Q",
+  "foundation_blush_area_vs_haired_base": 0.042,
+  "foundation_vs_inspiration_C_dE2000": {
+   "eyes": 2.62,
+   "cheeks": 5.31,
+   "lips": 0.66
+  },
+  "effects": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "foundation",
+    "palettes": [
+     {
+      "color": "#e0a689",
+      "colorIntensity": 50,
+      "glowIntensity": 0,
+      "coverageIntensity": 30
+     }
+    ]
+   }
+  ]
+ },
+ "hair_after_softer_blush": {
+  "blush_area_before_hair": 0.054,
+  "blush_area_after_hair": 0.174,
+  "note": "transfer C -> recipe re-render with two 'Cheeks: softer' steps -> Hair Transfer on that; measured against the bare selfie"
+ }
+}
