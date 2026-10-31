@@ -13,11 +13,19 @@ DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.js
 def _map() -> MakeupMap:
     def z(name, cov, de, before, after):
         return ZoneStat(name, name.title(), 10000, int(cov * 10000), cov, de, after, before, 8.0)
-    return MakeupMap(768, 1024, 0.1, 0.8, 0.3, {
-        "eyes": z("eyes", 0.33, 11.0, "#aa806b", "#906551"),
-        "cheeks": z("cheeks", 0.09, 6.5, "#dea38f", "#e79d8f"),
-        "lips": z("lips", 0.21, 13.0, "#b16d67", "#b86a58"),
-    })
+
+    return MakeupMap(
+        768,
+        1024,
+        0.1,
+        0.8,
+        0.3,
+        {
+            "eyes": z("eyes", 0.33, 11.0, "#aa806b", "#906551"),
+            "cheeks": z("cheeks", 0.09, 6.5, "#dea38f", "#e79d8f"),
+            "lips": z("lips", 0.21, 13.0, "#b16d67", "#b86a58"),
+        },
+    )
 
 
 def test_base_recipe_has_three_zones_with_valid_ranges():
@@ -61,7 +69,9 @@ def test_edits_move_in_the_right_direction():
     assert hex_to_lab(light["color"])[0] > hex_to_lab(base["zones"]["lips"]["color"])[0]
     deep = rcp.apply_edit(base, "lips", "deeper")["zones"]["lips"]
     assert hex_to_lab(deep["color"])[0] < hex_to_lab(base["zones"]["lips"]["color"])[0]
-    assert base["zones"]["cheeks"]["intensity"] == rcp.base_recipe(_map())["zones"]["cheeks"]["intensity"], "no mutation"
+    assert base["zones"]["cheeks"]["intensity"] == rcp.base_recipe(_map())["zones"]["cheeks"]["intensity"], (
+        "no mutation"
+    )
 
 
 def test_bolder_at_full_intensity_pushes_shade_from_skin():

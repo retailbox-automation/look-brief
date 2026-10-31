@@ -28,8 +28,27 @@ SIGNED = "https://bucket.s3.amazonaws.com/x.jpg?X-Amz-Expires=7200&X-Amz-Signatu
 
 def test_upload_task_download_happy_path(tmp_path):
     script = [
-        ("POST", "/s2s/v2.0/file", 200, {"data": {"files": [{"file_id": "f1", "requests": [
-            {"method": "PUT", "url": "https://upload.example/put", "headers": {"Content-Type": "image/jpeg"}}]}]}}),
+        (
+            "POST",
+            "/s2s/v2.0/file",
+            200,
+            {
+                "data": {
+                    "files": [
+                        {
+                            "file_id": "f1",
+                            "requests": [
+                                {
+                                    "method": "PUT",
+                                    "url": "https://upload.example/put",
+                                    "headers": {"Content-Type": "image/jpeg"},
+                                }
+                            ],
+                        }
+                    ]
+                }
+            },
+        ),
         ("PUT", "/put", 200, b""),
         ("POST", "/s2s/v2.0/task/mu-transfer", 200, {"data": {"task_id": "t1"}}),
         ("GET", "/s2s/v2.0/task/mu-transfer/t1", 200, {"data": {"task_status": "running"}}),
@@ -52,8 +71,12 @@ def test_upload_task_download_happy_path(tmp_path):
 def test_task_error_raises_code_without_units():
     script = [
         ("POST", "/s2s/v2.0/task/mu-transfer", 200, {"data": {"task_id": "t2"}}),
-        ("GET", "/s2s/v2.0/task/mu-transfer/t2", 200,
-         {"status": 200, "data": {"error": "error_ref_no_face", "results": None, "task_status": "error"}}),
+        (
+            "GET",
+            "/s2s/v2.0/task/mu-transfer/t2",
+            200,
+            {"status": 200, "data": {"error": "error_ref_no_face", "results": None, "task_status": "error"}},
+        ),
     ]
     transport, _ = make_transport(script)
     c = YouCamClient(KEY, transport=transport, sleep=lambda s: None)
@@ -74,8 +97,16 @@ def test_429_is_retried_with_backoff():
 
 
 def test_http_400_surfaces_api_error_code():
-    transport, _ = make_transport([("POST", "/s2s/v2.0/task/makeup-vto", 400,
-                                    {"error_code": "InvalidParameters", "error_message": "lip_color: style"})])
+    transport, _ = make_transport(
+        [
+            (
+                "POST",
+                "/s2s/v2.0/task/makeup-vto",
+                400,
+                {"error_code": "InvalidParameters", "error_message": "lip_color: style"},
+            )
+        ]
+    )
     c = YouCamClient(KEY, transport=transport, sleep=lambda s: None)
     with pytest.raises(YouCamError) as e:
         c.run_task("makeup-vto", {})

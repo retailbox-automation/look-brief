@@ -74,12 +74,16 @@ def test_brief_review_agree_attest(client):
     bride, artist = b["bride_url"].split("t=")[1], b["artist_url"].split("t=")[1]
     assert client.get(f"/b/{bid}?t=wrong").status_code == 404
     assert "no account needed" in client.get(b["artist_url"]).text
-    assert client.post(f"/api/briefs/{bid}/review", json={"t": bride, "zone": "eyes", "status": "do"}).status_code == 403
+    assert (
+        client.post(f"/api/briefs/{bid}/review", json={"t": bride, "zone": "eyes", "status": "do"}).status_code == 403
+    )
     assert client.post(f"/api/briefs/{bid}/agree", json={"t": artist}).status_code == 409
     zones = client.get(f"/api/briefs/{bid}?t={artist}").json()["snapshot"]["review_zones"]
     assert "hair" in zones
     for z in zones:
-        client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": z, "status": "discuss" if z == "lips" else "do"})
+        client.post(
+            f"/api/briefs/{bid}/review", json={"t": artist, "zone": z, "status": "discuss" if z == "lips" else "do"}
+        )
     assert client.post(f"/api/briefs/{bid}/agree", json={"t": artist}).status_code == 409, "open discussion blocks"
     client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": "lips", "status": "swap", "note": "cooler red"})
     assert client.post(f"/api/briefs/{bid}/agree", json={"t": artist}).json()["attestation"] is None
@@ -92,7 +96,10 @@ def test_brief_review_agree_attest(client):
     assert lips["status"] == "swap" and lips["note"] == "cooler red"
     assert client.get(f"/api/briefs/{bid}/attestation.json?t={bride}").json() == att
     assert "Server-attested agreement" in client.get(f"/card/{bid}?t={bride}").text
-    assert client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": "eyes", "status": "swap"}).status_code == 409
+    assert (
+        client.post(f"/api/briefs/{bid}/review", json={"t": artist, "zone": "eyes", "status": "swap"}).status_code
+        == 409
+    )
 
 
 def test_media_paths_are_locked_down(client):
@@ -123,7 +130,7 @@ class FakeYouCam:
         return TaskResult(name, f"task-{name}", f"fake://{step}", 1.0, UNITS[name], {})
 
     def download(self, url):
-        return (SAMPLES / SID / self.mf["steps"][url[len("fake://"):]]["image"]).read_bytes()
+        return (SAMPLES / SID / self.mf["steps"][url[len("fake://") :]]["image"]).read_bytes()
 
 
 @pytest.fixture
@@ -135,8 +142,10 @@ def live_client(tmp_path, monkeypatch):
 
 
 def _files():
-    return {"bride": ("b.jpg", (SAMPLES / SID / "bride.jpg").read_bytes(), "image/jpeg"),
-            "inspiration": ("i.jpg", (SAMPLES / SID / "inspiration.jpg").read_bytes(), "image/jpeg")}
+    return {
+        "bride": ("b.jpg", (SAMPLES / SID / "bride.jpg").read_bytes(), "image/jpeg"),
+        "inspiration": ("i.jpg", (SAMPLES / SID / "inspiration.jpg").read_bytes(), "image/jpeg"),
+    }
 
 
 def test_live_requires_consent_and_checks_photos(live_client):
