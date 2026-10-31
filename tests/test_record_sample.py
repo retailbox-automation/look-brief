@@ -60,6 +60,7 @@ Image.new("RGB", (64, 64), (200, 120, 100)).save(PNG, format="PNG")
 
 class FakeClient:
     tasks: list = []
+    bodies: list = []
 
     def __init__(self, *a, **kw):
         pass
@@ -72,6 +73,7 @@ class FakeClient:
 
     def run_task(self, name, body, version=None):
         type(self).tasks.append(name)
+        type(self).bodies.append(body)
         return TaskResult(name, f"task-{len(type(self).tasks)}", "fake://x", 1.0, UNITS[name], {})
 
     def download(self, url):
@@ -87,6 +89,7 @@ def script(tmp_path, monkeypatch):
     monkeypatch.setattr(mod, "YouCamClient", FakeClient)
     monkeypatch.setattr(mod, "youcam_key", lambda: "sk-fake")
     monkeypatch.setattr(FakeClient, "tasks", [])
+    monkeypatch.setattr(FakeClient, "bodies", [])
     return mod
 
 
@@ -97,6 +100,32 @@ def _record(mod, monkeypatch, sd, units):
 
 def _spent():
     return sum(UNITS[t] for t in FakeClient.tasks)
+
+
+@pytest.mark.parametrize(("sample", "group", "src"), [
+    ("s0-champagne-rose", "light", "base.jpg"), ("s3-mauve-smoky", "deep", "bride.jpg")])
+def test_the_base_render_of_a_sample_is_the_approved_request(script, monkeypatch, tmp_path, sample, group, src):
+    """From the pins through the whole chain to the bytes that would go out, foundation 40 instead of 50 included."""
+    sd = tmp_path / sample
+    shutil.copytree(SAMPLES / sample, sd)
+    assert _record(script, monkeypatch, sd, 1) == 4
+    want = json.loads((ROOT / "tests" / "fixtures" / "approved_looks.json").read_text())[group]["softglam"]
+    for e in want:
+        if e["category"] == "foundation":
+            e["palettes"][0]["colorIntensity"] = 40
+    assert rcp.canonical(FakeClient.bodies[0]["effects"]) == rcp.canonical(want)
+    assert FakeClient.bodies[0]["src_file_id"] == f"file-{src}"
+
+
+def test_the_classic_red_sample_is_the_soft_glam_with_a_ruby_lip(script, monkeypatch, tmp_path):
+    sd = tmp_path / "s2-classic-red"
+    shutil.copytree(SAMPLES / sd.name, sd)
+    assert _record(script, monkeypatch, sd, 1) == 4
+    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam"))
+    got = FakeClient.bodies[0]["effects"]
+    lips = next(e for e in got if e["category"] == "lip_color")
+    assert lips["palettes"][0]["color"] == "#B0102E"
+    assert [e for e in got if e["category"] != "lip_color"] == [e for e in want if e["category"] != "lip_color"]
 
 
 def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, monkeypatch, tmp_path):

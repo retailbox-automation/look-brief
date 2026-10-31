@@ -173,6 +173,16 @@ def test_the_edge_of_the_range_blocks_the_strength_button():
         rcp.apply_edit(r, "cheeks", "bolder")
 
 
+def test_a_step_that_lands_exactly_on_the_edge_is_allowed():
+    r = rcp.look_recipe("light", "softglam")
+    lo, hi = palettes.RANGES["light"]["cheeks"]
+    step = palettes.INTENSITY_STEP["cheeks"]
+    r["zones"]["cheeks"]["intensity"] = hi - step
+    assert rcp.apply_edit(r, "cheeks", "bolder")["zones"]["cheeks"]["intensity"] == hi
+    r["zones"]["cheeks"]["intensity"] = lo + step
+    assert rcp.apply_edit(r, "cheeks", "softer")["zones"]["cheeks"]["intensity"] == lo
+
+
 def test_a_step_that_would_leave_the_range_is_blocked_not_cut_short():
     r = rcp.look_recipe("light", "softglam")
     lo, _ = palettes.RANGES["light"]["cheeks"]
