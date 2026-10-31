@@ -31,3 +31,17 @@ Skin control (forehead, no makeup), median ΔE76 vs the bare selfie:
 
 Without an explicit `skin_smooth`, Makeup VTO smooths the whole face: forehead ΔE76 4.66 on the
 development sample (control run, see docs/CALIBRATION.md).
+
+## Out-of-sample live check
+
+Live run through the app on a pair NOT used for calibration: bride of s2-classic-red + inspiration of s1-soft-glam, 2026-10-31 (6 units, task ids in `docs/live-check-2026-10-31.json`).
+Shade gap after one edit (lips lighter):
+
+| Zone | Base recipe | After the edit |
+|---|---|---|
+| Eyelids | 2.31 | 2.25 |
+| Cheeks | 2.20 | 2.20 |
+| Lips | 3.95 | 2.37 |
+
+On a pair the tuning never saw, the base recipe lands further from the transfer than on the calibration
+samples; one zone edit is how the bride or artist closes the gap.

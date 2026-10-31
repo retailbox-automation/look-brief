@@ -90,6 +90,25 @@ def main() -> int:
         "Without an explicit `skin_smooth`, Makeup VTO smooths the whole face: forehead ΔE76 4.66 on the",
         "development sample (control run, see docs/CALIBRATION.md).",
     ]
+    live = ROOT / "docs" / "live-check-2026-10-31.json"
+    if live.exists():
+        lc = json.loads(live.read_text())
+        gb, ga = lc["gaps_base"]["zones"], lc["gaps_after_edit"]["zones"]
+        edit = " + ".join(f"{z} {o}" for z, o in lc["edits"]) or "none"
+        lines += [
+            "",
+            "## Out-of-sample live check",
+            "",
+            f"{lc['what']} ({lc['units_spent']} units, task ids in `docs/live-check-2026-10-31.json`).",
+            f"Shade gap after one edit ({edit}):",
+            "",
+            "| Zone | Base recipe | After the edit |",
+            "|---|---|---|",
+            *[f"| {gb[z]['label']} | {gb[z]['color_gap_de2000']:.2f} | {ga[z]['color_gap_de2000']:.2f} |" for z in gb],
+            "",
+            "On a pair the tuning never saw, the base recipe lands further from the transfer than on the calibration",
+            "samples; one zone edit is how the bride or artist closes the gap.",
+        ]
     (ROOT / "docs" / "ACCURACY.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return 0
