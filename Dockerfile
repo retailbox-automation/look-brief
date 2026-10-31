@@ -14,7 +14,8 @@ COPY samples ./samples
 RUN uv sync --frozen --no-dev
 RUN useradd -m -u 10001 app && mkdir -p /data && chown app /data
 USER app
-ENV HOST=0.0.0.0 PORT=8080 LOOKBRIEF_DATA=/data LOOKBRIEF_LIVE=0 LOOKBRIEF_ATTEST_EPHEMERAL=1 \
+# MALLOC_ARENA_MAX: glibc keeps one arena per worker thread and does not give image buffers back; two arenas bound it
+ENV HOST=0.0.0.0 PORT=8080 LOOKBRIEF_DATA=/data LOOKBRIEF_LIVE=0 LOOKBRIEF_ATTEST_EPHEMERAL=1 MALLOC_ARENA_MAX=2 \
     LOOKBRIEF_TRUST_PROXY=1 LOOKBRIEF_SAMPLES=/app/samples LOOKBRIEF_PUBLIC_URL=https://lookbrief.retailbox-automation.com
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \

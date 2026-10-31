@@ -46,6 +46,8 @@ class Settings:
     replay_ttl_hours: int = field(default_factory=lambda: _int("LOOKBRIEF_REPLAY_TTL_HOURS", 24 * 30))
     max_replay_sessions: int = field(default_factory=lambda: _int("LOOKBRIEF_MAX_REPLAY_SESSIONS", 400))
     try_per_ip_day: int = field(default_factory=lambda: _int("LOOKBRIEF_TRY_PER_IP_DAY", 60))
+    # image work running at once (building a look, re-rendering): memory grows with parallelism, not with sessions
+    heavy_concurrency: int = field(default_factory=lambda: _int("LOOKBRIEF_HEAVY_CONCURRENCY", 1))
     max_upload_mb: int = field(default_factory=lambda: _int("LOOKBRIEF_MAX_UPLOAD_MB", 12))
     cleanup_every_s: int = field(default_factory=lambda: _int("LOOKBRIEF_CLEANUP_EVERY_S", 1800))
     attest_key_b64: str = field(default_factory=lambda: os.environ.get("LOOKBRIEF_ATTEST_KEY", ""))

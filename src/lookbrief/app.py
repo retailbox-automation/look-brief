@@ -117,6 +117,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     credit = CreditCache(live_client)
     session_locks: dict[str, threading.Lock] = {}
     locks_guard = threading.Lock()
+    # One look built or re-rendered at a time: each holds ~150 MB of image arrays, and on a 1.5 GB container nine
+    # visitors at once were OOM-killed (every session lost, there is no volume). Others wait a second instead.
+    heavy = threading.BoundedSemaphore(max(1, s.heavy_concurrency))
 
     def session_dir(sid: str) -> Path:
         return s.data_dir / "sessions" / sid
@@ -228,7 +231,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 checks = {role: photo_check.check(content, role)[0].to_dict()
                           for role, content in (("bride", ctx.bride_jpeg), ("inspiration", ctx.inspiration_jpeg))}
             order = engine.order() if isinstance(engine, ReplayEngine) else LIVE_ORDER
-            state = pipeline.build_look(engine, ctx, session_dir(sid), order=order)
+            with heavy:
+                state = pipeline.build_look(engine, ctx, session_dir(sid), order=order)
             state["checks"] = checks
             state["_ids"] = {k: v for k, v in ctx.ids.items() if k in ("bride", "inspiration", "base", "mu_result")}
             store.update_session(sid, status="ready", step="done", state=state)
@@ -431,7 +435,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     return JSONResponse({"error": "live_unavailable", "reason": st["reason"]}, status_code=429)
             try:
                 ctx = ctx_for(sess)
-                state = pipeline.rerender(engine, ctx, session_dir(sid), state, edits)
+                with heavy:
+                    state = pipeline.rerender(engine, ctx, session_dir(sid), state, edits)
             except NotRecorded:
                 return JSONResponse({"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
                                      "Undo or try another single edit — or use Live with your own photos."},

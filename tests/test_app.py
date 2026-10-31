@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -573,3 +574,35 @@ def test_home_and_live_page_say_uploads_are_off(client, live_client):
     # where Live is available the copy stays as it was
     assert "uploads are off" not in live_client.get("/").text
     assert "<h1>Your photos</h1>" in live_client.get("/live").text
+
+
+def test_image_work_runs_one_at_a_time(client, monkeypatch):
+    """Nine visitors at once OOM-killed the 1.5 GB container (31.10): re-renders and look builds share one slot."""
+    import threading as th
+
+    from lookbrief import pipeline
+    real, active, peak, guard = pipeline.rerender, [0], [0], th.Lock()
+
+    def slow_rerender(*a, **kw):
+        with guard:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        try:
+            time.sleep(0.05)
+            return real(*a, **kw)
+        finally:
+            with guard:
+                active[0] -= 1
+
+    monkeypatch.setattr(pipeline, "rerender", slow_rerender)
+    clients = [TestClient(client.app) for _ in range(4)]
+    sids = [_replay_session(c) for c in clients]
+    codes = []
+    threads = [th.Thread(target=lambda c=c, sid=sid: codes.append(
+        c.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "softer"}).status_code))
+        for c, sid in zip(clients, sids, strict=True)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert codes == [200] * 4 and peak[0] == 1, (codes, peak[0])
