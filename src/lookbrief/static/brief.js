@@ -41,7 +41,7 @@
       el.addEventListener("input", () => { dirty[el.name.slice(5)] = el.value; });
       el.addEventListener("change", () => save(el.name.slice(5)));
     });
-    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%</span></li>`).join("");
+    $("shades").innerHTML = view.snapshot.zones.map((z) => `<li><span class="shade-dot" style="background:${esc(z.product_hex)}" aria-hidden="true"></span><span class="shade-name">${esc(z.label)}</span><code class="shade-hex">${esc(String(z.product_hex || "").toUpperCase())}</code><span class="shade-meta">${z.zone === "skin" ? `foundation in her shade · coverage ${esc(z.intensity)}` : `intensity ${esc(z.intensity)} · coverage ${Math.round((z.coverage || 0) * 100)}%`}</span></li>`).join("");
     const a = view.agreed;
     const me = a[role];
     const other = role === "artist" ? "bride" : "artist";

@@ -181,7 +181,7 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     snap = live_client.get(f"/api/briefs/{b['brief_id']}?t={b['artist_url'].split('t=')[1]}").json()["snapshot"]
     assert {"hair", "skin"} <= set(snap["review_zones"]), "hair and the even-out foundation are confirmed too"
     skin = next(z for z in snap["zones"] if z["zone"] == "skin")
-    assert skin["label"] == "Skin: foundation in her shade" and skin["product_hex"].startswith("#")
+    assert skin["label"] == "Skin" and skin["product_hex"].startswith("#")
     assert live_client.post(f"/api/sessions/{sid}/delete").json() == {"deleted": True}
     st = live_client.get(f"/api/sessions/{sid}").json()
     assert st["deleted"] and st["images"] == {}

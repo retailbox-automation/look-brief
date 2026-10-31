@@ -20,7 +20,7 @@
       {% set zi = (snap.zones | selectattr('zone','equalto', z) | list) %}
       <tr>
         <th scope="row">{{ zi[0].label if zi else 'Hair' }}</th>
-        <td>{% if zi %}<span class="swatch" style="background:{{ zi[0].product_hex }}"></span> {{ zi[0].product_hex }}{% else %}as in preview{% endif %}</td>
+        <td>{% if zi %}<span class="swatch" style="background:{{ zi[0].product_hex }}"></span> {% if z == 'skin' %}foundation in her shade, over the transfer · {% endif %}{{ zi[0].product_hex }}{% else %}as in preview{% endif %}</td>
         <td>{{ zi[0].intensity if zi else '' }}</td>
         <td>{{ v.review_labels[r.status] if r else 'not reviewed' }}</td>
         <td>{{ r.note if r else '' }}</td>

@@ -480,7 +480,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             review_zones.append("hair")
         if st.get("even_out") and "even" in st["images"]:
             ev = st["even_out"]
-            zones.append({"zone": "skin", "label": "Skin: foundation in her shade", "product_hex": ev["skin_hex"],
+            zones.append({"zone": "skin", "label": "Skin", "product_hex": ev["skin_hex"],
                           "intensity": ev["coverage"], "on_face_hex": None, "coverage": None})
             review_zones.append("skin")
         return {
