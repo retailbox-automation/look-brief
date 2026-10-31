@@ -14,5 +14,12 @@
   }
  },
  "role": "calibration",
- "hidden": false
+ "hidden": false,
+ "recipe_pins": {
+  "group": "light",
+  "look": "softglam",
+  "shades": {
+   "lips": "ruby"
+  }
+ }
 }

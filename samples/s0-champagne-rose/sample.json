@@ -14,5 +14,10 @@
   }
  },
  "role": "holdout",
- "hidden": false
+ "hidden": false,
+ "recipe_pins": {
+  "group": "light",
+  "look": "softglam",
+  "shades": {}
+ }
 }
