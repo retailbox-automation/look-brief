@@ -183,7 +183,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out["error_hint"] = {"title": h.title, "fix": h.fix}
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
-                                                "shades", "recipe_sha256", "vto_effects", "notes", "outlines")})
+                                                "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
+                                                "checks")})
             if sess["mode"] == "replay":
                 keys = set(ReplayEngine(samples[sess["sample_id"]]["dir"]).recorded_render_keys())
                 out["edit_options"] = pipeline.edit_options(st, keys)
@@ -201,7 +202,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             engine = engine_for(sess)
             ctx = ctx_for(sess)
+            checks_file = session_dir(sid) / "checks.json"
+            if checks_file.exists():  # live: checked at upload
+                checks = json.loads(checks_file.read_text())
+            else:  # sample: same local check, no units involved
+                checks = {role: photo_check.check(content, role)[0].to_dict()
+                          for role, content in (("bride", ctx.bride_jpeg), ("inspiration", ctx.inspiration_jpeg))}
             state = pipeline.build_look(engine, ctx, session_dir(sid))
+            state["checks"] = checks
             state["_ids"] = {k: v for k, v in ctx.ids.items() if k in ("bride", "inspiration")}
             store.update_session(sid, status="ready", step="done", state=state)
         except YouCamError as e:
@@ -305,6 +313,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         d.mkdir(parents=True, exist_ok=True)
         (d / "bride.jpg").write_bytes(photo_check.to_jpeg(imgs["bride"]))
         (d / "inspiration.jpg").write_bytes(photo_check.to_jpeg(imgs["inspiration"]))
+        (d / "checks.json").write_text(json.dumps(checks))
         background.add_task(run_session, sid)
         return {"session_id": sid, "url": f"/s/{sid}", "checks": checks}
 
