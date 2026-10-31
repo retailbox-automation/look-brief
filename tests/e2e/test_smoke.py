@@ -74,7 +74,9 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(bride.locator("#agree-help")).to_have_text("Waiting for your makeup artist to answer every zone.")
     expect(bride.locator("#b-after")).to_have_attribute("src", re.compile(r"render-cheeks-softer"))
     expect(bride.locator("#b-after-cap")).to_contain_text("Agreed target: your adjusted look")
-    expect(bride.locator("#b-after-cap")).to_be_visible()
+    for cap in bride.locator(".pair-photos figcaption").all():  # on screen, not screen-reader-only (1px)
+        box = cap.bounding_box()
+        assert box and box["width"] > 40 and box["height"] > 8, f"caption not visible: {box}"
     bride.get_by_role("button", name="Update the brief from my latest edits").click()
     expect(bride.locator("#agree-help")).to_have_text("Your brief is already up to date — no new edits.")
     expect(bride.locator("#b-status")).to_contain_text("Version 1")
