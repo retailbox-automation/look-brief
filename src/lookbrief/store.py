@@ -95,9 +95,9 @@ class Store:
     def add_units(self, sid: str, units: int) -> None:
         self._exec("UPDATE sessions SET units_spent = units_spent + ? WHERE id=?", (units, sid))
 
-    def expired_live_sessions(self, older_than: float) -> list[str]:
-        rows = self._exec("SELECT id FROM sessions WHERE mode='live' AND deleted_at IS NULL AND created_at < ?",
-                          (older_than,)).fetchall()
+    def expired_sessions(self, mode: str, older_than: float) -> list[str]:
+        rows = self._exec("SELECT id FROM sessions WHERE mode=? AND deleted_at IS NULL AND created_at < ?",
+                          (mode, older_than)).fetchall()
         return [r["id"] for r in rows]
 
     # ---------- ledger / limits ----------

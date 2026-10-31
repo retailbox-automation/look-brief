@@ -42,5 +42,6 @@ class Settings:
     live_session_unit_cap: int = field(default_factory=lambda: _int("LOOKBRIEF_LIVE_SESSION_UNIT_CAP", 12))
     trust_proxy: bool = field(default_factory=lambda: os.environ.get("LOOKBRIEF_TRUST_PROXY", "0") == "1")
     upload_ttl_hours: int = field(default_factory=lambda: _int("LOOKBRIEF_UPLOAD_TTL_HOURS", 24))
+    replay_ttl_hours: int = field(default_factory=lambda: _int("LOOKBRIEF_REPLAY_TTL_HOURS", 24 * 7))
     attest_key_b64: str = field(default_factory=lambda: os.environ.get("LOOKBRIEF_ATTEST_KEY", ""))
     attest_ephemeral: bool = field(default_factory=lambda: os.environ.get("LOOKBRIEF_ATTEST_EPHEMERAL", "0") == "1")

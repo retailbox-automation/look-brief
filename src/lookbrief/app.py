@@ -232,6 +232,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         m = samples.get(sample_id)
         if m is None or not m["recorded"]:
             raise HTTPException(404, "unknown sample")
+        cleanup_expired()
         sid = store.create_session("replay", sample_id, client_ip(request), consent=False)
         d = session_dir(sid)
         d.mkdir(parents=True, exist_ok=True)
@@ -307,6 +308,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 imgs[role] = img
         if not all(c["ok"] for c in checks.values()) or len(imgs) != 2:
             return JSONResponse({"error": "photo_check", "checks": checks}, status_code=422)
+        cleanup_expired()
         sid = store.create_session("live", None, ip, consent=True)
         store.count_ip_session(ip)
         d = session_dir(sid)
@@ -518,13 +520,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return JSONResponse(att, headers={"Content-Disposition": f'attachment; filename="look-brief-{bid}.json"'})
 
     def cleanup_expired() -> int:
+        """Live uploads after LOOKBRIEF_UPLOAD_TTL_HOURS (privacy), sample sessions after LOOKBRIEF_REPLAY_TTL_HOURS
+        (disk). Runs at start and whenever a new session is created."""
         n = 0
-        for sid in store.expired_live_sessions(time.time() - s.upload_ttl_hours * 3600):
-            d = session_dir(sid)
-            if d.exists():
-                shutil.rmtree(d)
-            store.update_session(sid, deleted_at=time.time())
-            n += 1
+        now = time.time()
+        for mode, ttl in (("live", s.upload_ttl_hours), ("replay", s.replay_ttl_hours)):
+            for sid in store.expired_sessions(mode, now - ttl * 3600):
+                d = session_dir(sid)
+                if d.exists():
+                    shutil.rmtree(d)
+                store.update_session(sid, deleted_at=now)
+                n += 1
         return n
 
     cleanup_expired()  # on start: remove live uploads older than the TTL

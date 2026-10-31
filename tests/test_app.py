@@ -186,3 +186,14 @@ def test_live_refused_when_credit_low(live_client, monkeypatch):
     monkeypatch.setattr(FakeYouCam, "credit_value", 50)
     r = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
     assert r.status_code == 429 and "protect the API balance" in r.json()["reason"]
+
+
+def test_expired_sessions_are_cleaned(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
+    app = app_mod.create_app(_settings(tmp_path, replay_ttl_hours=0))
+    c = TestClient(app)
+    sid = _replay_session(c)
+    assert (tmp_path / "data" / "sessions" / sid).exists()
+    assert app.state.cleanup_expired() >= 1
+    assert not (tmp_path / "data" / "sessions" / sid).exists()
+    assert c.get(f"/api/sessions/{sid}").json()["deleted"] is True
