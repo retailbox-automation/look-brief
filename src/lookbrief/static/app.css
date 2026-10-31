@@ -243,6 +243,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .compare.small { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .compare.small img { border-radius: 10px; width: 100%; aspect-ratio: 3/4; object-fit: cover; }
 .card .gaps { background: transparent; }
+.card-zones td[data-label="Artist"] { white-space: nowrap; }
 .attest { margin-top: 16px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
 .attest h2 { margin: 0 0 .5rem; font-size: 1.3rem; }
 .mono { font-family: var(--mono); font-size: .78rem; word-break: break-all; color: var(--ink-2); }

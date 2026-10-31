@@ -249,7 +249,7 @@ def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
     effects: list[dict] = [dict(NO_SMOOTHING)]
     if even_out:
         effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
-    effects.append(concealer_effect(recipe["skin_hex"]))
+    effects.append(concealer_effect(recipe["skin_hex"], recipe["group"]))
     zones = recipe["zones"]
     effects += [_effect(zones[z]) for z in palettes.ZONES if z in zones and zones[z]["palette"]]  # "none": left out
     return effects
@@ -264,9 +264,10 @@ def foundation_effect(skin_hex: str, coverage: int = 30) -> dict:
          "coverageIntensity": int(coverage)}]}
 
 
-def concealer_effect(skin_hex: str) -> dict:
+def concealer_effect(skin_hex: str, group: str) -> dict:
     """A layer under every look, not a zone: nothing to choose, the artist reads it in the Skin row of the brief."""
-    return {"category": "concealer", "palettes": [{"color": skin_hex, **palettes.CONCEALER_FINISH}]}
+    finish = palettes.CONCEALER_FINISH_MEDIUM if group == "medium" else palettes.CONCEALER_FINISH
+    return {"category": "concealer", "palettes": [{"color": skin_hex, **finish}]}
 
 
 def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:

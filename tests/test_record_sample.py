@@ -37,7 +37,7 @@ def dry(*args):
 
 
 @pytest.mark.parametrize(("sample", "renders", "units", "hair"), [
-    ("s0-champagne-rose", 31, 31, False), ("s2-classic-red", 32, 34, True), ("s3-mauve-smoky", 29, 31, True)])
+    ("s0-champagne-rose", 31, 31, False), ("s2-classic-red", 31, 33, True), ("s3-mauve-smoky", 29, 31, True)])
 def test_dry_lists_the_grid_without_a_key(sample, renders, units, hair, tmp_path):
     r = dry(str(before_the_grid(sample, tmp_path / sample)), "--max-units", "230")
     assert r.returncode == 0, r.stderr

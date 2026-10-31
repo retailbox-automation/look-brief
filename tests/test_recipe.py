@@ -410,9 +410,9 @@ def test_the_deep_grid_has_fewer_blushes_and_lips():
 
 
 def test_a_sample_with_a_liner_outside_the_ladder_records_the_natural_one_too():
-    base = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
-    keys = [rcp.edit_key(e) for e in rcp.record_grid(base)]
-    assert len(keys) == 29 + 2 and "lip_line:shade:natural" in keys
+    keys = [rcp.edit_key(e) for e in rcp.record_grid(_look("medium"))]
+    assert len(keys) == 28 + 2 and "lip_line:shade:natural" in keys and "highlight:shade:radiant" in keys
+    assert "highlight:shade:none" not in keys, "no highlighter is the base of medium"
 
 
 # ---------------- the body ----------------
@@ -481,15 +481,18 @@ def test_a_lid_circle_from_the_fresh_look_takes_the_strengths_of_the_base():
     assert eyes["pattern"] == {"name": "2colors279"} and [p["colorIntensity"] for p in eyes["palettes"]] == [92, 88]
 
 
-@pytest.mark.parametrize("group", palettes.GROUPS)
-def test_the_concealer_is_her_own_colour_and_stays_under_the_eyes(group):
+@pytest.mark.parametrize(("group", "finish"), [("light", (20, 85, 50)), ("olive", (20, 85, 50)), ("deep", (20, 85, 50)),
+                                               ("medium", (8, 70, 35))])
+def test_the_concealer_is_her_own_colour_and_stays_under_the_eyes(group, finish):
     p = next(e for e in rcp.to_vto_effects(_look(group)) if e["category"] == "concealer")["palettes"][0]
-    assert p == {"color": SKIN[group], "colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
+    assert p == {"color": SKIN[group], "colorIntensity": finish[0], "colorUnderEyeIntensity": finish[1],
+                 "coverageLevel": finish[2]}
 
 
 def test_medium_skin_takes_the_quieter_shine():
-    hi = next(e for e in rcp.to_vto_effects(_look("medium")) if e["category"] == "highlighter")["palettes"][0]
-    assert (hi["glowIntensity"], hi["shimmerIntensity"]) == (35, 15)
+    r = rcp.apply_edit(_look("medium"), "highlight", "shade:radiant")
+    hi = next(e for e in rcp.to_vto_effects(r) if e["category"] == "highlighter")["palettes"][0]
+    assert (hi["color"], hi["colorIntensity"], hi["glowIntensity"], hi["shimmerIntensity"]) == ("#EBC8A0", 22, 35, 15)
     light = next(e for e in rcp.to_vto_effects(_look()) if e["category"] == "highlighter")["palettes"][0]
     assert (light["glowIntensity"], light["shimmerIntensity"]) == (45, 25)
 

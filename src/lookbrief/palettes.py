@@ -61,6 +61,7 @@ NEUTRAL_CHROMA = 6.0  # below this a colour has no hue to keep
 # Concealer: a layer under every look, not a zone, in her own colour. colorIntensity lands on the whole face (at 45 a
 # lighter colour made s2's face lighter than her neck), so the strength sits under the eyes.
 CONCEALER_FINISH = {"colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
+CONCEALER_FINISH_MEDIUM = {"colorIntensity": 8, "colorUnderEyeIntensity": 70, "coverageLevel": 35}
 # A red lip takes the lip liner under it: shade of the lips -> (lip liner, strength).
 LIP_LINE_UNDER = {"ruby": ("red", 45)}
 # Strength and shimmer of the two lid colours (lid, outer corner) on the ladder shades.
@@ -191,13 +192,13 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
         "brows": (_style("natural", "Natural", "#5A4034", 35), _style("soft", "Soft", "#8A6A5C", 18),
                   _style("defined", "Defined", "#3B2A22", 85)),
         "cheeks": _ladder(
-            _blush("warm-pink", "Warm pink", "#E27A8A", 38),
+            _blush("soft-coral", "Soft coral", "#D87A6A", 38),
             _blush("peach", "Peach", "#EE8F6A", 50),
             _blush("terracotta", "Terracotta", "#C8603C", 50),
             _blush("rose", "Rose", "#DE6A72", 46),
             _blush("plum-rose", "Plum rose", "#A84868", 44)),
-        "bronzer": (_bare("natural", "Natural", "#B97A4C", 30),),
-        "highlight": (_bare("natural", "Natural", "#EBC8A0", 22), _bare("radiant", "Radiant", "#F0CFA8", 60)),
+        "bronzer": (_bare("natural", "Natural", "#A86A40", 60),),
+        "highlight": (_bare("radiant", "Radiant", "#EBC8A0", 22),),
         "lips": _ladder(
             _lip("ruby", "Ruby", "#B0102E", "matte"),
             _lip("dusty-rose", "Dusty rose", "#B96F78"),
@@ -265,15 +266,15 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
         "highlight": (_bare("natural", "Natural", "#E3B98C", 42), _bare("radiant", "Radiant", "#D9A066", 66)),
         "lips": _ladder(
             _lip("berry-rose", "Berry rose", "#8A2F45"),
-            _lip("caramel-nude", "Caramel nude", "#A8645A"),
+            _lip("caramel-nude", "Caramel nude", "#9A5A50"),
             _lip("bronze", "Bronze", "#9C5B3A"),
             _lip("brick", "Brick", "#A8412F", "matte"),
-            _lip("deep-red", "Deep red", "#8E0F23", "matte"),
+            _lip("deep-red", "Deep red", "#B01A30", "matte"),
             _lip("plum", "Plum", "#6E2A3E"),
             _lip("oxblood", "Oxblood", "#7A0F1E", "matte"),
             _lip("dark-berry", "Dark berry", "#4A1230", "matte"),
             _gloss("berry-gloss", "Berry gloss", "#8A2F45")),
-        "lip_line": (_style("natural", "Natural", "#6A1B2C", 55), _style("defined", "Defined", "#5A2A2E", 70)),
+        "lip_line": (_style("natural", "Natural", "#6A1B2C", 55), _style("defined", "Defined", "#6A3A34", 70)),
     },
 }
 
@@ -290,7 +291,6 @@ LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
         "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
         "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"), _blush("deep-rose", "Deep rose", "#D0707E")),
-        "bronzer": (_bare("honey", "Honey", "#C08A55"),),
         "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
     },
     "olive": {
@@ -307,7 +307,7 @@ LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
         "cheeks": (_blush("warm-rose", "Warm rose", "#B5535A"), _blush("dark-cherry", "Dark cherry", "#7E2A38")),
         "bronzer": (_bare("deep-bronze", "Deep bronze", "#8A4A2B"), _bare("dark-bronze", "Dark bronze", "#6B3F28")),
         "highlight": (_bare("deep-gold", "Deep gold", "#C9A24A"),),
-        "lip_line": (_style("dark-berry", "Dark berry", "#4A1230"),),
+        "lip_line": (_style("deep-wine", "Deep wine", "#7A1A2C"),),
     },
 }
 
@@ -339,12 +339,11 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
     },
     "medium": {
         "fresh": _look(("sunlit-taupe", (70, 62), (60, 0)), ("taupe-brown", 50), ("natural", 60), ("natural", 35),
-                       ("soft-peach", 30, "1color2", 30), ("honey", 20), ("natural", 18), ("rosy-peach", 55)),
+                       ("soft-peach", 30, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("rosy-peach", 55)),
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
-                          ("warm-pink", 38, "1color2", 30), ("natural", 30), ("natural", 22), ("ruby", 80),
-                          ("red", 45)),
+                          ("soft-coral", 38, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80), ("red", 45)),
         "evening": _look(("copper-umber", (94, 92), (75, 0)), ("wing", 76), ("volume", 80), ("natural", 42),
-                         ("deep-rose", 40, "1color2", 30), ("natural", 30), ("natural", 22), ("ruby", 80),
+                         ("deep-rose", 40, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80),
                          ("ruby-line", 40)),
     },
     "olive": {
@@ -360,14 +359,14 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
     },
     "deep": {
         "fresh": _look(("gold-bronze", (80, 70), (65, 0)), ("smudge", 60), ("natural", 70), ("soft", 30),
-                       ("warm-rose", 46, "1color2", 30), ("deep-bronze", 18), ("radiant", 40), ("caramel-nude", 70),
-                       ("defined", 45)),
+                       ("warm-rose", 46, "1color2", 30), ("deep-bronze", 18), ("radiant", 40), ("caramel-nude", 90),
+                       ("defined", 35)),
         "softglam": _look(("gold", (95, 90), (80, 0)), ("classic", 70), ("natural", 80), ("natural", 40),
                           ("mulled-rose", 36, "1color5", 25), ("natural", 22), ("natural", 42), ("berry-rose", 76),
                           ("natural", 55)),
         "evening": _look(("copper-night", (96, 92), (80, 0)), ("wing", 80), ("volume", 84), ("defined", 42),
-                         ("dark-cherry", 38, "1color5", 25), ("dark-bronze", 26), ("deep-gold", 45), ("deep-red", 86),
-                         ("dark-berry", 60)),
+                         ("dark-cherry", 38, "1color5", 25), ("dark-bronze", 26), ("deep-gold", 45), ("deep-red", 94),
+                         ("deep-wine", 35)),
     },
 }
 

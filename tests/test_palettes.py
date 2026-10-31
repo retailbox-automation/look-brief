@@ -46,7 +46,8 @@ def test_ladders_have_the_steps_of_palette_v3(group, sizes):
 @pytest.mark.parametrize("group", ["medium", "olive"])
 def test_medium_and_olive_are_built_the_same_way(group):
     sizes = {z: len(palettes.ladder(group, z)) for z in palettes.ZONES}
-    assert {z: sizes[z] for z in palettes.STYLE_ZONES} == {z: LIGHT_SIZES[z] for z in palettes.STYLE_ZONES}
+    want = {**{z: LIGHT_SIZES[z] for z in palettes.STYLE_ZONES}, **({"highlight": 1} if group == "medium" else {})}
+    assert {z: sizes[z] for z in palettes.STYLE_ZONES} == want
     assert sizes["eyes"] == 6 and sizes["cheeks"] == 5 and sizes["lips"] >= 9 and sizes["bronzer"] == 1
 
 
@@ -54,6 +55,14 @@ def test_medium_keeps_the_ruby_lip_of_s2_with_the_red_liner():
     look = rcp.look_recipe("medium", "softglam", SKIN["medium"])["zones"]
     assert look["lips"]["shade_id"] == "ruby" and look["lip_line"]["palette"] == ["#8E0F1A"]
     assert look["lip_line"]["intensity"] == 45
+    assert look["highlight"]["shade_id"] == palettes.NONE_ID, "s2 wears no highlighter; radiant stays a choice"
+    assert palettes.shade("medium", "highlight", "radiant").colors == ("#EBC8A0",)
+
+
+def test_the_deep_steps_follow_the_final_looks():
+    assert palettes.shade("deep", "lips", "deep-red").colors == ("#B01A30",)
+    assert palettes.shade("deep", "lips", "caramel-nude").colors == ("#9A5A50",)
+    assert palettes.shade("deep", "lip_line", "defined").colors == ("#6A3A34",)
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)

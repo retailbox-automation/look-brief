@@ -31,7 +31,8 @@ def main() -> int:
             continue
         meta = json.loads((sd / "sample.json").read_text())
         mf = json.loads(mf_path.read_text())
-        if meta.get("hidden") or mf["steps"]["render:base"]["recipe"]["version"] != 2:
+        recipe = mf["steps"]["render:base"]["recipe"]
+        if meta.get("hidden") or recipe["version"] != 2 or recipe["zones"]["eyes"]["pattern"] != palettes.EYE_PATTERN:
             print(f"{sd.name}: skipped (hidden or waits for re-recording)")
             continue
         r = vis.edit_visibility(sd)
