@@ -138,6 +138,14 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None, or
     return rerender(engine, ctx, workdir, state, [], face=face)
 
 
+def even_out_of(state: dict) -> dict | None:
+    """The foundation every re-render carries once the even-out step exists (hair-first looks)."""
+    ev = state.get("even_out")
+    if ev and "even" in state.get("images", {}):
+        return {"skin_hex": ev["skin_hex"], "coverage": int(ev.get("coverage", 30))}
+    return None
+
+
 def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits: list[list[str]],
              face: landmarks.FaceGeometry | None = None) -> dict:
     recipe = None
@@ -147,18 +155,23 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
             raise NotRecorded(rcp.edit_key(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
     bare_name = state.get("bare", "bride.jpg")
-    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
+    # After "Even out redness" every re-render carries the same foundation, and accuracy is measured against the
+    # evened look the bride is shown (otherwise an edit brings the redness back and is compared to the patchy transfer).
+    even = even_out_of(state)
+    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride", even_out=even)
     name = _save(workdir, render_name(edits), res)
     face = face or face_of(workdir, bare_name)
-    bare, transfer = _arrays(workdir, state["images"]["look"], bare_name)
+    reference = state["images"]["even"] if even else state["images"]["look"]
+    bare, transfer = _arrays(workdir, reference, bare_name)
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
+    gaps["reference"] = "even" if even else "transfer"
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name
     state["edits"] = edits
     state["recipe"] = recipe
     state["recipe_sha256"] = rcp.recipe_sha256(recipe)
-    state["vto_effects"] = rcp.to_vto_effects(recipe)
+    state["vto_effects"] = rcp.to_vto_effects(recipe, even)
     state["gaps"] = gaps
     if not edits:
         state["gaps_base"] = gaps

@@ -92,3 +92,13 @@ def test_unknown_edit_rejected_and_keys_stable():
     assert rcp.edit_key([]) == "base"
     assert rcp.edit_key([["cheeks", "softer"], ["lips", "lighter"]]) == "cheeks:softer+lips:lighter"
     assert rcp.recipe_sha256(r) == rcp.recipe_sha256(json.loads(json.dumps(r)))
+
+
+def test_even_out_foundation_rides_under_the_recipe():
+    from lookbrief import recipe as rcp_mod
+    recipe = {"zones": {"cheeks": {"color": "#c0593c", "intensity": 60}}}
+    plain = rcp_mod.to_vto_effects(recipe)
+    assert "foundation" not in [x["category"] for x in plain], "transfer-first looks have no foundation"
+    with_even = rcp_mod.to_vto_effects(recipe, {"skin_hex": "#dfa588", "coverage": 30})
+    assert [x["category"] for x in with_even] == ["skin_smooth", "foundation", "blush"]
+    assert with_even[1] == rcp_mod.even_out_effects("#dfa588", 30)[1], "the same foundation as the even-out step"

@@ -105,6 +105,8 @@ def main() -> int:
         planned -= UNITS["mu-transfer"]
     if args.rerender:
         state = json.loads((work / "state.json").read_text())
+        if state.get("order") == "hair_first":  # re-renders run on her face with the new hair (and carry the even-out)
+            ctx.ids["base_jpeg"] = (work / state["images"]["base"]).read_bytes()
         for key in [k for k in recorder.manifest["steps"] if k.startswith("render:")]:
             step = recorder.manifest["steps"].pop(key)
             (sd / step["image"]).unlink(missing_ok=True)

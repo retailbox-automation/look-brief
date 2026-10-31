@@ -136,9 +136,14 @@ def edit_key(edits: list[list[str]]) -> str:
     return "+".join(f"{z}:{o}" for z, o in edits)
 
 
-def to_vto_effects(recipe: dict) -> list[dict]:
-    """Recipe -> `effects` for POST /s2s/v2.0/task/makeup-vto (schema: makeup_vto.yaml)."""
+def to_vto_effects(recipe: dict, even_out: dict | None = None) -> list[dict]:
+    """Recipe -> `effects` for POST /s2s/v2.0/task/makeup-vto (schema: makeup_vto.yaml).
+
+    `even_out` ({"skin_hex", "coverage"}): once the bride has the "Even out redness" step, every re-render carries
+    the same foundation in her shade under the recipe, so an edit never brings the redness back."""
     effects: list[dict] = [dict(NO_SMOOTHING)]
+    if even_out:
+        effects.append(foundation_effect(even_out["skin_hex"], int(even_out.get("coverage", 30))))
     zones = recipe["zones"]
     if "eyes" in zones:
         z = zones["eyes"]
@@ -168,15 +173,19 @@ def to_vto_effects(recipe: dict) -> list[dict]:
 EVEN_OUT_LABEL = "foundation in her shade over the transfer"
 
 
+def foundation_effect(skin_hex: str, coverage: int = 30) -> dict:
+    return {"category": "foundation", "palettes": [
+        {"color": skin_hex, "colorIntensity": 50, "glowIntensity": 0, "coverageIntensity": int(coverage)}]}
+
+
 def even_out_effects(skin_hex: str, coverage: int = 30) -> list[dict]:
     """'Even out redness': a foundation in the bride's own shade, applied by Makeup VTO ON TOP of the
     Makeup Transfer result (lips and eyes stay as transferred). No smoothing."""
-    return [dict(NO_SMOOTHING), {"category": "foundation", "palettes": [
-        {"color": skin_hex, "colorIntensity": 50, "glowIntensity": 0, "coverageIntensity": int(coverage)}]}]
+    return [dict(NO_SMOOTHING), foundation_effect(skin_hex, coverage)]
 
 
-def vto_body(recipe: dict) -> dict:
-    return {"version": "1.0", "effects": to_vto_effects(recipe)}
+def vto_body(recipe: dict, even_out: dict | None = None) -> dict:
+    return {"version": "1.0", "effects": to_vto_effects(recipe, even_out)}
 
 
 def canonical(obj: object) -> bytes:

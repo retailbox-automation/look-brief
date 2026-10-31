@@ -131,7 +131,10 @@ class FakeYouCam:
         self.n += 1
         return f"file-{self.n}"
 
+    calls: list = []
+
     def run_task(self, name, body, version=None):
+        type(self).calls.append((name, body))
         step = {"mu-transfer": "mu_transfer", "hair-transfer": "hair_transfer", "makeup-vto": "render:base"}[name]
         return TaskResult(name, f"task-{name}", f"fake://{step}", 1.0, UNITS[name], {})
 
@@ -378,3 +381,26 @@ def test_card_names_the_transfers_that_made_the_target(client, sample, label, no
     b = client.post(f"/api/sessions/{sid}/brief").json()
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert label in html and not_label not in html
+
+
+def test_edits_after_even_out_keep_her_foundation(live_client, monkeypatch):
+    """Blocker found by the media lane (31.10): after "Even out redness" an edit was re-rendered without the
+    foundation, so the redness came back. Every re-render must carry the same foundation in her shade."""
+    monkeypatch.setattr(FakeYouCam, "calls", [])
+    r = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})
+    sid = r.json()["session_id"]
+    st = live_client.get(f"/api/sessions/{sid}").json()
+    zone = next(iter(st["recipe_base"]["zones"]))
+    st = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": zone, "op": "softer"}).json()
+    skin = st["even_out"]["skin_hex"]
+    vto = [b["effects"] for n, b in FakeYouCam.calls if n == "makeup-vto"]
+    makeup = {"eye_shadow", "blush", "lip_color"}
+    renders = [e for e in vto if makeup & {x["category"] for x in e}]
+    assert len(renders) == 2, "base re-render + one edit"
+    for effects in renders:
+        cats = [x["category"] for x in effects]
+        assert cats.count("foundation") == 1 and cats.count("skin_smooth") == 1, cats
+        f = next(x for x in effects if x["category"] == "foundation")["palettes"][0]
+        assert f["color"] == skin and f["coverageIntensity"] == 30
+    assert "foundation" in [x["category"] for x in st["vto_effects"]]
+    assert st["gaps"]["reference"] == "even", "accuracy is measured against the evened look she is shown"
