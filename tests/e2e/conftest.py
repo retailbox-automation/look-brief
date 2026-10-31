@@ -24,11 +24,18 @@ def base_url(tmp_path_factory):
         yield url.rstrip("/")
         return
     port = _free_port()
-    env = {**os.environ, "PORT": str(port), "HOST": "127.0.0.1", "LOOKBRIEF_LIVE": "0",
-           "LOOKBRIEF_DATA": str(tmp_path_factory.mktemp("data")), "LOOKBRIEF_ATTEST_EPHEMERAL": "1",
-           "YOUCAM_API_KEY": ""}
-    proc = subprocess.Popen([sys.executable, "-m", "lookbrief"], cwd=ROOT, env=env,
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    env = {
+        **os.environ,
+        "PORT": str(port),
+        "HOST": "127.0.0.1",
+        "LOOKBRIEF_LIVE": "0",
+        "LOOKBRIEF_DATA": str(tmp_path_factory.mktemp("data")),
+        "LOOKBRIEF_ATTEST_EPHEMERAL": "1",
+        "YOUCAM_API_KEY": "",
+    }
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "lookbrief"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
     url = f"http://127.0.0.1:{port}"
     for _ in range(100):
         try:

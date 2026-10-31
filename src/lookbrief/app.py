@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shutil
 import threading
@@ -104,6 +105,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return client_holder["c"]
 
     credit = CreditCache(live_client)
+    session_locks: dict[str, threading.Lock] = {}
+    locks_guard = threading.Lock()
 
     def session_dir(sid: str) -> Path:
         return s.data_dir / "sessions" / sid
@@ -221,6 +224,36 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise
 
     # ---------------- pages ----------------
+    # ---------------- owner of a session (the bride's browser) ----------------
+    def owner_cookie(sid: str) -> str:
+        return f"lbo_{sid}"
+
+    def set_owner(resp, request: Request, sid: str, token: str) -> None:
+        secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+        resp.set_cookie(owner_cookie(sid), token, max_age=30 * 24 * 3600, httponly=True, samesite="lax",
+                        secure=secure, path="/")
+
+    def owned_session(sid: str, request: Request) -> dict:
+        """The session id alone is not a key: only the browser holding the owner cookie may read or act on it."""
+        sess = store.session(sid)
+        if sess is None:
+            raise HTTPException(404, "session not found")
+        if not store.is_owner(sid, request.cookies.get(owner_cookie(sid))):
+            raise HTTPException(403, "this look was created in another browser")
+        return sess
+
+    def live_session_lock(sid: str) -> threading.Lock:
+        with locks_guard:
+            return session_locks.setdefault(sid, threading.Lock())
+
+    async def read_capped(up: UploadFile) -> bytes:
+        limit = s.max_upload_mb * 1024 * 1024
+        data = await up.read(limit + 1)
+        if len(data) > limit:
+            raise HTTPException(413, f"photo is larger than {s.max_upload_mb} MB")
+        return data
+
+    # ---------------- pages ----------------
     @app.get("/", response_class=HTMLResponse)
     def index(request: Request):
         ip = client_ip(request)
@@ -232,14 +265,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         m = samples.get(sample_id)
         if m is None or not m["recorded"]:
             raise HTTPException(404, "unknown sample")
-        cleanup_expired()
-        sid = store.create_session("replay", sample_id, client_ip(request), consent=False)
+        ip = client_ip(request)
+        if store.ip_sessions_today(ip, "try") >= s.try_per_ip_day:
+            return HTMLResponse("Too many sample sessions from your network today. Please try again tomorrow.",
+                                status_code=429)
+        sid, owner = store.create_session("replay", sample_id, ip, consent=False)
+        store.count_ip_session(ip, "try")
+        cleanup_expired()  # after creating, so the cap counts this session and evicts the oldest
         d = session_dir(sid)
         d.mkdir(parents=True, exist_ok=True)
         shutil.copy(m["dir"] / "bride.jpg", d / "bride.jpg")
         shutil.copy(m["dir"] / "inspiration.jpg", d / "inspiration.jpg")
         background.add_task(run_session, sid)
-        return RedirectResponse(f"/s/{sid}", status_code=303)
+        resp = RedirectResponse(f"/s/{sid}", status_code=303)
+        set_owner(resp, request, sid, owner)
+        return resp
 
     @app.get("/live", response_class=HTMLResponse)
     def live_page(request: Request):
@@ -247,9 +287,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/s/{sid}", response_class=HTMLResponse)
     def session_page(sid: str, request: Request):
-        sess = store.session(sid)
-        if sess is None:
-            raise HTTPException(404, "session not found")
+        sess = owned_session(sid, request)
         sample = samples.get(sess["sample_id"] or "")
         return templates.TemplateResponse(request, "session.html", {
             "sid": sid, "mode": sess["mode"], "sample": sample})
@@ -266,7 +304,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         role = store.role_for(bid, t)
         if role is None:
             raise HTTPException(404, "brief not found")
-        view = brief_view(bid, role)
+        view = brief_view(bid, role, t)
         return templates.TemplateResponse(request, "card.html", {"v": view, "token": t,
                                                                  "public_key": signer.public_jwk_like()})
 
@@ -285,10 +323,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return signer.public_jwk_like()
 
     @app.post("/api/live/check")
-    async def live_check(photo: UploadFile = File(...), role: str = Form(...)):
+    async def live_check(request: Request, photo: UploadFile = File(...), role: str = Form(...)):
+        if not (s.live_enabled and key):
+            raise HTTPException(404, "Live mode is off on this server")
         if role not in ("bride", "inspiration"):
             raise HTTPException(400, "role must be bride or inspiration")
-        res, _ = photo_check.check(await photo.read(), role)
+        res, _ = photo_check.check(await read_capped(photo), role)
         return res.to_dict()
 
     @app.post("/api/live/sessions")
@@ -299,17 +339,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ip = client_ip(request)
         st = live_status(ip)
         if not st["available"]:
-            return JSONResponse({"error": "live_unavailable", "reason": st["reason"]}, status_code=429)
+            return JSONResponse({"error": "live_unavailable", "reason": st["reason"], "samples_url": "/"},
+                                status_code=429)
         checks, imgs = {}, {}
         for role, up in (("bride", bride), ("inspiration", inspiration)):
-            res, img = photo_check.check(await up.read(), role)
+            res, img = photo_check.check(await read_capped(up), role)
             checks[role] = res.to_dict()
             if img is not None:
                 imgs[role] = img
         if not all(c["ok"] for c in checks.values()) or len(imgs) != 2:
             return JSONResponse({"error": "photo_check", "checks": checks}, status_code=422)
         cleanup_expired()
-        sid = store.create_session("live", None, ip, consent=True)
+        sid, owner = store.create_session("live", None, ip, consent=True)
         store.count_ip_session(ip)
         d = session_dir(sid)
         d.mkdir(parents=True, exist_ok=True)
@@ -317,56 +358,61 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         (d / "inspiration.jpg").write_bytes(photo_check.to_jpeg(imgs["inspiration"]))
         (d / "checks.json").write_text(json.dumps(checks))
         background.add_task(run_session, sid)
-        return {"session_id": sid, "url": f"/s/{sid}", "checks": checks}
+        resp = JSONResponse({"session_id": sid, "url": f"/s/{sid}", "checks": checks})
+        set_owner(resp, request, sid, owner)
+        return resp
 
     @app.get("/api/sessions/{sid}")
-    def get_session(sid: str):
-        sess = store.session(sid)
-        if sess is None:
-            raise HTTPException(404, "session not found")
-        return public_state(sess)
+    def get_session(sid: str, request: Request):
+        return public_state(owned_session(sid, request))
 
     @app.post("/api/sessions/{sid}/edits")
     def edit(sid: str, body: EditIn, request: Request):
-        sess = store.session(sid)
-        if sess is None or sess["status"] != "ready":
-            raise HTTPException(409, "session is not ready")
-        state = sess["state"]
-        edits = list(state.get("edits") or [])
-        if body.action == "reset":
-            edits = []
-        elif body.action == "undo":
-            edits = edits[:-1]
-        else:
-            if body.zone not in rcp.EDIT_ZONES or body.op not in rcp.EDIT_OPS:
-                raise HTTPException(400, "unknown edit")
-            edits.append([body.zone, body.op])
-        engine = engine_for(sess)
-        if sess["mode"] == "live":
-            if sess["units_spent"] + UNITS["makeup-vto"] > s.live_session_unit_cap:
-                return JSONResponse({"error": "session_cap", "reason": "This live session reached its unit cap."},
-                                    status_code=429)
-            st = live_status(client_ip(request), need_units=UNITS["makeup-vto"])
-            if st["budget_left"] < 1 or (st["credit"] is not None and st["credit"] - 1 < s.live_min_credit):
-                return JSONResponse({"error": "live_unavailable", "reason": st["reason"]}, status_code=429)
-        try:
-            ctx = ctx_for(sess)
-            state = pipeline.rerender(engine, ctx, session_dir(sid), state, edits)
-        except NotRecorded:
-            return JSONResponse({"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
-                                 "Undo or try another single edit — or use Live with your own photos."},
-                                status_code=409)
-        except YouCamError as e:
-            h = hint_for(e.code)
-            return JSONResponse({"error": e.code, "reason": f"{h.title}. {h.fix}"}, status_code=502)
-        store.update_session(sid, state=state)
-        return public_state(store.session(sid) or sess)
+        owned_session(sid, request)
+        with live_session_lock(sid):  # one edit at a time per session: no lost updates, cap stays a cap
+            sess = store.session(sid)
+            if sess is None or sess["status"] != "ready":
+                raise HTTPException(409, "session is not ready")
+            if sess.get("deleted_at"):
+                raise HTTPException(410, "the photos of this session were deleted")
+            state = sess["state"]
+            edits = list(state.get("edits") or [])
+            if body.action == "reset":
+                edits = []
+            elif body.action == "undo":
+                edits = edits[:-1]
+            else:
+                if body.zone not in rcp.EDIT_ZONES or body.op not in rcp.EDIT_OPS:
+                    raise HTTPException(400, "unknown edit")
+                if body.zone not in (state.get("recipe_base") or {}).get("zones", {}):
+                    raise HTTPException(400, f"this look has no {body.zone} makeup to adjust")
+                edits.append([body.zone, body.op])
+            engine = engine_for(sess)
+            if sess["mode"] == "live":
+                if sess["units_spent"] + UNITS["makeup-vto"] > s.live_session_unit_cap:
+                    return JSONResponse({"error": "session_cap", "reason": "This live session reached its unit cap."},
+                                        status_code=429)
+                st = live_status(client_ip(request), need_units=UNITS["makeup-vto"])
+                if st["budget_left"] < 1 or (st["credit"] is not None and st["credit"] - 1 < s.live_min_credit):
+                    return JSONResponse({"error": "live_unavailable", "reason": st["reason"]}, status_code=429)
+            try:
+                ctx = ctx_for(sess)
+                state = pipeline.rerender(engine, ctx, session_dir(sid), state, edits)
+            except NotRecorded:
+                return JSONResponse({"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
+                                     "Undo or try another single edit — or use Live with your own photos."},
+                                    status_code=409)
+            except YouCamError as e:
+                h = hint_for(e.code)
+                return JSONResponse({"error": e.code, "reason": f"{h.title}. {h.fix}"}, status_code=502)
+            except ValueError as e:
+                raise HTTPException(400, str(e)) from e
+            store.update_session(sid, state=state)
+            return public_state(store.session(sid) or sess)
 
     @app.post("/api/sessions/{sid}/delete")
-    def delete_photos(sid: str):
-        sess = store.session(sid)
-        if sess is None:
-            raise HTTPException(404, "session not found")
+    def delete_photos(sid: str, request: Request):
+        sess = owned_session(sid, request)
         if sess["mode"] != "live":
             raise HTTPException(400, "sample sessions hold no uploaded photos")
         d = session_dir(sid)
@@ -382,14 +428,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(404)
         return FileResponse(m["dir"] / name, headers={"Cache-Control": "public, max-age=86400"})
 
-    @app.get("/media/{sid}/{name}")
-    def media(sid: str, name: str):
+    def session_file(sid: str, name: str) -> Path:
         if not SAFE_NAME.match(name) or not re.fullmatch(r"[A-Za-z0-9_-]{8,32}", sid):
             raise HTTPException(404)
         p = session_dir(sid) / name
         if not p.is_file():
             raise HTTPException(404)
-        return FileResponse(p, headers={"Cache-Control": "private, max-age=3600"})
+        return p
+
+    @app.get("/media/{sid}/{name}")
+    def media(sid: str, name: str, request: Request):
+        owned_session(sid, request)
+        return FileResponse(session_file(sid, name), headers={"Cache-Control": "private, max-age=3600"})
+
+    @app.get("/b-media/{bid}/{name}")
+    def brief_media(bid: str, name: str, t: str = ""):
+        """Brief images for both links, resolved server-side: the session id is never shown to token holders."""
+        if store.role_for(bid, t) is None:
+            raise HTTPException(404)
+        b = store.brief(bid)
+        assert b is not None
+        if name not in b["snapshot"]["images"].values():
+            raise HTTPException(404)
+        return FileResponse(session_file(b["session_id"], name), headers={"Cache-Control": "private, max-age=3600"})
 
     # ---------------- briefs ----------------
     def snapshot_from(sess: dict) -> dict:
@@ -403,7 +464,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if "hair" in st["images"]:
             review_zones.append("hair")
         return {
-            "session_id": sess["id"], "mode": sess["mode"], "sample_id": sess["sample_id"],
+            "mode": sess["mode"], "sample_id": sess["sample_id"],
             "images": images, "images_sha256": {k: attest.sha256_file(d / v) for k, v in images.items()},
             "zones": zones, "review_zones": review_zones, "recipe": st["recipe"],
             "recipe_sha256": st["recipe_sha256"], "edits": st["edits"], "gaps": st["gaps"],
@@ -411,33 +472,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                         for k, v in st["steps"].items() if isinstance(v, dict) and "task_id" in v},
         }
 
-    def brief_view(bid: str, role: str) -> dict:
+    def brief_view(bid: str, role: str, token: str) -> dict:
         b = store.brief(bid)
         if b is None:
             raise HTTPException(404)
         v = int(b["version"])
         reviews = store.reviews(bid, v)
         agreed = store.agreements(bid, v)
-        snap = b["snapshot"]
+        snap = {k: val for k, val in b["snapshot"].items() if k != "session_id"}
         missing = [z for z in snap["review_zones"] if z not in reviews]
         discuss = [z for z, r in reviews.items() if r["status"] == "discuss"]
-        base = f"/media/{snap['session_id']}/"
         return {
             "id": bid, "role": role, "version": v, "snapshot": snap,
-            "images": {k: base + p for k, p in snap["images"].items()},
+            "images": {k: f"/b-media/{bid}/{p}?t={token}" for k, p in snap["images"].items()},
             "reviews": reviews, "review_labels": REVIEW_LABELS,
             "agreed": {r: iso(t) for r, t in agreed.items()},
             "missing_reviews": missing, "open_discussions": discuss,
-            "can_agree": (role == "bride") or (not missing and not discuss),
+            "can_agree": not missing and not discuss,
             "attestation": store.attestation(bid, v),
             "public_url": s.public_url,
         }
 
     @app.post("/api/sessions/{sid}/brief")
-    def create_brief(sid: str):
-        sess = store.session(sid)
-        if sess is None or sess["status"] != "ready":
+    def create_brief(sid: str, request: Request):
+        sess = owned_session(sid, request)
+        if sess["status"] != "ready":
             raise HTTPException(409, "session is not ready")
+        if sess.get("deleted_at"):
+            raise HTTPException(410, "the photos of this session were deleted")
         b = store.create_brief(sid, snapshot_from(sess))
         return {"brief_id": b["id"], "bride_url": f"/b/{b['id']}?t={b['bride_token']}",
                 "artist_url": f"/b/{b['id']}?t={b['artist_token']}"}
@@ -447,7 +509,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         role = store.role_for(bid, t)
         if role is None:
             raise HTTPException(404, "brief not found")
-        return brief_view(bid, role)
+        return brief_view(bid, role, t)
 
     @app.post("/api/briefs/{bid}/review")
     def review(bid: str, body: ReviewIn):
@@ -460,8 +522,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(400, "unknown zone or status")
         if store.attestation(bid, int(b["version"])):
             raise HTTPException(409, "this version is already agreed and signed")
+        # a changed answer withdraws both agreements on this version (store.set_review)
         store.set_review(bid, int(b["version"]), body.zone, body.status, body.note.strip())
-        return brief_view(bid, role)
+        return brief_view(bid, role, body.t)
 
     @app.post("/api/briefs/{bid}/revise")
     def revise(bid: str, body: BriefIn):
@@ -470,42 +533,48 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(403, "only the bride link can update the brief")
         b = store.brief(bid)
         assert b is not None
-        sess = store.session(b["snapshot"]["session_id"])
+        sess = store.session(b["session_id"])
         if sess is None or sess["status"] != "ready":
             raise HTTPException(409, "session is not ready")
+        if sess.get("deleted_at"):
+            raise HTTPException(410, "the photos of this session were deleted")
         store.revise_brief(bid, snapshot_from(sess))
-        return brief_view(bid, role)
+        return brief_view(bid, role, body.t)
 
     @app.post("/api/briefs/{bid}/agree")
     def agree(bid: str, body: BriefIn):
         role = store.role_for(bid, body.t)
         if role is None:
             raise HTTPException(404, "brief not found")
-        view = brief_view(bid, role)
-        if not view["can_agree"]:
-            raise HTTPException(409, "review every zone first; 'Let's discuss' must be resolved")
-        v = view["version"]
-        store.agree(bid, v, role)
-        agreed = store.agreements(bid, v)
-        view = brief_view(bid, role)
-        if {"bride", "artist"} <= set(agreed) and not view["missing_reviews"] and not view["open_discussions"] \
-                and not view["attestation"]:
-            snap = view["snapshot"]
-            zones = []
-            for z in snap["review_zones"]:
-                r = view["reviews"][z]
-                zi = next((x for x in snap["zones"] if x["zone"] == z), {"zone": z, "label": "Hair"})
-                zones.append({**zi, "status": r["status"], "note": r["note"]})
-            payload = {
-                "type": "lookbrief.agreement.v1", "statement": attest.STATEMENT, "brief_id": bid, "version": v,
-                "issuer": s.public_url or "local", "issued_at": iso(time.time()),
-                "agreed_at": {r: iso(t) for r, t in agreed.items()}, "zones": zones,
-                "recipe": snap["recipe"], "recipe_sha256": snap["recipe_sha256"],
-                "images_sha256": snap["images_sha256"], "youcam_steps": snap["steps"], "mode": snap["mode"],
-            }
-            store.save_attestation(bid, v, signer.sign(payload))
-            view = brief_view(bid, role)
-        return view
+        with live_session_lock(f"brief:{bid}"):
+            view = brief_view(bid, role, body.t)
+            if not view["can_agree"]:
+                raise HTTPException(409, "the artist must answer every zone first; 'Let's discuss' must be resolved")
+            v = view["version"]
+            store.agree(bid, v, role)
+            agreed = store.agreements(bid, v)
+            shas = store.agreement_shas(bid, v)
+            current = store.reviews_sha(bid, v)
+            view = brief_view(bid, role, body.t)
+            both_on_same_answers = {"bride", "artist"} <= set(agreed) and set(shas.values()) == {current}
+            if both_on_same_answers and not view["missing_reviews"] and not view["open_discussions"] \
+                    and not view["attestation"]:
+                snap = view["snapshot"]
+                zones = []
+                for z in snap["review_zones"]:
+                    r = view["reviews"][z]
+                    zi = next((x for x in snap["zones"] if x["zone"] == z), {"zone": z, "label": "Hair"})
+                    zones.append({**zi, "status": r["status"], "note": r["note"]})
+                payload = {
+                    "type": "lookbrief.agreement.v1", "statement": attest.STATEMENT, "brief_id": bid, "version": v,
+                    "issuer": s.public_url or "local", "issued_at": iso(time.time()),
+                    "agreed_at": {r: iso(t) for r, t in agreed.items()}, "reviews_sha256": current, "zones": zones,
+                    "recipe": snap["recipe"], "recipe_sha256": snap["recipe_sha256"],
+                    "images_sha256": snap["images_sha256"], "youcam_steps": snap["steps"], "mode": snap["mode"],
+                }
+                store.save_attestation(bid, v, signer.sign(payload))
+                view = brief_view(bid, role, body.t)
+            return view
 
     @app.get("/api/briefs/{bid}/attestation.json")
     def attestation_json(bid: str, t: str = ""):
@@ -520,20 +589,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return JSONResponse(att, headers={"Content-Disposition": f'attachment; filename="look-brief-{bid}.json"'})
 
     def cleanup_expired() -> int:
-        """Live uploads after LOOKBRIEF_UPLOAD_TTL_HOURS (privacy), sample sessions after LOOKBRIEF_REPLAY_TTL_HOURS
-        (disk). Runs at start and whenever a new session is created."""
+        """Live uploads after LOOKBRIEF_UPLOAD_TTL_HOURS (privacy); sample sessions after LOOKBRIEF_REPLAY_TTL_HOURS
+        or beyond LOOKBRIEF_MAX_REPLAY_SESSIONS, oldest first (disk). Runs at start, on every new session and every
+        LOOKBRIEF_CLEANUP_EVERY_S seconds."""
         n = 0
         now = time.time()
+        doomed = []
         for mode, ttl in (("live", s.upload_ttl_hours), ("replay", s.replay_ttl_hours)):
-            for sid in store.expired_sessions(mode, now - ttl * 3600):
-                d = session_dir(sid)
-                if d.exists():
-                    shutil.rmtree(d)
-                store.update_session(sid, deleted_at=now)
-                n += 1
+            doomed += store.expired_sessions(mode, now - ttl * 3600)
+        doomed += store.oldest_replay_sessions(s.max_replay_sessions)
+        for sid in dict.fromkeys(doomed):
+            d = session_dir(sid)
+            if d.exists():
+                shutil.rmtree(d)
+            store.update_session(sid, deleted_at=now)
+            n += 1
         return n
 
-    cleanup_expired()  # on start: remove live uploads older than the TTL
+    def cleanup_loop() -> None:
+        while True:
+            time.sleep(max(s.cleanup_every_s, 60))
+            try:
+                cleanup_expired()
+            except Exception:  # keep the loop alive; the next tick retries
+                logging.getLogger("lookbrief").exception("cleanup failed")
+
+    store.interrupt_stale_runs(time.time())  # runs left by a previous process can never finish
+    cleanup_expired()
+    if s.cleanup_every_s > 0:
+        threading.Thread(target=cleanup_loop, name="lookbrief-cleanup", daemon=True).start()
 
     app.state.store = store
     app.state.settings = s

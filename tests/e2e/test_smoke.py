@@ -24,8 +24,7 @@ def check_a11y(page, where: str):
 def browser_ctx():
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        kw = {"viewport": {"width": 390, "height": 844}, "device_scale_factor": 2, "is_mobile": True,
-              "has_touch": True}
+        kw = {"viewport": {"width": 390, "height": 844}, "device_scale_factor": 2, "is_mobile": True, "has_touch": True}
         if os.environ.get("LOOKBRIEF_RECORD_DIR"):
             kw["record_video_dir"] = os.environ["LOOKBRIEF_RECORD_DIR"]
             kw["record_video_size"] = {"width": 780, "height": 1688}

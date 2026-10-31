@@ -14,6 +14,8 @@ from .color import srgb_to_lab
 
 MAX_SIDE = 1024  # mu-transfer accepts long side <= 1024
 MIN_SIDE = 320
+MAX_PIXELS = 40_000_000  # refuse before decoding: a tiny PNG can claim 144 Mpx and exhaust memory
+Image.MAX_IMAGE_PIXELS = MAX_PIXELS
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,7 @@ HINTS: dict[str, Hint] = {
     # local checks
     "not_an_image": Hint("We couldn't open this file", "Upload a JPG or PNG photo."),
     "too_small": Hint("This photo is too small", "Use a photo at least 320 px on the short side."),
+    "too_large": Hint("This photo is too large", "Use a photo under 40 megapixels and 12 MB."),
     "no_face": Hint("We can't find a face", "Use a photo where the face is clearly visible, facing the camera."),
     "many_faces": Hint("There's more than one face", "Crop the photo so only one face is in it."),
     "face_too_small": Hint("The face is too small in the frame", "Crop closer so the face fills more of the photo."),
@@ -105,9 +108,17 @@ class CheckResult:
         return asdict(self)
 
 
+class TooLarge(ValueError):
+    pass
+
+
 def normalize(content: bytes) -> Image.Image:
     """Decode, honour EXIF rotation, RGB, long side <= 1024."""
     raw = Image.open(io.BytesIO(content))
+    w, h = raw.size
+    if w * h > MAX_PIXELS:
+        raise TooLarge(f"{w}x{h}")
+    raw.draft("RGB", (MAX_SIDE, MAX_SIDE))  # JPEG: decode at reduced scale when possible
     img: Image.Image = ImageOps.exif_transpose(raw).convert("RGB")
     if max(img.size) > MAX_SIDE:
         img.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
@@ -137,7 +148,10 @@ def check(content: bytes, role: str) -> tuple[CheckResult, Image.Image | None]:
 
     try:
         img = normalize(content)
-    except (UnidentifiedImageError, OSError, ValueError):
+    except (TooLarge, Image.DecompressionBombError, Image.DecompressionBombWarning):
+        add("too_large", "block")
+        return res, None
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError):
         add("not_an_image", "block")
         return res, None
     res.width, res.height = img.size

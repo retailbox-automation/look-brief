@@ -14,7 +14,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY, mode TEXT NOT NULL, sample_id TEXT, created_at REAL NOT NULL,
   ip_hash TEXT, consent_at REAL, status TEXT NOT NULL, step TEXT, error TEXT,
-  state_json TEXT, units_spent INTEGER NOT NULL DEFAULT 0, deleted_at REAL
+  state_json TEXT, units_spent INTEGER NOT NULL DEFAULT 0, deleted_at REAL, owner_token TEXT
 );
 CREATE TABLE IF NOT EXISTS briefs (
   id TEXT PRIMARY KEY, session_id TEXT NOT NULL, bride_token TEXT NOT NULL, artist_token TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 CREATE TABLE IF NOT EXISTS agreements (
   brief_id TEXT NOT NULL, version INTEGER NOT NULL, role TEXT NOT NULL, at REAL NOT NULL,
-  PRIMARY KEY (brief_id, version, role)
+  reviews_sha TEXT NOT NULL DEFAULT '', PRIMARY KEY (brief_id, version, role)
 );
 CREATE TABLE IF NOT EXISTS attestations (
   brief_id TEXT NOT NULL, version INTEGER NOT NULL, json TEXT NOT NULL, issued_at REAL NOT NULL,
@@ -70,13 +70,29 @@ class Store:
         return hashlib.sha256((self._salt + ip).encode()).hexdigest()[:20]
 
     # ---------- sessions ----------
-    def create_session(self, mode: str, sample_id: str | None, ip: str, consent: bool) -> str:
-        sid = new_id(12)
+    def create_session(self, mode: str, sample_id: str | None, ip: str, consent: bool) -> tuple[str, str]:
+        """Returns (session id, owner token). The owner token is the only key to the session routes."""
+        sid, owner = new_id(12), new_id(24)
         now = time.time()
-        self._exec("INSERT INTO sessions (id, mode, sample_id, created_at, ip_hash, consent_at, status) "
-                   "VALUES (?,?,?,?,?,?,?)",
-                   (sid, mode, sample_id, now, self.ip_hash(ip), now if consent else None, "new"))
-        return sid
+        self._exec("INSERT INTO sessions (id, mode, sample_id, created_at, ip_hash, consent_at, status, owner_token) "
+                   "VALUES (?,?,?,?,?,?,?,?)",
+                   (sid, mode, sample_id, now, self.ip_hash(ip), now if consent else None, "new", owner))
+        return sid, owner
+
+    def is_owner(self, sid: str, token: str | None) -> bool:
+        row = self._exec("SELECT owner_token FROM sessions WHERE id=?", (sid,)).fetchone()
+        return bool(row and token and row["owner_token"] and secrets.compare_digest(token, row["owner_token"]))
+
+    def interrupt_stale_runs(self, older_than: float) -> int:
+        """Sessions left in new/running by a restart can never finish: mark them as interrupted."""
+        cur = self._exec("UPDATE sessions SET status='error', error='interrupted' "
+                         "WHERE status IN ('new','running') AND created_at < ?", (older_than,))
+        return cur.rowcount
+
+    def oldest_replay_sessions(self, keep: int) -> list[str]:
+        rows = self._exec("SELECT id FROM sessions WHERE mode='replay' AND deleted_at IS NULL "
+                          "ORDER BY created_at DESC LIMIT -1 OFFSET ?", (keep,)).fetchall()
+        return [r["id"] for r in rows]
 
     def session(self, sid: str) -> dict | None:
         row = self._exec("SELECT * FROM sessions WHERE id=?", (sid,)).fetchone()
@@ -109,14 +125,15 @@ class Store:
         row = self._exec("SELECT COALESCE(SUM(units),0) AS u FROM ledger WHERE ok=1").fetchone()
         return int(row["u"])
 
-    def ip_sessions_today(self, ip: str) -> int:
+    def ip_sessions_today(self, ip: str, kind: str = "live") -> int:
         row = self._exec("SELECT sessions FROM ip_usage WHERE ip_hash=? AND day=?",
-                         (self.ip_hash(ip), day_utc())).fetchone()
+                         (self.ip_hash(f"{kind}:{ip}"), day_utc())).fetchone()
         return int(row["sessions"]) if row else 0
 
-    def count_ip_session(self, ip: str) -> None:
+    def count_ip_session(self, ip: str, kind: str = "live") -> None:
         self._exec("INSERT INTO ip_usage (ip_hash, day, sessions) VALUES (?,?,1) "
-                   "ON CONFLICT(ip_hash, day) DO UPDATE SET sessions = sessions + 1", (self.ip_hash(ip), day_utc()))
+                   "ON CONFLICT(ip_hash, day) DO UPDATE SET sessions = sessions + 1",
+                   (self.ip_hash(f"{kind}:{ip}"), day_utc()))
 
     # ---------- briefs ----------
     def create_brief(self, session_id: str, snapshot: dict) -> dict:
@@ -152,25 +169,44 @@ class Store:
             return "artist"
         return None
 
-    def set_review(self, bid: str, version: int, zone: str, status: str, note: str) -> None:
+    def set_review(self, bid: str, version: int, zone: str, status: str, note: str) -> bool:
+        """Upsert one zone review. If it changed anything, every agreement on this version is withdrawn, so a
+        signature can only cover the review state both people agreed to. Returns True if it changed."""
         if status not in REVIEW_STATUSES:
             raise ValueError(status)
+        note = note[:500]
+        old = self.reviews(bid, version).get(zone)
+        if old and old["status"] == status and old["note"] == note:
+            return False
+        self._exec("DELETE FROM agreements WHERE brief_id=? AND version=?", (bid, version))
         self._exec("INSERT INTO reviews (brief_id, version, zone, status, note, updated_at) VALUES (?,?,?,?,?,?) "
                    "ON CONFLICT(brief_id, version, zone) DO UPDATE SET status=excluded.status, note=excluded.note, "
-                   "updated_at=excluded.updated_at", (bid, version, zone, status, note[:500], time.time()))
+                   "updated_at=excluded.updated_at", (bid, version, zone, status, note, time.time()))
+        return True
 
     def reviews(self, bid: str, version: int) -> dict[str, dict]:
         rows = self._exec("SELECT zone, status, note, updated_at FROM reviews WHERE brief_id=? AND version=?",
                           (bid, version)).fetchall()
         return {r["zone"]: dict(r) for r in rows}
 
+    def reviews_sha(self, bid: str, version: int) -> str:
+        rv = self.reviews(bid, version)
+        canon = json.dumps({z: [r["status"], r["note"]] for z, r in rv.items()}, sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(canon.encode()).hexdigest()
+
     def agree(self, bid: str, version: int, role: str) -> None:
-        self._exec("INSERT OR IGNORE INTO agreements (brief_id, version, role, at) VALUES (?,?,?,?)",
-                   (bid, version, role, time.time()))
+        """Record agreement together with the hash of the reviews the person saw at that moment."""
+        self._exec("INSERT OR REPLACE INTO agreements (brief_id, version, role, at, reviews_sha) VALUES (?,?,?,?,?)",
+                   (bid, version, role, time.time(), self.reviews_sha(bid, version)))
 
     def agreements(self, bid: str, version: int) -> dict[str, float]:
         rows = self._exec("SELECT role, at FROM agreements WHERE brief_id=? AND version=?", (bid, version)).fetchall()
         return {r["role"]: r["at"] for r in rows}
+
+    def agreement_shas(self, bid: str, version: int) -> dict[str, str]:
+        rows = self._exec("SELECT role, reviews_sha FROM agreements WHERE brief_id=? AND version=?",
+                          (bid, version)).fetchall()
+        return {r["role"]: r["reviews_sha"] for r in rows}
 
     def save_attestation(self, bid: str, version: int, att: dict) -> None:
         self._exec("INSERT OR REPLACE INTO attestations (brief_id, version, json, issued_at) VALUES (?,?,?,?)",
