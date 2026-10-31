@@ -50,6 +50,11 @@ class SessionCtx:
 Ledger = Callable[[str, int, str, bool], None]
 
 
+def image_ext(content: bytes) -> str:
+    """YouCam returns JPEG for transfers and PNG for Makeup VTO: keep the real format."""
+    return ".png" if content[:8] == b"\x89PNG\r\n\x1a\n" else ".jpg"
+
+
 def _now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
@@ -154,7 +159,7 @@ class Recorder:
     def add(self, step: str, image: bytes, meta: StepMeta, request: dict, response: dict,
             recipe: dict | None = None) -> None:
         safe = step.replace(":", "__").replace("+", "_")
-        img_rel = f"results/{safe}.jpg"
+        img_rel = f"results/{safe}{image_ext(image)}"
         (self.dir / img_rel).write_bytes(image)
         req = {k: v for k, v in request.items() if not k.endswith("_file_id")}
         fixture = {

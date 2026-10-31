@@ -1,0 +1,16 @@
+{
+ "id": "s2-classic-red",
+ "title": "Classic red lip",
+ "description": "Olive skin; classic red-lip inspiration",
+ "faces": "Fictional people, AI-generated with ChatGPT Images on 2026-10-31 for this project; no real person, no brand.",
+ "files": {
+  "bride.jpg": {
+   "sha256": "ec97e47778c94e90690f00db288d77984ebf14023f82298aa68710ff26058298",
+   "source": "bride2-selfie"
+  },
+  "inspiration.jpg": {
+   "sha256": "d7a4c2b4e15e893dd49d55b9897fa31c454742d2bd8f213c0686c9d3ec42da49",
+   "source": "inspo2-classic-red"
+  }
+ }
+}

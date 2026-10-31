@@ -1,0 +1,556 @@
+{
+ "steps": {
+  "mu_transfer": {
+   "step": "mu_transfer",
+   "mode": "live",
+   "task_id": "ygx_B9JwbbesH6d6YnOPlQyCg1ZdxRFvplay8BkAEQbqdwSc3E6MvTPC8ApWmK6WL1tdL0WuaKpao2rhLgDDpA",
+   "seconds": 6.6,
+   "units": 2,
+   "recorded_at": "2026-10-31T13:25:39Z",
+   "label": "",
+   "image": "results/mu_transfer.jpg"
+  },
+  "hair_transfer": {
+   "step": "hair_transfer",
+   "mode": "live",
+   "task_id": "m_npC9yUJXNDKEFBpSnk9JO55DNIPa58NVRSwuqn4uO_cQiRYuqj1iczqcaC_SYmAO6h9Y273R6RR5V6m9KYNQ",
+   "seconds": 6.6,
+   "units": 2,
+   "recorded_at": "2026-10-31T13:25:47Z",
+   "label": "",
+   "image": "results/hair_transfer.jpg"
+  },
+  "render:base": {
+   "step": "render:base",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeb9tq3Oqtx3WpmIfEU23QIWd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:34:18Z",
+   "label": "base",
+   "image": "results/render__base.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:eyes:softer": {
+   "step": "render:eyes:softer",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeaXPR05_8fad3V9NGfDvs5ed-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:34:25Z",
+   "label": "eyes:softer",
+   "image": "results/render__eyes__softer.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 60,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:eyes:bolder": {
+   "step": "render:eyes:bolder",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeaknRBNT2BxQ96THnstBqwEd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:34:33Z",
+   "label": "eyes:bolder",
+   "image": "results/render__eyes__bolder.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 100,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:eyes:lighter": {
+   "step": "render:eyes:lighter",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUebChNYoY44BLK9uBE3xwn1yd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:34:40Z",
+   "label": "eyes:lighter",
+   "image": "results/render__eyes__lighter.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#9b6b58",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:eyes:deeper": {
+   "step": "render:eyes:deeper",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUebGqPHk8wFa-JL_evrz6pd_d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:34:47Z",
+   "label": "eyes:deeper",
+   "image": "results/render__eyes__deeper.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#704433",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:cheeks:softer": {
+   "step": "render:cheeks:softer",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeZzfLFu9VKfVrVRLl8HQRXNd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 13.0,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:01Z",
+   "label": "cheeks:softer",
+   "image": "results/render__cheeks__softer.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 47,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:cheeks:bolder": {
+   "step": "render:cheeks:bolder",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUebR9VNH1UFIqxTMKGKizqtud-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 4.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:06Z",
+   "label": "cheeks:bolder",
+   "image": "results/render__cheeks__bolder.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 87,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:cheeks:lighter": {
+   "step": "render:cheeks:lighter",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUebbKBnEoSBmyReSbcsgQfXQd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:13Z",
+   "label": "cheeks:lighter",
+   "image": "results/render__cheeks__lighter.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#ffa9a4",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:cheeks:deeper": {
+   "step": "render:cheeks:deeper",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeZseVlLP2MMvOXKOCwW7hTCd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:20Z",
+   "label": "cheeks:deeper",
+   "image": "results/render__cheeks__deeper.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#dc7e7a",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:lips:softer": {
+   "step": "render:lips:softer",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeaF_uHFVo3yJPoofb4I4d45d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 4.5,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:26Z",
+   "label": "lips:softer",
+   "image": "results/render__lips__softer.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bb3636",
+      "intensity": 70,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:lips:bolder": {
+   "step": "render:lips:bolder",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeY55YFk99ISniOIP6Vye5ewd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.8,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:33Z",
+   "label": "lips:bolder",
+   "image": "results/render__lips__bolder.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#bc202a",
+      "intensity": 100,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:lips:lighter": {
+   "step": "render:lips:lighter",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeYzSx8DI2aB15pWhyS8OwkHd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 10.8,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:45Z",
+   "label": "lips:lighter",
+   "image": "results/render__lips__lighter.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#d44d48",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  },
+  "render:lips:deeper": {
+   "step": "render:lips:deeper",
+   "mode": "live",
+   "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeaMegzs2xx9QEOwOrG3jOaQd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-10-31T13:35:52Z",
+   "label": "lips:deeper",
+   "image": "results/render__lips__deeper.png",
+   "recipe": {
+    "version": 1,
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "pattern": "1color1",
+      "color": "#855745",
+      "intensity": 80,
+      "skin": "#8c6552"
+     },
+     "cheeks": {
+      "category": "blush",
+      "pattern": "1color1",
+      "color": "#f4938f",
+      "intensity": 67,
+      "skin": "#dea38f"
+     },
+     "lips": {
+      "category": "lip_color",
+      "pattern": "original",
+      "color": "#a31d25",
+      "intensity": 90,
+      "skin": "#ae6d69"
+     }
+    }
+   }
+  }
+ },
+ "map": {
+  "width": 768,
+  "height": 1024,
+  "changed_share_of_face": 0.1832,
+  "explained_share": 0.6673,
+  "skin_control_de": 0.44,
+  "zones": {
+   "eyes": {
+    "zone": "eyes",
+    "label": "Eyelids",
+    "cell_px": 32605,
+    "changed_px": 10598,
+    "coverage": 0.325,
+    "strength_de": 10.07,
+    "color_after": "#885d4b",
+    "color_before": "#8c6552",
+    "delta_e2000": 3.05
+   },
+   "cheeks": {
+    "zone": "cheeks",
+    "label": "Cheeks",
+    "cell_px": 37272,
+    "changed_px": 3461,
+    "coverage": 0.0929,
+    "strength_de": 6.58,
+    "color_after": "#e79d8f",
+    "color_before": "#dea38f",
+    "delta_e2000": 3.98
+   },
+   "lips": {
+    "zone": "lips",
+    "label": "Lips",
+    "cell_px": 50562,
+    "changed_px": 10620,
+    "coverage": 0.21,
+    "strength_de": 33.0,
+    "color_after": "#a52b2d",
+    "color_before": "#ae6d69",
+    "delta_e2000": 17.34
+   },
+   "nose": {
+    "zone": "nose",
+    "label": "Nose & contour",
+    "cell_px": 27792,
+    "changed_px": 3379,
+    "coverage": 0.1216,
+    "strength_de": 7.9,
+    "color_after": "#915845",
+    "color_before": "#9f6b57",
+    "delta_e2000": 6.77
+   },
+   "skin": {
+    "zone": "skin",
+    "label": "Skin (control)",
+    "cell_px": 22645,
+    "changed_px": 2,
+    "coverage": 0.0001,
+    "strength_de": 6.23,
+    "color_after": "#e5b39d",
+    "color_before": "#e4b29c",
+    "delta_e2000": 0.2
+   }
+  }
+ }
+}

@@ -1,0 +1,66 @@
+{
+ "step": "render:eyes:lighter",
+ "task_id": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUebChNYoY44BLK9uBE3xwn1yd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T13:34:40Z",
+ "seconds": 6.6,
+ "units": 1,
+ "request_without_file_ids": {
+  "version": "1.0",
+  "effects": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "1color1"
+    },
+    "palettes": [
+     {
+      "color": "#9b6b58",
+      "texture": "matte",
+      "colorIntensity": 80
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color1"
+    },
+    "palettes": [
+     {
+      "color": "#f4938f",
+      "texture": "matte",
+      "colorIntensity": 67
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "palettes": [
+     {
+      "color": "#bb3636",
+      "texture": "matte",
+      "colorIntensity": 90
+     }
+    ],
+    "style": {
+     "type": "full"
+    }
+   }
+  ]
+ },
+ "response": {
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
+ }
+}

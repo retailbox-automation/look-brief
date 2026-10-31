@@ -50,3 +50,6 @@ check_untyped_defs = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["e2e: browser smoke tests (Playwright)"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Query", "fastapi.Depends"]

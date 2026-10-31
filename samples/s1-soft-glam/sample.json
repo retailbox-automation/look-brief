@@ -1,0 +1,16 @@
+{
+ "id": "s1-soft-glam",
+ "title": "Soft glam",
+ "description": "Fair skin with freckles; soft glam inspiration",
+ "faces": "Fictional people, AI-generated with ChatGPT Images on 2026-10-31 for this project; no real person, no brand.",
+ "files": {
+  "bride.jpg": {
+   "sha256": "df7430c126bbe7fa775247f89a13cf89a6cde29be27b7cf79f910767376ca29a",
+   "source": "bride1-selfie"
+  },
+  "inspiration.jpg": {
+   "sha256": "06f892a801e6e1e9e6941ba13024313cc28fcb56ce1c76045fdf37a8480f0f37",
+   "source": "inspo1-soft-glam"
+  }
+ }
+}

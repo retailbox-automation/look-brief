@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Your photos · Look Brief{% endblock %}
+{% block content %}
+<h1>Your photos</h1>
+{% if not live.available %}
+<p class="note" role="status">{{ live.reason }}</p>
+<p><a class="btn" href="/">Try a recorded sample instead</a></p>
+{% else %}
+<form id="live-form" class="stack" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Before you upload a face</legend>
+    <p>Your selfie and your inspiration photo are sent to the Perfect Corp YouCam API to create the preview. We keep them on our server for at most 24 hours (you can delete them sooner), never use them for anything else, and never show them to anyone without your brief link. Only upload an inspiration photo you are allowed to use.</p>
+    <label class="check"><input type="checkbox" name="consent" value="yes" required> I agree to this and I am 18 or older.</label>
+  </fieldset>
+  <label>Your selfie (front-facing, no makeup or light makeup)
+    <input type="file" name="bride" accept="image/jpeg,image/png" required>
+  </label>
+  <label>Your inspiration photo (the makeup you love)
+    <input type="file" name="inspiration" accept="image/jpeg,image/png" required>
+  </label>
+  <p class="note">Uses about {{ 5 }} YouCam units, then 1 per zone adjustment (cap {{ live.session_unit_cap }} per session). Budget left: {{ live.budget_left }}.</p>
+  <button class="btn" type="submit">Check photos and create my look</button>
+  <div id="live-out" role="status" aria-live="polite"></div>
+</form>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="/static/live.js" defer></script>{% endblock %}

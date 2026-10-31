@@ -1,0 +1,16 @@
+{
+ "id": "s3-mauve-smoky",
+ "title": "Mauve smoky eye",
+ "description": "Deep skin; mauve smoky-eye inspiration",
+ "faces": "Fictional people, AI-generated with ChatGPT Images on 2026-10-31 for this project; no real person, no brand.",
+ "files": {
+  "bride.jpg": {
+   "sha256": "ea01b99c65a3add38aa8cb41bdeeddcca3cb6e8e9319c791dd536a6e2d168948",
+   "source": "bride3-selfie"
+  },
+  "inspiration.jpg": {
+   "sha256": "5ca47ddf64080d7ffb8f5c596cd1101921ff52b3a00a1ea67f09beaaedf86a6f",
+   "source": "inspo3-mauve-smoky"
+  }
+ }
+}

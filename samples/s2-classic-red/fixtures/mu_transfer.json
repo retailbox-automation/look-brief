@@ -1,0 +1,15 @@
+{
+ "step": "mu_transfer",
+ "task_id": "ygx_B9JwbbesH6d6YnOPlQyCg1ZdxRFvplay8BkAEQbqdwSc3E6MvTPC8ApWmK6WL1tdL0WuaKpao2rhLgDDpA",
+ "recorded_at": "2026-10-31T13:25:39Z",
+ "seconds": 6.6,
+ "units": 2,
+ "request_without_file_ids": {},
+ "response": {
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
+ }
+}

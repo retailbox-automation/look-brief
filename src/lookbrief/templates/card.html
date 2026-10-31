@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Agreed look card · Look Brief{% endblock %}
+{% block content %}
+{% set snap = v.snapshot %}
+<article class="card" data-testid="card">
+  <header>
+    <h1>Agreed look</h1>
+    <p class="note">Brief {{ v.id }} · version {{ v.version }} · {% if snap.mode == 'replay' %}sample, recorded real YouCam API results{% else %}live YouCam API session{% endif %}</p>
+  </header>
+  <div class="compare small">
+    {% for key, label in [('bride','Bare face'),('look','Target (Makeup Transfer)'),('inspiration','Inspiration'),('hair','Makeup + hair')] %}
+      {% if v.images.get(key) %}<figure><img src="{{ v.images[key] }}" alt="{{ label }}"><figcaption>{{ label }}</figcaption></figure>{% endif %}
+    {% endfor %}
+  </div>
+  <table class="gaps">
+    <thead><tr><th scope="col">Zone</th><th scope="col">Product shade</th><th scope="col">Intensity</th><th scope="col">Artist</th><th scope="col">Note</th></tr></thead>
+    <tbody>
+    {% for z in snap.review_zones %}
+      {% set r = v.reviews.get(z) %}
+      {% set zi = (snap.zones | selectattr('zone','equalto', z) | list) %}
+      <tr>
+        <th scope="row">{{ zi[0].label if zi else 'Hair' }}</th>
+        <td>{% if zi %}<span class="swatch" style="background:{{ zi[0].product_hex }}"></span> {{ zi[0].product_hex }}{% else %}as in preview{% endif %}</td>
+        <td>{{ zi[0].intensity if zi else '' }}</td>
+        <td>{{ v.review_labels[r.status] if r else 'not reviewed' }}</td>
+        <td>{{ r.note if r else '' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <section class="attest">
+    {% if v.attestation %}
+      <h2>Server-attested agreement</h2>
+      <p>Bride agreed {{ v.agreed.bride }} · artist agreed {{ v.agreed.artist }}.</p>
+      <p class="note">{{ v.attestation.payload.statement }}</p>
+      <p class="mono">Ed25519 key {{ v.attestation.key_id }} · signature {{ v.attestation.signature_b64[:24] }}…</p>
+      <p class="mono">recipe sha256 {{ snap.recipe_sha256[:16] }}…</p>
+      <p><a href="/api/briefs/{{ v.id }}/attestation.json?t={{ token }}">Download the signed JSON</a> · verify with <code>python scripts/verify_card.py look-brief-{{ v.id }}.json --key-url {{ v.public_url or '' }}/.well-known/lookbrief-attest.json</code></p>
+    {% else %}
+      <h2>Not agreed yet</h2>
+      <p>Bride: {{ v.agreed.get('bride') or 'not yet' }} · Artist: {{ v.agreed.get('artist') or 'not yet' }}.</p>
+    {% endif %}
+  </section>
+  <p class="noprint"><button class="btn" type="button" onclick="window.print()">Print / save as PDF</button></p>
+</article>
+{% endblock %}

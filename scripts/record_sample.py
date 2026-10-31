@@ -26,6 +26,7 @@ from lookbrief import photo_check, pipeline  # noqa: E402
 from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief.config import youcam_key  # noqa: E402
 from lookbrief.engine import LiveEngine, Recorder, SessionCtx  # noqa: E402
+from lookbrief.makeup_map import MakeupMap  # noqa: E402
 from lookbrief.youcam import UNITS, YouCamClient  # noqa: E402
 
 
@@ -35,6 +36,8 @@ def main() -> int:
     ap.add_argument("--grid", choices=["single", "none"], default="single")
     ap.add_argument("--max-units", type=int, default=25)
     ap.add_argument("--only-edits", action="store_true", help="skip transfer; add renders to an existing sample")
+    ap.add_argument("--rerender", action="store_true",
+                    help="keep the recorded transfer and map; replace every recipe render (after a tuning change)")
     args = ap.parse_args()
     sd: Path = args.sample_dir
     key = youcam_key()
@@ -71,7 +74,17 @@ def main() -> int:
     work = ROOT / "data" / "record" / sd.name
     credit_before = client.credit()
     print(f"credit before: {credit_before}")
-    if args.only_edits:
+    if args.rerender:
+        state = json.loads((work / "state.json").read_text())
+        for key in [k for k in recorder.manifest["steps"] if k.startswith("render:")]:
+            step = recorder.manifest["steps"].pop(key)
+            (sd / step["image"]).unlink(missing_ok=True)
+            (sd / "fixtures" / (Path(step["image"]).stem + ".json")).unlink(missing_ok=True)
+        recorder.save()
+        state["recipe_base"] = rcp.base_recipe(MakeupMap.from_dict(recorder.manifest["map"]))
+        state = pipeline.rerender(engine, ctx, work, state, [])
+        planned = UNITS["makeup-vto"]
+    elif args.only_edits:
         state = json.loads((work / "state.json").read_text())
     else:
         state = pipeline.build_look(engine, ctx, work, recorder=recorder)

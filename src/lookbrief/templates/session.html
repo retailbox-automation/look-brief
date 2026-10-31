@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Your look · Look Brief{% endblock %}
+{% block header_extra %}<span class="badge {{ mode }}" data-testid="mode-badge">{% if mode == 'replay' %}Replay · recorded real YouCam API results{% else %}Live · YouCam API{% endif %}</span>{% endblock %}
+{% block content %}
+<div id="app" data-sid="{{ sid }}" data-mode="{{ mode }}">
+  <p id="status" role="status" aria-live="polite">Creating your look…</p>
+  <section id="look" hidden aria-labelledby="look-h">
+    <h1 id="look-h">Your look</h1>
+    <div class="compare">
+      <figure class="ba">
+        <div class="ba-frame">
+          <img id="img-before" alt="Your bare-faced selfie">
+          <img id="img-after" class="after" alt="You wearing the inspiration makeup (YouCam Makeup Transfer)">
+        </div>
+        <label class="ba-slider">Before / after <input id="ba" type="range" min="0" max="100" value="50"></label>
+        <figcaption id="cap-after"></figcaption>
+      </figure>
+      <div class="side">
+        <figure><img id="img-inspo" alt="Your inspiration photo"><figcaption>Inspiration</figcaption></figure>
+        <figure><img id="img-hair" alt="Makeup and hair preview (YouCam Hair Transfer)"><figcaption id="cap-hair">Makeup + hair</figcaption></figure>
+      </div>
+    </div>
+
+    <h2>Your makeup map</h2>
+    <div class="maprow">
+      <figure><img id="img-layer" alt="Heat map of where makeup is added"><figcaption>What the artist adds (measured)</figcaption></figure>
+      <figure><img id="img-render" alt="Your recipe re-rendered with YouCam Makeup VTO"><figcaption id="cap-render">Recipe re-rendered (Makeup VTO)</figcaption></figure>
+    </div>
+    <div id="zones" class="zones"></div>
+    <div id="edit-msg" role="status" aria-live="polite"></div>
+    <p><button id="undo" class="btn ghost" type="button">Undo last change</button> <button id="reset" class="btn ghost" type="button">Back to the transferred look</button></p>
+
+    <h2>How close is the editable recipe to the transfer?</h2>
+    <p class="note">Measured on the pixels the transfer changed. ΔE2000 below ~2 is hard to see; repeated renders of the same recipe vary by about ±0.6.</p>
+    <table id="gaps" class="gaps"><thead><tr><th scope="col">Zone</th><th scope="col">Shade gap ΔE2000</th><th scope="col">Coverage: transfer → recipe</th></tr></thead><tbody></tbody></table>
+    <p id="skin-note" class="note"></p>
+
+    <h2>Send it to your makeup artist</h2>
+    <p>Your artist opens a link (no account), confirms each zone or suggests a swap, and you both agree. You get one agreed-look card.</p>
+    <p><button id="make-brief" class="btn" type="button">Create the brief link</button></p>
+    <div id="brief-links" hidden>
+      <p><strong>Link for your artist:</strong> <a id="artist-link" data-testid="artist-link" href="#"></a> <button class="btn ghost" type="button" data-copy="artist-link">Copy</button></p>
+      <p><strong>Your link:</strong> <a id="bride-link" data-testid="bride-link" href="#"></a></p>
+    </div>
+    {% if mode == 'live' %}<p><button id="delete" class="btn ghost" type="button">Delete my photos now</button></p>{% endif %}
+    <details class="tech"><summary>Technical details (API steps, recipe JSON)</summary><pre id="tech"></pre></details>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/session.js" defer></script>{% endblock %}

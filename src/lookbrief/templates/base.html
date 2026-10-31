@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Look Brief{% endblock %}</title>
+  <meta name="description" content="Agree on your wedding makeup before the paid trial: your inspiration photo on your face, a measured zone-by-zone brief, confirmed by your makeup artist.">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <a class="brand" href="/">Look Brief</a>
+    {% block header_extra %}{% endblock %}
+  </header>
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="foot">
+    <p>Built on the Perfect Corp <strong>YouCam API</strong> (Makeup Transfer, Hair Transfer, Makeup VTO). Previews, not photos.
+      <a href="https://github.com/retailbox-automation/look-brief">Source (MIT)</a> · <a href="/api/limits">Live status</a></p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

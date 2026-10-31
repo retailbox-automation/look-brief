@@ -13,7 +13,7 @@ from PIL import Image
 
 from . import landmarks, makeup_map
 from . import recipe as rcp
-from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx, StepResult
+from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx, StepResult, image_ext
 from .youcam import YouCamError
 
 type Engine = LiveEngine | ReplayEngine
@@ -34,14 +34,15 @@ def face_of(workdir: Path) -> landmarks.FaceGeometry:
     return face
 
 
-def _save(workdir: Path, name: str, res: StepResult) -> str:
+def _save(workdir: Path, stem: str, res: StepResult) -> str:
+    name = stem + image_ext(res.image)
     (workdir / name).write_bytes(res.image)
     return name
 
 
 def render_name(edits: list[list[str]]) -> str:
     key = rcp.edit_key(edits).replace(":", "-").replace("+", "_")
-    return f"render-{key}.jpg"
+    return f"render-{key}"
 
 
 def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) -> dict:
@@ -52,19 +53,19 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) ->
 
     mu = engine.makeup_transfer(ctx)
     state["steps"]["mu_transfer"] = asdict(mu.meta)
-    state["images"]["look"] = _save(workdir, "look.jpg", mu)
+    state["images"]["look"] = _save(workdir, "look", mu)
 
     try:
         hair = engine.hair_transfer(ctx)
         state["steps"]["hair_transfer"] = asdict(hair.meta)
-        state["images"]["hair"] = _save(workdir, "hair.jpg", hair)
+        state["images"]["hair"] = _save(workdir, "hair", hair)
     except (YouCamError, NotRecorded) as e:  # the hair preview is optional; the brief still works
         code = getattr(e, "code", "not_recorded")
         state["steps"]["hair_transfer"] = {"error": code}
         state["notes"].append(f"Hair preview unavailable ({code}).")
 
     face = face_of(workdir)
-    bare, look = _arrays(workdir, "look.jpg")
+    bare, look = _arrays(workdir, state["images"]["look"])
     mmap = None
     if isinstance(engine, ReplayEngine) and engine.recorded_map():
         mmap = makeup_map.MakeupMap.from_dict(engine.recorded_map())  # exactly what was rendered
@@ -92,10 +93,9 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
             raise NotRecorded(rcp.edit_key(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
     res = engine.render(ctx, recipe, edits)
-    name = render_name(edits)
-    _save(workdir, name, res)
+    name = _save(workdir, render_name(edits), res)
     face = face or face_of(workdir)
-    bare, transfer = _arrays(workdir, "look.jpg")
+    bare, transfer = _arrays(workdir, state["images"]["look"])
     _, render = _arrays(workdir, name)
     gaps = makeup_map.compare(bare, transfer, render, face)
     state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
@@ -111,15 +111,14 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
     return state
 
 
-def edit_options(engine: Engine, state: dict) -> list[dict]:
-    """Edits offered next. Replay offers only what was recorded from the current state."""
+def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
+    """Edits offered next. With `recorded_keys` (Replay) only recorded combinations are available."""
     current = state.get("edits") or []
     zones = list((state.get("recipe_base") or {}).get("zones", {}))
     opts = []
-    recorded = set(engine.recorded_render_keys()) if isinstance(engine, ReplayEngine) else None
     for z in zones:
         for op in rcp.EDIT_OPS:
             nxt = [*current, [z, op]]
-            available = recorded is None or rcp.edit_key(nxt) in recorded
+            available = recorded_keys is None or rcp.edit_key(nxt) in recorded_keys
             opts.append({"zone": z, "op": op, "label": rcp.EDIT_LABELS[op], "available": available})
     return opts

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>See your wedding makeup before you pay for the trial</h1>
+  <p class="lead">Upload your selfie and the photo you love. Look Brief puts that exact makeup on <em>your</em> face, measures it zone by zone, and turns it into a brief your makeup artist confirms — so the trial only has to execute what you both already agreed on.</p>
+  <ol class="how">
+    <li><strong>Your photo + your inspiration</strong> — YouCam Makeup Transfer and Hair Transfer.</li>
+    <li><strong>Your makeup map</strong> — eyelids, cheeks, lips: shade, strength, coverage, measured from pixels.</li>
+    <li><strong>Adjust a zone</strong> — "softer blush", "lips a shade lighter" — re-rendered with YouCam Makeup VTO.</li>
+    <li><strong>Your artist confirms</strong> each zone by link, no account — you get one agreed-look card.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="samples-h">
+  <h2 id="samples-h">Try it with a sample</h2>
+  <p class="note">Samples replay <strong>recorded real YouCam API results</strong> (original task IDs shown). Fictional, AI-generated faces. No key, no cost.</p>
+  <ul class="samples">
+    {% for sm in samples %}
+    <li class="sample">
+      <a href="/try/{{ sm.id }}" data-testid="sample-{{ sm.id }}">
+        <span class="pair"><img src="/sample-media/{{ sm.id }}/bride.jpg" alt="Bare-faced selfie (sample)" width="120" height="160" loading="lazy"><img src="/sample-media/{{ sm.id }}/inspiration.jpg" alt="Inspiration look: {{ sm.title }}" width="120" height="160" loading="lazy"></span>
+        <span class="sample-title">{{ sm.title }}</span>
+        <span class="sample-desc">{{ sm.description }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section aria-labelledby="live-h">
+  <h2 id="live-h">Use your own photos (Live)</h2>
+  {% if live.available %}
+  <p>Runs the real YouCam API on our server (your photos are deleted within 24 hours). Live budget left: <strong>{{ live.budget_left }}</strong> units.</p>
+  <p><a class="btn" href="/live">Start with my photos</a></p>
+  {% else %}
+  <p class="note" data-testid="live-off">{{ live.reason }}</p>
+  {% endif %}
+</section>
+{% endblock %}
