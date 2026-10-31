@@ -107,8 +107,8 @@ class CheckResult:
 
 def normalize(content: bytes) -> Image.Image:
     """Decode, honour EXIF rotation, RGB, long side <= 1024."""
-    img = Image.open(io.BytesIO(content))
-    img = ImageOps.exif_transpose(img).convert("RGB")
+    raw = Image.open(io.BytesIO(content))
+    img: Image.Image = ImageOps.exif_transpose(raw).convert("RGB")
     if max(img.size) > MAX_SIDE:
         img.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
     return img

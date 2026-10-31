@@ -8,6 +8,7 @@ import shutil
 import threading
 import time
 from pathlib import Path
+from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
@@ -116,7 +117,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     def live_status(ip: str, need_units: int = LOOK_UNITS) -> dict:
         spent = store.live_units_spent()
-        st = {
+        st: dict[str, Any] = {
             "live_enabled": s.live_enabled and bool(key),
             "budget_total": s.live_unit_budget,
             "budget_spent": spent,
@@ -294,8 +295,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         for role, up in (("bride", bride), ("inspiration", inspiration)):
             res, img = photo_check.check(await up.read(), role)
             checks[role] = res.to_dict()
-            imgs[role] = img
-        if not all(c["ok"] for c in checks.values()):
+            if img is not None:
+                imgs[role] = img
+        if not all(c["ok"] for c in checks.values()) or len(imgs) != 2:
             return JSONResponse({"error": "photo_check", "checks": checks}, status_code=422)
         sid = store.create_session("live", None, ip, consent=True)
         store.count_ip_session(ip)

@@ -78,8 +78,9 @@ def build_look(engine: Engine, ctx: SessionCtx, workdir: Path, recorder=None) ->
     face = face_of(workdir)
     bare, look = _arrays(workdir, state["images"]["look"])
     mmap = None
-    if isinstance(engine, ReplayEngine) and engine.recorded_map():
-        mmap = makeup_map.MakeupMap.from_dict(engine.recorded_map())  # exactly what was rendered
+    recorded = engine.recorded_map() if isinstance(engine, ReplayEngine) else None
+    if recorded:
+        mmap = makeup_map.MakeupMap.from_dict(recorded)  # exactly what was rendered
     if mmap is None:
         mmap = makeup_map.compute(bare, look, face)
         if recorder is not None:
