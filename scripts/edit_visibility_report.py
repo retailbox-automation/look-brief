@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Writes docs/EDITS.md: the edit rule and, per sample, how much each recorded edit changes its zone.
+"""Writes docs/EDITS.md: the edit rule and, per sample, how much each recorded button changes its zone.
 
-    uv run python scripts/edit_visibility_report.py
-Numbers come from lookbrief.visibility (mean dE2000 inside the zone outline against the render without edits).
+    uv run python scripts/edit_visibility_report.py [--write]
+Numbers come from lookbrief.visibility. --write also puts the steps that do not show into `quiet_edits` of each
+sample's manifest.json: those buttons are not offered. Thin zones use the same thresholds; read the table before
+trusting them there.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -15,59 +18,62 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lookbrief import palettes  # noqa: E402
-from lookbrief import recipe as rcp  # noqa: E402
 from lookbrief import visibility as vis  # noqa: E402
 
 
 def main() -> int:
-    rows, pairs = [], []
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--write", action="store_true", help="write quiet_edits into each manifest.json")
+    args = ap.parse_args()
+    rows, totals = [], []
     for sd in sorted((ROOT / "samples").glob("s*")):
-        if not (sd / "manifest.json").exists():
+        mf_path = sd / "manifest.json"
+        if not mf_path.exists():
             continue
         meta = json.loads((sd / "sample.json").read_text())
-        if meta.get("hidden"):  # evidence of the old rule, recipe v1
+        mf = json.loads(mf_path.read_text())
+        if meta.get("hidden") or mf["steps"]["render:base"]["recipe"]["version"] != 2:
+            print(f"{sd.name}: skipped (hidden or waits for re-recording)")
             continue
         r = vis.edit_visibility(sd)
-        for z in rcp.EDIT_ZONES:
-            if z not in r["strength"]:
-                continue
-            cells = []
-            for op in rcp.EDIT_OPS:
-                e = r["edits"].get(f"{z}:{op}")
-                cells.append(f"{e['mean']:.2f} ({e['share']:.0%})" if e else "off — on the edge")
-            rows.append(f"| {sd.name} | {z} | {r['strength'][z]:.2f} | " + " | ".join(cells) + " |")
-        worst = min(r["pairs"].items(), key=lambda kv: kv[1]["mean"])
-        pairs.append(f"| {sd.name} | {len(r['pairs'])} | {worst[1]['mean']:.2f} ({worst[0]}) | "
-                     f"{'PASS' if r['ok'] else 'FAIL'} |")
-    md = f"""# Edits that visibly change the face
+        for key, e in r["edits"].items():
+            zone = key.split(":", 1)[0]
+            kind = "thin" if zone in palettes.THIN_ZONES or zone in ("brows", "lashes") else "wide"
+            rows.append(f"| {sd.name} | {kind} | `{key}` | {e['mean']:.2f} | {e['share']:.0%} | "
+                        f"{'shows' if e['ok'] else 'quiet'} |")
+        totals.append(f"| {sd.name} | {len(r['edits'])} | {len(r['quiet'])} | {len(r['missing'])} |")
+        if r["missing"]:
+            print(f"{sd.name}: no render for {r['missing']}", file=sys.stderr)
+        if args.write:
+            mf["quiet_edits"] = r["quiet"]
+            mf_path.write_text(json.dumps(mf, indent=1, ensure_ascii=False))
+    md = f"""# Buttons that visibly change the face
 
-Nadya tested the demo on an iPhone (31.10.2026): "I tap the lips, pick a strength — nothing changes." Two causes:
-the "Makeup + hair" preview showed the Hair Transfer photo and ignored edits (fixed in `static/session.js`: an edit
-always switches to the view that carries it), and the recorded edits moved the zone by only dE2000 0.5–1.5
-(Makeup VTO barely reacts to intensity +-20 or a shade +-8 L*).
+Nadya tested the demo on an iPhone (31.10.2026): "I tap the lips, pick a strength — nothing changes." A probe of 14
+units then showed why strength cannot be the button: intensity +-8-10 moves a zone by dE2000 0.6-1.3, and even 14 against
+64 on the cheeks by 1.3-2.9.
 
 ## The edit rule (`src/lookbrief/recipe.py`, `src/lookbrief/palettes.py`)
-- **Softer / Bolder:** strength only, in steps of {palettes.INTENSITY_STEP['lips']} on lips and eyes and
-  {palettes.INTENSITY_STEP['cheeks']} on cheeks, inside the range of the zone for her skin group. A step that would
-  leave the range turns the button off, and it says why.
-- **Lighter / Deeper:** the neighbour step of the shade ladder, the same render as tapping that circle. The ends of the
-  ladder turn the button off. No colour is computed: every colour sent is a step of the palette.
+- **Softer / Bolder:** the neighbour shade in the order of distance to her skin (CIEDE2000; lids: the lid colour). The
+  same render as tapping that circle. The ends of the order turn the button off.
+- **Circles:** every shade of the zone. Bronzer, highlighter, liner and lip liner also have "none" (the zone leaves the
+  request) and steps that differ in strength too.
+- **Finish:** lips matte / satin / gloss, lids matte / shimmer / metallic, on the current shade.
+No colour is computed: every colour sent is a step of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
-Inside the zone outline the app draws (open eye and mouth left out), against the re-render without edits: every
-offered edit **mean dE2000 >= {vis.MIN_MEAN}** with **>= {vis.MIN_SHARE:.0%}** of pixels over {vis.JND}
-(just noticeable); every pair of edits of one zone **>= {vis.MIN_PAIR_MEAN}** (tapping one button after another must
-change the photo too). Thresholds checked by eye on 1:1 zone crops; the recordings of build b05012a failed it.
-Each recorded recipe equals what `recipe.apply_edits` makes today (test), so Replay shows what the code does.
+Inside the zone (open eye and mouth left out), against the render without edits, or between the two shades of a step:
+**mean dE2000 >= {vis.MIN_MEAN}** with **>= {vis.MIN_SHARE:.0%}** of pixels over {vis.JND} (just noticeable). A step
+below that is quiet: `quiet_edits` in the manifest, no button, the server refuses it.
+
+| Sample | Measured | Quiet | No render |
+|---|---|---|---|
+{chr(10).join(totals)}
 
 ## Measured (mean dE2000 in the zone, share of pixels over {vis.JND})
-| Sample | Zone | Whole makeup | Softer | Bolder | Lighter | Deeper |
-|---|---|---|---|---|---|---|
+| Sample | Zone | Edit | Mean | Share | Verdict |
+|---|---|---|---|---|---|
 {chr(10).join(rows)}
-
-| Sample | Pairs of one zone | Closest pair | Gate |
-|---|---|---|---|
-{chr(10).join(pairs)}
 """
     (ROOT / "docs" / "EDITS.md").write_text(md)
     print(md)

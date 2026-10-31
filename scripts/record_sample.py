@@ -5,8 +5,8 @@
 
 The folder must contain bride.jpg and inspiration.jpg (rights-cleared: our own or generated faces); `recipe_pins` in
 sample.json pin the recipe to an approved look. Runs: photo check -> Makeup Transfer -> makeup map -> base render ->
-Hair Transfer (before the transfer in a hair-first sample, on the base render otherwise) -> the grid: every shade of
-every zone, Softer and Bolder where they are not on the edge, the other looks.
+Hair Transfer (before the transfer in a hair-first sample, on the base render otherwise) -> the grid: every circle of
+every zone, the finishes of lips and lids, the other looks. Softer and Bolder need no render of their own.
 
 What the sample already holds is kept and costs nothing: a transfer, a hair-first Hair Transfer, the even-out, any
 render with the same recipe. A render made under an older rule or palette is dropped. A run stopped by --max-units
@@ -54,6 +54,13 @@ def paid_steps(steps: dict, base: dict, order: str, grid: str) -> list[tuple[str
     return paid + renders
 
 
+def skin_of(sd: Path, order: str, steps: dict) -> str:
+    """Her forehead on the photo the renders run on: the Hair Transfer of a hair-first sample (s0 #dfa588), else
+    bride.jpg. Read from the sample itself, so a --dry and a real run plan the same recipe."""
+    bare = steps["hair_transfer"]["image"] if order == "hair_first" and "hair_transfer" in steps else "bride.jpg"
+    return pipeline.skin_hex_of(sd, bare, pipeline.face_of(sd, bare))
+
+
 def drop_stale_renders(recorder: Recorder, wanted: dict[str, dict]) -> None:
     steps = recorder.manifest["steps"]
     for key in [k for k in steps if k.startswith("render:") and steps[k].get("recipe") != wanted.get(k)]:
@@ -67,9 +74,9 @@ def dry_run(sd: Path, pins: dict | None, steps: dict, order: str, grid: str, max
     if not pins:
         print("no recipe_pins in sample.json: the recipe comes from the photo, nothing to plan", file=sys.stderr)
         return 2
-    base = rcp.base_recipe(None, pins["group"], pins["look"], pins.get("shades"))
+    base = rcp.base_recipe(None, pins["group"], skin_of(sd, order, steps), pins["look"], pins.get("shades"))
     paid = paid_steps(steps, base, order, grid)
-    print(f"{sd.name}: order {order}, group {base['group']}, look {base['look']}")
+    print(f"{sd.name}: order {order}, group {base['group']}, look {base['look']}, skin {base['skin_hex']}")
     for key, units in paid:
         print(f"  {key}  {units}")
     total = sum(u for _, u in paid)
@@ -96,6 +103,8 @@ def main() -> int:
     order = manifest.get("order") or (args.order if not manifest else "transfer_first")  # s2, s3 predate the field
     if args.dry:
         return dry_run(sd, pins, manifest.get("steps", {}), order, args.grid, args.max_units)
+    if pins:
+        pins = {**pins, "skin_hex": skin_of(sd, order, manifest.get("steps", {}))}
     key = youcam_key()
     if not key:
         print("no key: set YOUCAM_API_KEY or LOOKBRIEF_KEYCHAIN=1", file=sys.stderr)

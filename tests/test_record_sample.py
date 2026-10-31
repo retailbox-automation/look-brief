@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 import pytest
-from helpers import ROOT, SAMPLES
+from helpers import ROOT, SAMPLES, SKIN
 from PIL import Image
 
 from lookbrief import recipe as rcp
@@ -24,14 +24,16 @@ def dry(*args):
 
 
 @pytest.mark.parametrize(("sample", "renders", "units", "hair"), [
-    ("s0-champagne-rose", 55, 55, False), ("s2-classic-red", 55, 57, True), ("s3-mauve-smoky", 55, 57, True)])
+    ("s0-champagne-rose", 45, 45, False), ("s2-classic-red", 45, 47, True), ("s3-mauve-smoky", 46, 48, True)])
 def test_dry_lists_the_grid_without_a_key(sample, renders, units, hair):
     r = dry(f"samples/{sample}", "--max-units", "230")
     assert r.returncode == 0, r.stderr
     assert f"renders {renders}" in r.stdout and f"units {units}" in r.stdout
     assert ("  hair_transfer" in r.stdout) is hair
-    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:lips:softer"):
+    for must in ("render:base", "render:look:fresh", "render:look:evening", "render:lips:finish:gloss",
+                 "render:eyes:finish:metallic", "render:bronzer:shade:none"):
         assert must in r.stdout
+    assert ":softer" not in r.stdout and ":bolder" not in r.stdout, "Softer and Bolder are renders of circles"
     assert "mu_transfer" not in r.stdout, "the transfer is paid for"
     assert "even_out" not in r.stdout
 
@@ -41,9 +43,16 @@ def test_dry_keeps_the_base_shade_out_of_the_grid():
     assert "render:lips:shade:ruby" in dry("samples/s0-champagne-rose").stdout
 
 
+def test_skin_of_the_samples_for_a_run_without_a_measured_map():
+    expected = (("s0-champagne-rose", "#dfa588"), ("s2-classic-red", "#e4b29c"), ("s3-mauve-smoky", "#be8567"))
+    for sample, skin in expected:
+        r = dry(f"samples/{sample}")
+        assert f"skin {skin}" in r.stdout, r.stdout[:200]
+
+
 def test_dry_says_where_the_ceiling_stops_it():
     r = dry("samples/s3-mauve-smoky", "--max-units", "25")
-    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 57 units" in r.stdout
+    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 48 units" in r.stdout
 
 
 def test_dry_without_pins_says_it_cannot_plan(tmp_path):
@@ -121,7 +130,7 @@ def test_the_classic_red_sample_is_the_soft_glam_with_a_ruby_lip(script, monkeyp
     sd = tmp_path / "s2-classic-red"
     shutil.copytree(SAMPLES / sd.name, sd)
     assert _record(script, monkeypatch, sd, 1) == 4
-    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam"))
+    want = rcp.to_vto_effects(rcp.look_recipe("light", "softglam", SKIN["light"]))
     got = FakeClient.bodies[0]["effects"]
     lips = next(e for e in got if e["category"] == "lip_color")
     assert lips["palettes"][0]["color"] == "#B0102E"
@@ -132,7 +141,7 @@ def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, mon
     sd = tmp_path / "s3-mauve-smoky"
     shutil.copytree(SAMPLES / sd.name, sd)
     old_transfer = (sd / "results" / "mu_transfer.jpg").read_bytes()
-    base = rcp.look_recipe("deep", "softglam")
+    base = rcp.look_recipe("deep", "softglam", SKIN["deep"])
 
     assert _record(script, monkeypatch, sd, 5) == 4, "stopped by the ceiling, not finished"
     assert _spent() == 5
@@ -145,14 +154,14 @@ def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, mon
     assert not (sd / "fixtures" / "render__cheeks__lighter.json").exists()
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 57, "the second run only pays for what the first one did not record"
+    assert _spent() == 48, "the second run only pays for what the first one did not record"
     assert FakeClient.tasks.count("mu-transfer") == 0 and FakeClient.tasks.count("hair-transfer") == 1
     assert (sd / "results" / "mu_transfer.jpg").read_bytes() == old_transfer
     keys = set(ReplayEngine(sd).recorded_render_keys())
     assert keys == {"base", *(rcp.edit_key(e) for e in rcp.record_grid(base))}
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 57, "a finished grid spends nothing"
+    assert _spent() == 48, "a finished grid spends nothing"
 
 
 def test_a_changed_shade_is_recorded_again_alone(script, monkeypatch, tmp_path):
@@ -173,5 +182,5 @@ def test_a_hair_first_sample_keeps_its_transfer_hair_and_even_out(script, monkey
     shutil.copytree(SAMPLES / sd.name, sd)
     kept = {n: (sd / "results" / n).read_bytes() for n in ("hair_transfer.jpg", "mu_transfer.jpg")}
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 55
+    assert set(FakeClient.tasks) == {"makeup-vto"} and _spent() == 45
     assert {n: (sd / "results" / n).read_bytes() for n in kept} == kept
