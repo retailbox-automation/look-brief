@@ -1,10 +1,10 @@
 """Does every button visibly change the face? Measured on the recorded renders of a sample.
 
-Inside the zone, mean dE2000 and the share of pixels above the just-noticeable 2.3: a circle or a style against the
-render without edits (render:base); Softer and Bolder as the pair of shade renders they step between, from every
-shade. Thresholds (visible at a glance on a phone, checked by eye on 1:1 zone crops, decision 31.10):
-mean >= 3.5 with >= 60 % of pixels over 2.3. A step below them is `quiet`: the sample lists it in `quiet_edits` and
-the button is not offered (scripts/edit_visibility_report.py --write).
+Inside the zone, the 90th percentile of dE2000: a circle or a style against the render without edits (render:base);
+Softer and Bolder between the two shade renders they step between, from every shade. A mean over the mask dilutes thin
+elements (a wing liner: mean 3.7, p90 10.5), and the look screen shows a chosen zone close up, so the strongest tenth
+of the zone is what she sees. p90 >= 2.5 was checked by eye by the critic on close-up crops. A step below it is
+`quiet`: the sample lists it in `quiet_edits` and the button is not offered (scripts/edit_visibility_report.py --write).
 """
 
 from __future__ import annotations
@@ -19,9 +19,7 @@ from . import landmarks, makeup_map, palettes
 from .color import delta_e2000
 from .recipe import EDIT_OPS, LOOK_ZONE, edit_key, record_grid
 
-JND = 2.3
-MIN_MEAN = 3.5
-MIN_SHARE = 0.60
+MIN_P90 = 2.5
 LINER_REACH = 0.05  # height of the band above the upper lid, x inter-ocular distance
 LASHES_REACH = 0.09
 LIP_RING = 0.03  # half width of the ring on the lip edge, x inter-ocular distance
@@ -62,12 +60,12 @@ def zone_masks(face: landmarks.FaceGeometry) -> dict[str, np.ndarray]:
 
 def _stat(a: np.ndarray, b: np.ndarray) -> dict:
     de = delta_e2000(a, b)
-    mean, share = round(float(de.mean()), 2), round(float((de > JND).mean()), 3)
-    return {"mean": mean, "share": share, "ok": mean >= MIN_MEAN and share >= MIN_SHARE}
+    p90 = round(float(np.percentile(de, 90)), 2)
+    return {"p90": p90, "mean": round(float(de.mean()), 2), "ok": p90 >= MIN_P90}
 
 
 def edit_visibility(sample_dir: Path) -> dict:
-    """{'edits': {key: {'mean', 'share', 'ok'}}, 'quiet': [keys below the thresholds], 'missing': [keys, no render]}.
+    """{'edits': {key: {'p90', 'mean', 'ok'}}, 'quiet': [keys below the threshold], 'missing': [keys, no render]}.
     Keys are recipe.quiet_key: 'lips:shade:ruby', 'lips:softer@dusty-rose'."""
     mf = json.loads((sample_dir / "manifest.json").read_text())
     steps = mf["steps"]

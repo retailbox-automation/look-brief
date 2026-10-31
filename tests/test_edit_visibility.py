@@ -106,14 +106,24 @@ def test_a_painted_circle_shows_and_its_neighbours_steps_show_with_it(synthetic)
     assert f"lips:softer@{start}" in rep["quiet"], "the other way nothing changed"
 
 
-def test_a_strong_change_on_a_small_part_of_the_zone_stays_quiet(synthetic):
+def test_a_thin_line_counts_a_speck_does_not(synthetic):
+    """The gate reads the 90th percentile: a mean over the mask dilutes a thin element (a wing liner: mean 3.7, p90
+    10.5), and p90 still ignores a change on a few pixels."""
     sd, steps = synthetic
-    key = "render:cheeks:shade:salmon"
-    if key not in steps:
-        key = next(k for k in steps if k.startswith("render:cheeks:shade:"))
-    _paint(sd, steps, key, "cheeks", share=0.3)
-    e = visibility.edit_visibility(sd)["edits"][key.removeprefix("render:")]
-    assert e["mean"] >= visibility.MIN_MEAN and e["share"] < visibility.MIN_SHARE and not e["ok"], e
+    thin, speck = "render:cheeks:shade:peach", "render:cheeks:shade:coral"
+    keys = [k for k in steps if k.startswith("render:cheeks:shade:")]
+    thin, speck = (thin if thin in steps else keys[0]), (speck if speck in steps else keys[1])
+    _paint(sd, steps, thin, "cheeks", share=0.2)
+    _paint(sd, steps, speck, "cheeks", share=0.05)
+    edits = visibility.edit_visibility(sd)["edits"]
+    line, dot = edits[thin.removeprefix("render:")], edits[speck.removeprefix("render:")]
+    assert line["ok"] and line["p90"] >= visibility.MIN_P90
+    assert not dot["ok"] and dot["p90"] == 0
+
+
+def test_the_gate_is_the_90th_percentile_only():
+    assert visibility.MIN_P90 == 2.5
+    assert not hasattr(visibility, "MIN_MEAN") and not hasattr(visibility, "MIN_SHARE")
 
 
 def test_a_style_is_read_inside_its_own_mask(synthetic):
@@ -121,7 +131,7 @@ def test_a_style_is_read_inside_its_own_mask(synthetic):
     _paint(sd, steps, "render:bronzer:shade:sculpted", "bronzer")
     rep = visibility.edit_visibility(sd)
     assert "bronzer:shade:sculpted" not in rep["quiet"]
-    assert rep["edits"]["bronzer:shade:sculpted"]["share"] > 0.9
+    assert rep["edits"]["bronzer:shade:sculpted"]["p90"] > 10
     assert "highlight:shade:none" in rep["quiet"]
 
 

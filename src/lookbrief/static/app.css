@@ -101,13 +101,14 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-frame { position: relative; overflow: hidden; aspect-ratio: 3 / 3.8; background: #d8cfc5; }
 .hero-frame::before { content: ""; position: absolute; inset: 0 0 auto; height: 34%; z-index: 1; pointer-events: none;
   background: linear-gradient(to bottom, rgba(250, 246, 241, .72), rgba(250, 246, 241, .3) 55%, rgba(250, 246, 241, 0)); }
-.hero-img { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 3 / 4; }
+.hero-img { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 3 / 4; transform-origin: 0 0; transition: transform .28s ease; }
+@media (prefers-reduced-motion: reduce) { .hero-img { transition: none; } }
 .hero-img > img { width: 100%; height: 100%; object-fit: cover; }
 .outlines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; }
 .zone-outline { fill: transparent; stroke: rgba(255, 251, 246, .9); stroke-width: 1.4; vector-effect: non-scaling-stroke; cursor: pointer; filter: drop-shadow(0 0 1px rgba(60, 40, 30, .35)); }
 .zone-outline.on { stroke-width: 2; }  /* outline only: a tint over the cheek read as a red patch */
 .pins { position: absolute; inset: 0; z-index: 3; pointer-events: none; }  /* taps reach the outlines below */
-.pin { position: absolute; width: 0; height: 0; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; }
+.pin { position: absolute; width: 0; height: 0; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; transform: scale(calc(1 / var(--zoom, 1))); transform-origin: 0 0; }  /* pins keep their size on a close-up */
 .pin-line { position: absolute; left: 0; top: 0; height: 1.5px; margin-top: -.75px; background: rgba(255, 251, 246, .95); transform-origin: 0 50%; box-shadow: 0 0 1px rgba(60, 40, 30, .4); }
 .pin-dot { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: #fffdfa; box-shadow: 0 0 0 1px rgba(60, 40, 30, .18); }
 .pin.on .pin-dot { left: -7px; top: -7px; width: 14px; height: 14px; background: transparent; border: 2px solid #fffdfa; }
@@ -125,6 +126,9 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .chip-note { margin: 6px 0 0; font-size: .8rem; color: var(--muted, #6b605a); }
 .hero-zones { position: absolute; z-index: 4; left: 13px; bottom: 10px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 999px; padding: 6px 12px; background: var(--glass); color: var(--ink); font: 12.5px/1.2 var(--sans); cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 30, .12); }
 .hero-img.zones-off .outlines, .hero-img.zones-off .pins { display: none; }
+.hero-whole { min-height: 44px; padding: 0 16px; font-size: 13.5px; }
+.hero-whole[hidden] { display: none; }
+.hero-frame.zoomed #zones-btn, .hero-frame.zoomed .hero-check { display: none; }  /* on a close-up the face takes the frame */
 @media (max-width: 340px) {  /* 320 px phones: the zones pill and the preview toggle side by side without touching */
   .hero-toggle button { padding: 6px 9px; font-size: 12px; }
   .hero-zones { padding: 5px 9px; font-size: 12px; }

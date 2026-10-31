@@ -117,6 +117,32 @@
   const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
   const lookCaption = () => `${(state.edits || []).length ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO${state.even_out ? " with foundation in your shade" : ""}`;
 
+  // ---------- photo: close up on the chosen zone ----------
+  // zone -> [outline it centres on, scale]. Brows, liner and lashes live around the eyes.
+  const ZOOM = {
+    eyes: ["eyes", 2.3], liner: ["eyes", 2.3], lashes: ["eyes", 2.3], brows: ["eyes", 2.3],
+    lips: ["lips", 2.3], lip_line: ["lips", 2.3],
+    cheeks: ["cheeks", 1.5], bronzer: ["cheeks", 1.5], highlight: ["cheeks", 1.5],
+  };
+  const FRAME_SHARE = 3.8 / 4; // the frame shows this share of the photo's height (aspect 3:3.8 over 3:4)
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  function zoomTo(z) { // z null: the whole face
+    const [polys, scale] = ZOOM[z] || [];
+    const pts = ((state.outlines || {})[polys] || []).flat();
+    const box = $("hero-img");
+    const on = pts.length > 0;
+    box.closest(".hero-frame").classList.toggle("zoomed", on);
+    $("whole-btn").hidden = !on;
+    box.style.setProperty("--zoom", on ? scale : 1);
+    if (!on) { box.style.transform = ""; return; }
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    // centre the zone in the frame, in % of the photo's own box; the clamp keeps the frame fully covered
+    const tx = clamp(0.5 - scale * cx, 1 - scale, 0), ty = clamp(FRAME_SHARE / 2 - scale * cy, FRAME_SHARE - scale, 0);
+    box.style.transform = `translate(${(tx * 100).toFixed(2)}%, ${(ty * 100).toFixed(2)}%) scale(${scale})`;
+  }
+
   function renderHero() {
     const im = state.images || {};
     const v = state.views || {};
@@ -152,6 +178,7 @@
   function selectZone(z, byUser) {
     if (!z) return;
     if (byUser && zonesShown) showZones(false); // she started choosing: let the face show
+    if (byUser) zoomTo(z);
     selZone = z;
     const tabs = $("zone-tabs");
     tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.zone === z)));
@@ -294,6 +321,7 @@
     state = body;
     heroView = "makeup"; // the view that carries the change, never the hair preview
     if (payload.zone && zonesShown) showZones(false);
+    if (payload.zone === "look") zoomTo(null); // a look reads on the whole face
     const opts = state.edit_options || [];
     const now = state.edits || [];
     // a change in the same zone is the next choice there; in another zone it took the place of the earlier change
@@ -322,6 +350,7 @@
   $("reset").addEventListener("click", () => doEdit({ action: "reset" }));
   $("hero-toggle").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { heroView = b.dataset.view; if (state) renderHero(); }));
   $("zones-btn").addEventListener("click", () => showZones(!zonesShown));
+  $("whole-btn").addEventListener("click", () => zoomTo(null));
   $("make-brief").addEventListener("click", async () => {
     const { ok, body } = await api(`/api/sessions/${sid}/brief`, { method: "POST" });
     if (!ok) { $("edit-msg").textContent = body.detail || "Couldn't create the brief link."; return; }

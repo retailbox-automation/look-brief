@@ -310,6 +310,81 @@ def test_a_button_at_the_end_of_its_way_is_off_says_why_and_sends_nothing(base_u
     assert not [u for u in sent if "/edits" in u], sent
 
 
+ZOOM_JS = """() => {
+  const img = document.getElementById("hero-img"), frame = document.querySelector(".hero-frame");
+  const m = new DOMMatrix(getComputedStyle(img).transform);
+  const a = img.getBoundingClientRect(), f = frame.getBoundingClientRect();
+  return {scale: m.a, covers: a.left <= f.left + 0.5 && a.top <= f.top + 0.5 && a.right >= f.right - 0.5
+          && a.bottom >= f.bottom - 0.5, clipped: getComputedStyle(frame).overflow === "hidden",
+          whole: !document.getElementById("whole-btn").hidden};
+}"""
+
+
+def zoom_settled(page, scale: float) -> dict:
+    page.wait_for_function(f"Math.abs(new DOMMatrix(getComputedStyle(document.getElementById('hero-img')).transform).a"
+                           f" - {scale}) < 0.01", timeout=3_000)
+    return page.evaluate(ZOOM_JS)
+
+
+@needs("s0-champagne-rose")
+@pytest.mark.parametrize(("width", "height"), [(390, 844), (1440, 900)])
+def test_a_zone_brings_the_photo_close_and_whole_face_takes_it_back(base_url, browser_ctx, width, height):
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": width, "height": height})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    assert page.evaluate(ZOOM_JS)["scale"] == 1 and not page.evaluate(ZOOM_JS)["whole"], "the whole face first"
+    sheet_top = page.locator(".sheet").bounding_box()["y"]
+    for label, scale in (("Eyelids", 2.3), ("Eyeliner", 2.3), ("Lashes", 2.3), ("Brows", 2.3), ("Lips", 2.3),
+                         ("Lip liner", 2.3), ("Cheeks", 1.5), ("Bronzer", 1.5), ("Highlighter", 1.5)):
+        page.get_by_role("button", name=label, exact=True).click()
+        m = zoom_settled(page, scale)
+        assert m["covers"] and m["clipped"] and m["whole"], (label, m)
+    assert page.locator(".sheet").bounding_box()["y"] == sheet_top, "what is under the photo stays in place"
+    page.get_by_role("button", name="Whole face", exact=True).click()
+    assert zoom_settled(page, 1)["whole"] is False
+    # a look shows on the whole face, wherever she was
+    page.get_by_role("button", name="Lips", exact=True).click()
+    zoom_settled(page, 2.3)
+    page.get_by_role("button", name="Evening", exact=True).click()
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening"), timeout=20_000)
+    assert zoom_settled(page, 1)["whole"] is False
+    # an edit keeps the zone close: that is where the change is
+    page.get_by_role("button", name="Soft glam", exact=True).click()
+    page.get_by_role("button", name="Lips", exact=True).click()
+    tap_circle(page, circles(page, "lips")[0])
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    zoom_settled(page, 2.3)
+    transform = page.locator("#img-after").evaluate("el => getComputedStyle(el.parentElement).transform")
+    assert transform == "none", "before and after stays the whole face"
+
+
+@needs("s0-champagne-rose")
+def test_zoom_is_a_jump_for_those_who_ask_for_less_motion(base_url):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, reduced_motion="reduce")
+        page = ctx.new_page()
+        page.goto(base_url + "/try/s0-champagne-rose")
+        expect(page.locator("#look")).to_be_visible(timeout=30_000)
+        page.get_by_role("button", name="Lips", exact=True).click()
+        scale = page.evaluate("new DOMMatrix(getComputedStyle(document.getElementById('hero-img')).transform).a")
+        assert scale == pytest.approx(2.3, abs=0.01)
+        browser.close()
+
+
+@needs("s0-champagne-rose")
+def test_named_styles_are_chips_in_thin_zones(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    page.get_by_role("button", name="Eyeliner", exact=True).click()
+    zone = page.get_by_test_id("zone-liner")
+    expect(zone.locator(".styles .chip").first).to_be_visible()
+    assert zone.locator(".circle").count() == 0 and zone.locator(".chips").count() == 0, "no circles, no Softer"
+    expect(zone.get_by_role("button", name="Eyeliner: Classic", exact=True)).to_have_attribute("aria-pressed", "true")
+
+
 @needs("s0-champagne-rose")
 def test_details_keep_the_numbers_out_of_the_sheet(base_url, browser_ctx):
     page = browser_ctx.new_page()

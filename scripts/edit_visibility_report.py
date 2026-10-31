@@ -3,8 +3,7 @@
 
     uv run python scripts/edit_visibility_report.py [--write]
 Numbers come from lookbrief.visibility. --write also puts the steps that do not show into `quiet_edits` of each
-sample's manifest.json: those buttons are not offered. Thin zones use the same thresholds; read the table before
-trusting them there.
+sample's manifest.json: those buttons are not offered.
 """
 
 from __future__ import annotations
@@ -39,7 +38,7 @@ def main() -> int:
         for key, e in r["edits"].items():
             zone = key.split(":", 1)[0]
             kind = "thin" if zone in palettes.STYLE_ZONES else "wide"
-            rows.append(f"| {sd.name} | {kind} | `{key}` | {e['mean']:.2f} | {e['share']:.0%} | "
+            rows.append(f"| {sd.name} | {kind} | `{key}` | {e['p90']:.2f} | {e['mean']:.2f} | "
                         f"{'shows' if e['ok'] else 'quiet'} |")
         totals.append(f"| {sd.name} | {len(r['edits'])} | {len(r['quiet'])} | {len(r['missing'])} |")
         if r["missing"]:
@@ -62,16 +61,21 @@ units then showed why strength cannot be the button: intensity +-8-10 moves a zo
 No colour is computed: every colour sent is a shade of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
-Inside the zone (open eye and mouth left out), against the render without edits, or between the two shades of a step:
-**mean dE2000 >= {vis.MIN_MEAN}** with **>= {vis.MIN_SHARE:.0%}** of pixels over {vis.JND} (just noticeable). A step
-below that is quiet: `quiet_edits` in the manifest, no button, the server refuses it.
+Inside the mask of the zone (open eye and mouth left out), against the render without edits, or between the two shades
+of a step: **the 90th percentile of dE2000 >= {vis.MIN_P90}**. A step below that is quiet: `quiet_edits` in the manifest,
+no button, the server refuses it.
+
+Why p90 and not a mean: a mean over the mask dilutes thin elements (a wing liner: mean 3.7, p90 10.5). Why it is the
+right measure here: the look screen brings a chosen zone close up (2.3x on eyes and lips, 1.5x on cheeks), so the
+strongest part of the zone is what she looks at. The threshold was checked by eye by the critic on close-up crops of
+the recording.
 
 | Sample | Measured | Quiet | No render |
 |---|---|---|---|
 {chr(10).join(totals)}
 
-## Measured (mean dE2000 in the zone, share of pixels over {vis.JND})
-| Sample | Zone | Edit | Mean | Share | Verdict |
+## Measured (dE2000 in the zone)
+| Sample | Zone | Edit | p90 | Mean | Verdict |
 |---|---|---|---|---|---|
 {chr(10).join(rows)}
 """
