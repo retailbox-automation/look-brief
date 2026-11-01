@@ -481,7 +481,7 @@ def test_undo_low_on_the_page_brings_the_photo_back_on_screen(base_url, browser_
 
 @needs("s0-champagne-rose")
 def test_a_step_that_takes_its_own_button_away_keeps_the_photo_where_it_was(base_url, browser_ctx):
-    """Focus falls to Undo, below the fold, when the pressed button goes: that used to scroll the photo off the screen."""
+    """Focus falls to Undo, below the fold, when the pressed button goes: that used to scroll the photo away."""
     page = browser_ctx.new_page()
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto(base_url + "/try/s0-champagne-rose")
