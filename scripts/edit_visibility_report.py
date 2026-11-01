@@ -56,9 +56,11 @@ units then showed why strength cannot be the button: intensity +-8-10 moves a zo
 ## The edit rule (`src/lookbrief/recipe.py`, `src/lookbrief/palettes.py`)
 - **Softer / Bolder** (lids, cheeks, lips): the next shade of the same colour family in the order of distance to her
   skin (CIEDE2000; lids: the lid colour). The same render as tapping that circle. The end of the way turns the button off.
-- **Circles:** every shade of lids, cheeks and lips, metallic and gloss looks among them.
+- **Circles:** every shade of lids, cheeks and lips, metallic and gloss looks among them. They are recorded on all three
+  looks; on Classic and Evening a key reads `look:evening+lips:shade:ruby` and is measured against the render of that look.
 - **Styles:** liner, lashes, brows, highlighter and lip liner offer named steps with their own pattern and strength;
-  the highlighter can be left out. Bronzer has no choice: a light warm layer that is part of the look.
+  the highlighter can be left out. They are recorded on Soft glam: on Classic and Evening a style moves the look to Soft
+  glam, says so, and Undo returns to the look. Bronzer has no choice: a light warm layer that is part of the look.
 No colour is computed: every colour sent is a shade of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)

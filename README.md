@@ -22,7 +22,7 @@ the server, so the paid trial only executes what both already saw.
 | The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
 | Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → a foundation in her shade over the transfer gives 4 %, lips stay at ΔE 0.66. The makeup map is read from that layer; no render carries it |
 | The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
-| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 124 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
+| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 599 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
 | Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Inside the zone the 90th percentile of ΔE2000 is at least 2.5 (brows 3.5); a step below that gets no button. Softer and Bolder go to the next shade of the same colour |
 | Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
 | No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
@@ -124,7 +124,7 @@ python scripts/verify_card.py look-brief-<id>.json \
 ## Tests and checks
 
 ```bash
-uv run pytest -q                 # 123 unit tests + 1 Playwright smoke (run `uv run playwright install chromium` once)
+uv run pytest -q                 # 575 unit tests + 24 Playwright tests (run `uv run playwright install chromium` once)
 uv run ruff check src tests scripts && uv run mypy src
 ```
 

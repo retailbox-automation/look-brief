@@ -765,6 +765,66 @@
        "face_width_share": 0.547
       }
      }
+    },
+    {
+     "at": "2026-11-01T01:51:10Z",
+     "credit_before": 291,
+     "credit_after": 247,
+     "units_spent": 44,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T01:52:18Z",
+     "credit_before": 247,
+     "credit_after": 240,
+     "units_spent": 7,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
     }
    ]
   },
@@ -1005,6 +1065,36 @@
      "credit_before": 372,
      "credit_after": 371,
      "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T01:44:54Z",
+     "credit_before": 330,
+     "credit_after": 291,
+     "units_spent": 39,
      "photo_check": {
       "bride": {
        "role": "bride",
