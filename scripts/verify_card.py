@@ -50,6 +50,12 @@ def main() -> int:
             rc = rc or (0 if got == digest else 1)
     p = att["payload"]
     print(f"brief {p['brief_id']} v{p['version']} · agreed {p['agreed_at']} · recipe sha256 {p['recipe_sha256'][:16]}…")
+    made = p.get("composition")
+    if made:
+        print(f"image: {made['caption']} ({made['method']})")
+        print(f"  frame {made['frame']['render']}: task {made['frame']['task_id']}")
+        for x in made["layers"]:
+            print(f"  {x['zone']:16s} {x['blend']:6s} {x['render']}: task {x['task_id']}")
     for z in p["zones"]:
         print(f"  {z.get('label', z['zone']):16s} {z.get('product_hex', ''):8s} {z['status']:8s} {z.get('note', '')}")
     return rc

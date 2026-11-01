@@ -32,11 +32,7 @@ BLOCK_NOTES = {  # why a button is off
     "quiet": "This change would not show on the photo.",
 }
 NO_CHOICE_NOTE = "This shade stays close to your own {zone} on this photo."  # no step of the zone shows on her
-EDIT_NOTICES = {  # what the sheet says when a tap did more than change one thing
-    "moved": "Styles are recorded on Soft glam, so your look moved to Soft glam.",
-    "one_change": "Updated. Samples hold one recorded change at a time — this replaced your previous change.",
-    "look": "This look replaces your earlier change.",
-}
+EDIT_NOTICES = {"look": "This look replaces your earlier change."}  # a tap that did more than change one thing
 SHADE_PREFIX = "shade:"
 LOOK_ZONE = "look"  # an edit ["look", "evening"] swaps the whole recipe
 TONE_ZONES = ("lips", "cheeks", "eyes")  # the zones whose shade follows the inspiration on a live photo

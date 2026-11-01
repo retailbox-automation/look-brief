@@ -118,7 +118,8 @@
   }
 
   const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
-  const lookCaption = () => `${(state.edits || []).some(([zone]) => zone !== "look") ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
+  const lookCaption = () => state.composition ? state.composition.caption : `${(state.edits || []).some(([zone]) => zone !== "look") ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
+  const lookAlt = () => `Your look: ${state.composition ? state.composition.caption : "the makeup recipe on your photo (YouCam Makeup VTO)"}`;
 
   // ---------- photo: close up on the chosen zone ----------
   // zone -> [outline it centres on, largest scale]. Brows, liner and lashes live around the eyes.
@@ -154,8 +155,8 @@
     const v = state.views || {};
     const st = state.steps || {};
     const edited = (state.edits || []).length > 0;
-    let src = im[v.hero], alt = "Your look: the makeup recipe on your photo (YouCam Makeup VTO)";
-    let cap = [st[renderKey()], lookCaption()];
+    let src = im[v.hero], alt = lookAlt();
+    let cap = [st[renderKey()], lookCaption(), lookCaption()]; // a composed look has no task of its own: the words carry the count
     if (heroView === "hair" && im.hair) {
       src = im.hair; alt = "Your look with the inspiration hair (YouCam Hair Transfer)";
       cap = [st.hair_transfer, edited ? "Hair Transfer (your look before your changes; tap Makeup to see them)" : "Hair Transfer on your look"];
@@ -222,18 +223,20 @@
     const r = state.recipe.zones[z];
     const steps = opts.filter((o) => o.op === "softer" || o.op === "bolder");
     const shades = opts.filter((o) => o.op.startsWith("shade:"));
-    const notes = [...new Set(steps.filter((o) => !o.available && o.note).map((o) => o.note))];
+    const notes = [...new Set(opts.filter((o) => !o.available && o.note).map((o) => o.note))];
     const finish = !style && r.texture ? ` · ${esc(cap(r.texture))}` : "";
     const choice = note ? `<p class="zone-note" data-testid="note-${esc(z)}">${esc(note)}</p>` : style
       ? `<div class="styles" role="group" aria-label="${esc(label)} styles">${shades.map((o) => styleHtml(o, label)).join("")}</div>`
       : `<div class="circles" role="group" aria-label="${esc(label)} shades">${shades.map((o) => circleHtml(o, label)).join("")}</div>`;
     return `<article class="zone" data-zone="${esc(z)}" data-testid="zone-${esc(z)}" aria-labelledby="zone-h-${esc(z)}">
-      <div class="zone-head"><h3 id="zone-h-${esc(z)}">${esc(label)}</h3><p class="zone-shade" data-testid="shade-${esc(z)}">${esc(r.shade_name)}${finish}</p></div>
+      <div class="zone-head"><div class="zone-title"><h3 id="zone-h-${esc(z)}">${esc(label)}</h3><p class="zone-shade" data-testid="shade-${esc(z)}">${esc(r.shade_name)}${finish}</p></div>${changed(z) ? `<button type="button" id="remove-${esc(z)}" class="remove-step" data-remove="${esc(z)}" aria-label="Remove this step: ${esc(label)}, back to the look">Remove this step</button>` : ""}</div>
       ${choice}
       ${steps.length ? `<div class="chips" role="group" aria-label="Adjust ${esc(label)}">${steps.map((o) => chipHtml(o, label)).join("")}</div>` : ""}
       ${notes.map((n) => `<p class="chip-note" data-testid="note-${esc(z)}">${esc(n)}</p>`).join("")}
     </article>`;
   }
+
+  const changed = (z) => (state.edits || []).some(([zone]) => zone === z);
 
   function renderZones() {
     const groups = state.zone_groups || [];
@@ -241,13 +244,14 @@
     const keys = groups.flatMap((g) => g.zones.map((z) => z.zone)).filter((z) => z in zones);
     if (!keys.includes(selZone)) selZone = keys[0] || null;
     const scroll = $("zone-tabs").scrollLeft;
-    $("zone-tabs").innerHTML = groups.map((g) => `<div class="tab-group"><span class="tab-group-name">${esc(g.label)}</span><div class="tab-row">${g.zones.filter((z) => z.zone in zones).map((z) => `<button type="button" class="tab" data-zone="${esc(z.zone)}" aria-pressed="false">${esc(z.label)}</button>`).join("")}</div></div>`).join("");
+    $("zone-tabs").innerHTML = groups.map((g) => `<div class="tab-group"><span class="tab-group-name">${esc(g.label)}</span><div class="tab-row">${g.zones.filter((z) => z.zone in zones).map((z) => `<button type="button" class="tab" data-zone="${esc(z.zone)}" aria-pressed="false">${esc(z.label)}${changed(z.zone) ? '<span class="tab-mark" aria-hidden="true"></span><span class="sr-only"> (changed)</span>' : ""}</button>`).join("")}</div></div>`).join("");
     $("zone-tabs").scrollLeft = scroll;
     $("zones").innerHTML = groups.flatMap((g) => g.zones).filter((z) => z.zone in zones).map((z) => zonePanel(z.zone, z.label, z.style, z.note)).join("");
     $("zone-tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => selectZone(b.dataset.zone, true)));
     document.querySelectorAll("#zones button[data-op], #look-row button[data-op]").forEach((b) => b.addEventListener("click", () => {
       if (b.getAttribute("aria-pressed") !== "true") doEdit({ zone: b.dataset.zone, op: b.dataset.op });
     }));
+    document.querySelectorAll("#zones button[data-remove]").forEach((b) => b.addEventListener("click", () => doEdit({ action: "remove", zone: b.dataset.remove })));
     const ed = state.edits || [];
     $("undo").disabled = !state.can_undo;
     $("reset").disabled = ed.length === 0;
@@ -278,17 +282,18 @@
   function render() {
     const im = state.images || {};
     const v = state.views || {};
-    $("img-before").src = im[v.before]; $("img-after").src = im[v.after];
+    $("img-before").src = im[v.before]; $("img-after").src = im[v.after]; $("img-after").alt = lookAlt();
+    $("look-source").textContent = state.composition ? state.composition.caption.charAt(0).toLowerCase() + state.composition.caption.slice(1) : "rendered by YouCam Makeup VTO";
     $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-look").src = im.look;
     const hairImg = im.hair || (state.order === "hair_first" && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
     if (hairImg) { $("img-hair").src = hairImg; } else { $("img-hair").closest("figure").hidden = true; }
     if (!im.hair && hairImg) $("img-hair").alt = "Your selfie with the inspiration hair (YouCam Hair Transfer)";
     const st = state.steps || {};
-    setCaption($("cap-after"), st[renderKey()], lookCaption());
+    setCaption($("cap-after"), st[renderKey()], lookCaption(), lookCaption());
     setCaption($("cap-look"), st.mu_transfer, "Inspiration read by Makeup Transfer");
     setCaption($("cap-hair"), st.hair_transfer, im.hair ? "Hair Transfer on your look" : "Hair (YouCam Hair Transfer on your selfie)", "Hair preview unavailable");
     renderHero(); renderPhoto(); renderLooks(); renderZones(); renderNumbers(); renderGaps();
-    $("tech").textContent = JSON.stringify({ steps: state.steps, recipe: state.recipe, vto_effects: state.vto_effects, map: state.map }, null, 2);
+    $("tech").textContent = JSON.stringify({ steps: state.steps, composition: state.composition, recipe: state.recipe, vto_effects: state.vto_effects, map: state.map }, null, 2);
     $("look").hidden = false;
   }
 
@@ -325,13 +330,10 @@
     state = body;
     heroView = "makeup"; // the view that carries the change, never the hair preview
     if (payload.zone && zonesShown) showZones(false);
-    const opts = state.edit_options || [];
-    const now = state.edits || [];
-    const heldOne = state.mode === "replay" && now.length > 0 && opts.length > 0 && !opts.some((o) => o.available);
     $("edit-msg").textContent = body.notice
-      || (heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another."
-      : payload.action === "undo" ? "Undone."
+      || (payload.action === "undo" ? "Undone."
       : payload.action === "reset" ? "Back to your look."
+      : payload.action === "remove" ? "Removed. Your other changes stay."
       : "Updated.");
     render();
     // after any change, Undo included, show the photo if less than half of its frame is on screen: a change she cannot

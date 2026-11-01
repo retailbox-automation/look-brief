@@ -14,12 +14,15 @@ from __future__ import annotations
 import io
 import json
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from PIL import Image
 
+from . import layers, visibility
+from .landmarks import FaceGeometry
+from .makeup_map import to_rgb_array
 from .photo_check import to_jpeg
 from .recipe import EVEN_OUT_LABEL, edit_key, even_out_effects, recipe_sha256, vto_body
 from .youcam import UNITS, YouCamClient, redact
@@ -196,6 +199,30 @@ class ReplayEngine:
 
     def recorded_render_keys(self) -> list[str]:
         return [k.split(":", 1)[1] for k in self.manifest["steps"] if k.startswith("render:")]
+
+    def stack_of(self, base: dict, edits: list[list[str]]) -> layers.Stack | None:
+        return layers.stack_of(base, edits, set(self.recorded_render_keys()))
+
+    def composition(self, stack: layers.Stack) -> dict:
+        return layers.record(stack, self.manifest["steps"])
+
+    def _pixels(self, key: str, size: tuple[int, int]) -> layers.Pixels:
+        return to_rgb_array(Image.open(self.dir / self.manifest["steps"][f"render:{key}"]["image"]), size=size)
+
+    def compose(self, stack: layers.Stack, recipe: dict, face: FaceGeometry) -> layers.Pixels:
+        """One image for a stack of recorded zone renders. Keep it under the semaphore of image work."""
+        size = (face.width, face.height)
+        masks = visibility.zone_masks(face)
+
+        def plates() -> Iterator[layers.Plate]:
+            for x in stack.layers:
+                box, mask = layers.soft_mask(masks, x.zone)
+                y0, y1, x0, x1 = box
+                color = None if x.blend == "ratio" else layers.linear_color(recipe["zones"][x.zone]["palette"][0])
+                yield layers.Plate(x.zone, x.blend, box, mask, self._pixels(x.target, size)[y0:y1, x0:x1].copy(),
+                                   self._pixels(x.reference, size)[y0:y1, x0:x1].copy(), color)
+
+        return layers.compose(self._pixels(stack.frame, size), plates())
 
 
 class Recorder:

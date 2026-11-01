@@ -10,8 +10,10 @@
   <div class="compare small">
     {# the agreed look first: the render of her recipe, edited or not #}
     {% set hf = snap.order == 'hair_first' %}
+    {% set agreed = 'Agreed look: her recipe. ' ~ snap.composition.caption if snap.composition
+                    else 'Agreed look: her recipe, rendered by Makeup VTO' %}
     {% set items = [(snap.before, 'Bare face'),
-                    (snap.target, 'Agreed look: her recipe, rendered by Makeup VTO'),
+                    (snap.target, agreed),
                     ('inspiration', 'Inspiration')] %}
     {% if not hf %}{% set items = items + [('hair', 'Hair preview, first version of the look')] %}{% endif %}
     {% for key, label in items %}

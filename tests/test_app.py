@@ -92,19 +92,18 @@ def test_the_state_groups_the_zones_for_the_tabs(client):
     assert zones[0]["label"] == "Eyelids" and zones[-1]["label"] == "Lip liner"
 
 
-def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
+def test_replay_edits_undo_and_a_second_zone_stacks(client):
     sid = _replay_session(client)
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
     assert r.status_code == 200 and [e[0] for e in r.json()["edits"]] == ["cheeks"]
     assert r.json()["edits"][0][1].startswith("shade:"), "Bolder is stored as the shade it lands on"
     opts = [o for o in r.json()["edit_options"] if o["zone"] not in ("look", "cheeks") and "reason" not in o]
     assert len(opts) > 25, "after one change every recorded single change can still be pressed"
-    assert all(o["replaces"] for o in opts), "samples hold one change: each of them replaces the current one"
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:rose-gloss"})
-    assert r.status_code == 200 and r.json()["edits"] == [["lips", "shade:rose-gloss"]]
-    assert r.json()["images"]["render"].endswith("render-lips-shade-rose-gloss.png")
+    assert r.status_code == 200 and [e[0] for e in r.json()["edits"]] == ["cheeks", "lips"]
+    assert re.search(r"/stack-[0-9a-f]{16}\.jpg$", r.json()["images"]["render"]), "two zones: one assembled file"
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
-    assert [e[0] for e in r.json()["edits"]] == ["cheeks"], "Undo returns to the change this one replaced"
+    assert [e[0] for e in r.json()["edits"]] == ["cheeks"], "Undo goes back one step"
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
     assert r.json()["edits"] == []
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "nose", "op": "softer"}).status_code == 400
@@ -170,12 +169,12 @@ def test_a_circle_on_another_look_is_a_render_of_that_look(client):
     assert st["edits"] == [["look", "evening"]] and st["recipe"]["look"] == "evening"
 
 
-def test_a_style_on_another_look_moves_says_so_and_undo_returns_to_the_look(client):
+def test_a_style_on_another_look_stays_on_it_and_undo_returns_to_the_look(client):
     sid = _replay_session(client)
     _edit(client, sid, zone="look", op="fresh")
     st = _edit(client, sid, zone="liner", op="shade:flick")
-    assert st["recipe"]["look"] == "softglam" and st["edits"] == [["liner", "shade:flick"]]
-    assert st["notice"] == "Styles are recorded on Soft glam, so your look moved to Soft glam."
+    assert st["recipe"]["look"] == "fresh" and st["edits"] == [["look", "fresh"], ["liner", "shade:flick"]]
+    assert st["notice"] == ""
     st = _edit(client, sid, action="undo")
     assert st["edits"] == [["look", "fresh"]] and st["recipe"]["look"] == "fresh"
 

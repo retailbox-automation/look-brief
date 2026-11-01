@@ -30,8 +30,8 @@ SAFE_NAME = re.compile(r"^[a-z0-9_.-]+\.(jpg|png)$")
 REVIEW_LABELS = {"do": "I'll do this", "swap": "I'll swap the product", "discuss": "Let's discuss"}
 LIVE_ORDER = "hair_first"
 UNDO_DEPTH = 20
-NOT_RECORDED = {"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
-                "Undo or try another single edit — or use Live with your own photos."}
+NOT_RECORDED = {"error": "not_recorded", "reason": "This choice isn't in the recorded set. "
+                "Undo or try another one — or use Live with your own photos."}
 # hair 2 + transfer 2 + base re-render 1 + even-out 1
 LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-vto"]
 
@@ -39,7 +39,7 @@ LOOK_UNITS = UNITS["mu-transfer"] + UNITS["hair-transfer"] + 2 * UNITS["makeup-v
 class EditIn(BaseModel):
     zone: str | None = None  # a zone, or "look" for the look buttons
     op: str | None = None  # softer | bolder | shade:<id>; zone "look": fresh | softglam | evening
-    action: str = "add"  # add | undo | reset
+    action: str = "add"  # add | undo | reset | remove (one zone back to the look, the others stay)
 
 
 class BriefIn(BaseModel):
@@ -212,7 +212,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if st.get("map"):
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
-                                                "checks", "order", "map_reference", "views")})
+                                                "checks", "order", "map_reference", "views", "composition")})
             out["can_undo"] = bool(st.get("undo") or st.get("edits"))
             none_left = pipeline.no_choice_zones(st)
             notes = {**{z: rcp.NO_CHOICE_NOTE.format(zone=palettes.ZONE_LABELS[z].lower()) for z in none_left},
@@ -431,6 +431,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             elif body.action == "undo":
                 same_face = not edits and not undo
                 edits = undo.pop() if undo else edits[:-1]
+            elif body.action == "remove":
+                kept = [e for e in edits if e[0] != body.zone or e[0] == rcp.LOOK_ZONE]
+                if len(kept) == len(edits):
+                    raise HTTPException(400, "this zone has no change to remove")
+                undo, edits, same_face = [*undo, edits][-UNDO_DEPTH:], kept, False
             else:
                 same_face = False
                 keys = replay_keys(sess) if sess["mode"] == "replay" else None
@@ -538,6 +543,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "recipe_sha256": st["recipe_sha256"], "edits": st["edits"], "gaps": st["gaps"],
             "map": st["map"], "steps": {k: {kk: v.get(kk) for kk in ("mode", "task_id", "recorded_at", "seconds")}
                                         for k, v in st["steps"].items() if isinstance(v, dict) and "task_id" in v},
+            "composition": st.get("composition"),
         }
 
     def brief_view(bid: str, role: str, token: str) -> dict:
@@ -645,6 +651,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "agreed_at": {r: iso(t) for r, t in agreed.items()}, "reviews_sha256": current, "zones": zones,
                     "recipe": snap["recipe"], "recipe_sha256": snap["recipe_sha256"],
                     "images_sha256": snap["images_sha256"], "youcam_steps": snap["steps"], "mode": snap["mode"],
+                    "composition": snap.get("composition"),
                 }
                 store.save_attestation(bid, v, signer.sign(payload))
                 view = brief_view(bid, role, body.t)

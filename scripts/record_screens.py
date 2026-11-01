@@ -164,7 +164,7 @@ def style_offered(page) -> bool:
     return page.get_by_role("button", name=STORY_STYLE[1], exact=True).count() > 0
 
 
-def prep_e2(page) -> None:  # one recorded change at a time: back to her look off camera
+def prep_e2(page) -> None:  # the story shows one change at a time: back to her look off camera
     page.get_by_role("button", name="Undo last change").click()
     page.wait_for_selector("#edit-msg:has-text('Undone')", timeout=20_000)
     page.evaluate("window.scrollTo(0, 0)")

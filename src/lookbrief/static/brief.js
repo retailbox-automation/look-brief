@@ -26,7 +26,8 @@
   function render() {
     const im = view.images;
     $("b-before").src = im[view.snapshot.before] || ""; $("b-inspo").src = im.inspiration || "";
-    const agreedText = `Agreed look: ${role === "bride" ? "your" : "the bride's"} recipe, rendered with YouCam Makeup VTO`;
+    const made = view.snapshot.composition;
+    const agreedText = `Agreed look: ${role === "bride" ? "your" : "the bride's"} recipe${made ? `. ${made.caption}` : ", rendered with YouCam Makeup VTO"}`;
     $("b-after").src = im[view.snapshot.target] || "";
     $("b-after").alt = agreedText;
     $("b-after-cap").textContent = agreedText;

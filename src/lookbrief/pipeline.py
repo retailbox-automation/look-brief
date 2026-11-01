@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from . import landmarks, makeup_map, palettes
+from . import landmarks, layers, makeup_map, palettes
 from . import recipe as rcp
 from .color import hex_to_lab
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx, StepResult, image_ext
@@ -173,20 +173,33 @@ def even_out_of(state: dict) -> dict | None:
 
 def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits: list[list[str]],
              face: landmarks.FaceGeometry | None = None) -> dict:
-    recipe = None
+    """The render of an edit list. Replay: the recorded render of exactly this list, else the recorded zone renders
+    stacked (`layers`), which has no task of its own: `state["composition"]` says what it is made of. Live: one real
+    call with the whole recipe."""
+    bare_name = state.get("bare", "bride.jpg")
+    recipe, stack = None, None
     if isinstance(engine, ReplayEngine):
         recipe = engine.recorded_recipe(edits)
         if recipe is None:
-            raise NotRecorded(rcp.edit_key(edits))
+            stack = engine.stack_of(state["recipe_base"], edits)
+            if stack is None:
+                raise NotRecorded(rcp.edit_key(edits))
+            recipe = rcp.apply_edits(state["recipe_base"], layers.canonical(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
-    bare_name = state.get("bare", "bride.jpg")
-    res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
-    name = _save(workdir, render_name(edits), res)
     face = face or face_of(workdir, bare_name)
+    if isinstance(engine, ReplayEngine) and stack is not None:
+        name = layers.file_name(edits)
+        if not (workdir / name).exists():  # the same choices again, by Undo or in another order: the same bytes
+            (workdir / name).write_bytes(layers.to_jpeg(engine.compose(stack, recipe, face)))
+        state["composition"] = engine.composition(stack)
+    else:
+        res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
+        name = _save(workdir, render_name(edits), res)
+        state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
+        state["composition"] = None
     bare, transfer = _arrays(workdir, state["images"]["look"], bare_name)
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
-    state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
     state["images"]["render"] = name
     state["edits"] = edits
     state["recipe"] = recipe
@@ -200,10 +213,10 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
 
 
 def plan_edit(state: dict, zone: str, op: str, recorded: set[str] | None = None) -> dict:
-    """What pressing a button does now. {"edits": [...], "replaces": bool, "notice": <key of rcp.EDIT_NOTICES or "">},
-    or {"reason": <key of rcp.BLOCK_NOTES>}. `recorded` (Replay): the edit must land on a recorded render. If the
-    combination is not recorded, the single change on the same look replaces the earlier one (one change at a time);
-    if the look does not hold it (a style), it lands on the base look. Buttons and the server share this rule."""
+    """What pressing a button does now. {"edits": [...], "notice": <key of rcp.EDIT_NOTICES or "">}, or {"reason": <key
+    of rcp.BLOCK_NOTES>}. `recorded` (Replay): every zone of the list needs a recorded source, the whole list or a
+    stack of zones (`layers.stack_of`). A zone holds one choice and the others stay; a look replaces them all. Buttons
+    and the server share this rule."""
     base = state["recipe_base"]
     now = state.get("recipe") or base
     edits = state.get("edits") or []
@@ -214,24 +227,16 @@ def plan_edit(state: dict, zone: str, op: str, recorded: set[str] | None = None)
         return {"reason": "quiet"}
     step = rcp.resolve_edit(now, zone, op)
     nxt = rcp.add_edit(base, edits, *step)
-    if recorded is None or rcp.edit_key(nxt) in recorded:
-        dropped = zone == rcp.LOOK_ZONE and any(e[0] != rcp.LOOK_ZONE for e in edits)
-        return {"edits": nxt, "replaces": False, "notice": "look" if dropped else ""}
-    look = [e for e in edits if e[0] == rcp.LOOK_ZONE]
-    on_look = rcp.add_edit(base, look, *step)
-    if rcp.edit_key(on_look) in recorded:
-        return {"edits": on_look, "replaces": True, "notice": "one_change"}
-    single = rcp.add_edit(base, [], *step)
-    if rcp.edit_key(single) in recorded:
-        return {"edits": single, "replaces": True, "notice": "moved"}
-    return {"reason": "not_recorded"}
+    if recorded is not None and rcp.edit_key(nxt) not in recorded and layers.stack_of(base, nxt, recorded) is None:
+        return {"reason": "not_recorded"}
+    dropped = zone == rcp.LOOK_ZONE and any(e[0] != rcp.LOOK_ZONE for e in edits)
+    return {"edits": nxt, "notice": "look" if dropped else ""}
 
 
 def _option(state: dict, zone: str, op: str, label: str, recorded: set[str] | None, **extra) -> dict:
     plan = plan_edit(state, zone, op, recorded)
     reason = plan.get("reason")
-    opt = {"zone": zone, "op": op, "label": label, "available": reason is None,
-           "replaces": bool(plan.get("replaces")), **extra}
+    opt = {"zone": zone, "op": op, "label": label, "available": reason is None, **extra}
     if reason:
         opt |= {"reason": reason, "note": rcp.BLOCK_NOTES[reason]}
     return opt
@@ -251,7 +256,7 @@ def no_choice_zones(state: dict) -> list[str]:
 
 
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
-    """Every button of the look screen: {zone, op, label, available, replaces[, reason, note]}. `zone` "look" holds the
+    """Every button of the look screen: {zone, op, label, available[, reason, note]}. `zone` "look" holds the
     look buttons (+`selected`); op "softer" / "bolder" the steps of lids, cheeks and lips; op "shade:<id>" the circles
     and named styles of a zone (+`name`, `hex`, `colors`, `texture`, `selected`; `hex` is None on "none"). A button that
     is off says why; a button whose step does not show is not offered."""

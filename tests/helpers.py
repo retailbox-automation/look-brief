@@ -1,3 +1,4 @@
+import functools
 import json
 from pathlib import Path
 
@@ -5,7 +6,9 @@ import numpy as np
 import pytest
 from PIL import Image
 
+from lookbrief import landmarks, makeup_map, visibility
 from lookbrief import recipe as rcp
+from lookbrief.color import delta_e2000
 
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLES = ROOT / "samples"
@@ -90,3 +93,31 @@ def load_rgb(path: Path, size: tuple[int, int] | None = None) -> np.ndarray:
     if size and img.size != size:
         img = img.resize(size, Image.Resampling.LANCZOS)
     return np.asarray(img, dtype=np.uint8)
+
+
+@functools.cache
+def geometry(sample: str) -> tuple[dict, landmarks.FaceGeometry, dict, tuple[int, int]]:
+    """Manifest, face, zone masks and size of a sample, measured on its bare reference."""
+    sd = SAMPLES / sample
+    mf = json.loads((sd / "manifest.json").read_text())
+    bare = load_rgb(bare_path(sd, mf))
+    face = landmarks.detect(bare)
+    return mf, face, visibility.zone_masks(face), (bare.shape[1], bare.shape[0])
+
+
+def grow(mask: np.ndarray, px: int) -> np.ndarray:
+    import cv2
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * px + 1, 2 * px + 1))
+    return cv2.dilate(mask.astype(np.uint8), kernel).astype(bool)
+
+
+def eye_area(masks: dict) -> np.ndarray:
+    """The eye area of the step-0 measurement: 30 px around lids, liner and lashes, the brows left out."""
+    return grow(masks["eyes"] | masks["liner"] | masks["lashes"], 30) & ~grow(masks["brows"], 2)
+
+
+def zone_gap(a: np.ndarray, b: np.ndarray, where: np.ndarray) -> tuple[float, float]:
+    """Mean and p95 of dE2000 between two RGB images on a mask."""
+    de = delta_e2000(makeup_map._lab(a)[where], makeup_map._lab(b)[where])
+    return float(de.mean()), float(np.percentile(de, 95))
