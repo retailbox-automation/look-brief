@@ -24,7 +24,7 @@ the recording.
 
 | Sample | Measured | Quiet | No render |
 |---|---|---|---|
-| s0-champagne-rose | 58 | 1 | 0 |
+| s0-champagne-rose | 58 | 0 | 0 |
 
 ## Measured (dE2000 in the zone)
 | Sample | Zone | Edit | p90 | Mean | Verdict |
@@ -43,7 +43,7 @@ the recording.
 | s0-champagne-rose | wide | `cheeks:shade:peach` | 4.63 | 3.06 | shows |
 | s0-champagne-rose | wide | `cheeks:shade:terracotta` | 3.47 | 2.39 | shows |
 | s0-champagne-rose | wide | `cheeks:shade:brick` | 2.56 | 1.71 | shows |
-| s0-champagne-rose | wide | `cheeks:shade:berry` | 2.26 | 1.44 | quiet |
+| s0-champagne-rose | wide | `cheeks:shade:berry` | 3.12 | 2.06 | shows |
 | s0-champagne-rose | thin | `highlight:shade:radiant` | 2.86 | 1.51 | shows |
 | s0-champagne-rose | wide | `lips:shade:light-pink` | 12.76 | 9.61 | shows |
 | s0-champagne-rose | wide | `lips:shade:peach-pink` | 13.58 | 10.40 | shows |
@@ -52,7 +52,7 @@ the recording.
 | s0-champagne-rose | wide | `lips:shade:nude-rose` | 3.32 | 2.65 | shows |
 | s0-champagne-rose | wide | `lips:shade:rose-gloss` | 3.27 | 1.71 | shows |
 | s0-champagne-rose | wide | `lips:shade:warm-rose` | 4.13 | 3.33 | shows |
-| s0-champagne-rose | wide | `lips:shade:raspberry` | 9.34 | 7.23 | shows |
+| s0-champagne-rose | wide | `lips:shade:raspberry` | 9.39 | 7.26 | shows |
 | s0-champagne-rose | wide | `lips:shade:ruby` | 15.27 | 10.67 | shows |
 | s0-champagne-rose | thin | `lip_line:shade:defined` | 3.61 | 1.59 | shows |
 | s0-champagne-rose | wide | `eyes:bolder@champagne` | 15.91 | 6.84 | shows |
@@ -68,8 +68,8 @@ the recording.
 | s0-champagne-rose | wide | `cheeks:bolder@terracotta` | 3.03 | 2.01 | shows |
 | s0-champagne-rose | wide | `cheeks:bolder@warm-rose` | 2.56 | 1.71 | shows |
 | s0-champagne-rose | wide | `cheeks:softer@brick` | 2.56 | 1.71 | shows |
-| s0-champagne-rose | wide | `cheeks:bolder@brick` | 2.63 | 1.76 | shows |
-| s0-champagne-rose | wide | `cheeks:softer@berry` | 2.63 | 1.76 | shows |
+| s0-champagne-rose | wide | `cheeks:bolder@brick` | 3.27 | 2.12 | shows |
+| s0-champagne-rose | wide | `cheeks:softer@berry` | 3.27 | 2.12 | shows |
 | s0-champagne-rose | wide | `lips:softer@light-pink` | 4.92 | 4.02 | shows |
 | s0-champagne-rose | wide | `lips:bolder@light-pink` | 12.43 | 9.42 | shows |
 | s0-champagne-rose | wide | `lips:bolder@peach-pink` | 4.64 | 3.81 | shows |
@@ -84,6 +84,6 @@ the recording.
 | s0-champagne-rose | wide | `lips:softer@rose-gloss` | 4.08 | 3.30 | shows |
 | s0-champagne-rose | wide | `lips:bolder@rose-gloss` | 6.87 | 4.60 | shows |
 | s0-champagne-rose | wide | `lips:softer@warm-rose` | 4.13 | 3.33 | shows |
-| s0-champagne-rose | wide | `lips:softer@raspberry` | 7.90 | 6.23 | shows |
-| s0-champagne-rose | wide | `lips:bolder@raspberry` | 6.59 | 4.56 | shows |
-| s0-champagne-rose | wide | `lips:softer@ruby` | 6.59 | 4.56 | shows |
+| s0-champagne-rose | wide | `lips:softer@raspberry` | 7.95 | 6.26 | shows |
+| s0-champagne-rose | wide | `lips:bolder@raspberry` | 6.64 | 4.58 | shows |
+| s0-champagne-rose | wide | `lips:softer@ruby` | 6.64 | 4.58 | shows |

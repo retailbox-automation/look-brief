@@ -1,0 +1,150 @@
+{
+ "step": "render:cheeks:shade:peach",
+ "task_id": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs4wYZ7D308UprTI5U9eUL7Hd-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-10-31T23:53:48Z",
+ "seconds": 6.9,
+ "units": 1,
+ "request_without_file_ids": {
+  "version": "1.0",
+  "effects": [
+   {
+    "category": "skin_smooth",
+    "skinSmoothStrength": 0,
+    "skinSmoothColorIntensity": 0
+   },
+   {
+    "category": "concealer",
+    "palettes": [
+     {
+      "color": "#dfa588",
+      "colorIntensity": 8,
+      "colorUnderEyeIntensity": 70,
+      "coverageLevel": 35
+     }
+    ]
+   },
+   {
+    "category": "eye_shadow",
+    "pattern": {
+     "name": "2colors279"
+    },
+    "palettes": [
+     {
+      "color": "#B9745F",
+      "texture": "shimmer",
+      "shimmerColor": "#B9745F",
+      "shimmerIntensity": 70,
+      "colorIntensity": 92
+     },
+     {
+      "color": "#5C342A",
+      "texture": "matte",
+      "colorIntensity": 88
+     }
+    ]
+   },
+   {
+    "category": "eye_liner",
+    "pattern": {
+     "name": "Upper1"
+    },
+    "palettes": [
+     {
+      "color": "#2B1B17",
+      "texture": "matte",
+      "colorIntensity": 60
+     }
+    ]
+   },
+   {
+    "category": "eyelashes",
+    "pattern": {
+     "name": "Natural17"
+    },
+    "palettes": [
+     {
+      "color": "#17110f",
+      "colorIntensity": 75
+     }
+    ]
+   },
+   {
+    "category": "eyebrows",
+    "pattern": {
+     "type": "color"
+    },
+    "palettes": [
+     {
+      "color": "#5A4034",
+      "texture": "matte",
+      "colorIntensity": 35
+     }
+    ]
+   },
+   {
+    "category": "blush",
+    "pattern": {
+     "name": "1color2"
+    },
+    "palettes": [
+     {
+      "color": "#EE8F6A",
+      "texture": "satin",
+      "glowStrength": 30,
+      "colorIntensity": 50
+     }
+    ]
+   },
+   {
+    "category": "bronzer",
+    "pattern": {
+     "name": "Bronzer1"
+    },
+    "palettes": [
+     {
+      "color": "#C08A55",
+      "colorIntensity": 20
+     }
+    ]
+   },
+   {
+    "category": "lip_color",
+    "shape": {
+     "name": "original"
+    },
+    "style": {
+     "type": "full"
+    },
+    "palettes": [
+     {
+      "color": "#B96F78",
+      "texture": "satin",
+      "colorIntensity": 68
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#B0606E",
+      "texture": "matte",
+      "colorIntensity": 30,
+      "thickness": 12,
+      "smoothness": 90
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "error": null,
+  "results": {
+   "url": "<signed-url-redacted>"
+  },
+  "task_status": "success"
+ }
+}

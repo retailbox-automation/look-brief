@@ -166,7 +166,7 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _blush("peach", "Peach", "#EE8F6A", 50),
             _blush("terracotta", "Terracotta", "#C8603C", 50),
             _blush("brick", "Brick", "#A83C34", 46),
-            _blush("berry", "Berry", "#9A3A58", 40)),
+            _blush("berry", "Berry", "#9A3A58", 46)),
         "bronzer": (_bare("natural", "Natural", "#C08A55", 20),),
         "highlight": (_bare("radiant", "Radiant", "#F0D0B0", 22),),
         "lips": _ladder(
