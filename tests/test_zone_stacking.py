@@ -393,6 +393,7 @@ def test_a_composed_look_says_so_and_names_no_single_task(client):
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert f"<figcaption>Agreed look: her recipe. {ASSEMBLED}</figcaption>" in html
     assert "rendered by" not in html.lower()
+    assert "sample, assembled from recorded YouCam API results" in html
 
 
 def test_a_card_of_one_change_keeps_todays_words(client):
@@ -402,6 +403,7 @@ def test_a_card_of_one_change_keeps_todays_words(client):
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert "<figcaption>Agreed look: her recipe, rendered by Makeup VTO</figcaption>" in html
     assert "Assembled from" not in html
+    assert "sample, recorded real YouCam API results" in html
 
 
 # ---------------- acceptance 6 ----------------

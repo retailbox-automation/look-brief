@@ -329,6 +329,7 @@ def test_nadyas_path_on_a_phone(base_url, browser_ctx, sample, lid, name):
     expect(page.get_by_test_id("hero-caption")).to_have_text(assembled)
     expect(page.locator("#cap-after")).to_have_text(assembled)
     expect(page.locator("#look-source")).to_contain_text("assembled from 2 recorded")
+    expect(page.get_by_test_id("mode-badge")).to_have_text("Replay · assembled from recorded YouCam API results")
     assert "rendered by" not in page.content().lower()
 
     # the button: seen with the photo, a real target, not moving the photo

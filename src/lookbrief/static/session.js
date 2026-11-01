@@ -285,6 +285,7 @@
     const v = state.views || {};
     $("img-before").src = im[v.before]; $("img-after").src = im[v.after]; $("img-after").alt = lookAlt();
     $("look-source").textContent = state.composition ? state.composition.caption.charAt(0).toLowerCase() + state.composition.caption.slice(1) : "rendered by YouCam Makeup VTO";
+    if (state.mode === "replay") document.querySelector('[data-testid="mode-badge"]').textContent = state.composition ? "Replay · assembled from recorded YouCam API results" : "Replay · recorded real YouCam API results";
     $("img-inspo").src = im.inspiration; $("img-layer").src = im.layer; $("img-look").src = im.look;
     const hairImg = im.hair || (state.order === "hair_first" && im.base) || ""; // hair first: the Hair Transfer on her selfie is "base"
     if (hairImg) { $("img-hair").src = hairImg; } else { $("img-hair").closest("figure").hidden = true; }
