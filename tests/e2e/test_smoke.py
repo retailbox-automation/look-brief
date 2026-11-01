@@ -288,7 +288,7 @@ def in_view(box: dict, width: int, height: int) -> bool:
 
 @pytest.mark.parametrize(("sample", "lid", "name"), SAMPLE_LID)
 def test_nadyas_path_on_a_phone(base_url, browser_ctx, sample, lid, name):
-    """Eyelids, then Eyeliner Wing: the lid stays and the wing lands on it. Remove this step in Eyeliner keeps the lid."""
+    """Eyelids, then Eyeliner Wing: the lid stays, the wing lands on it. Remove this step in Eyeliner keeps the lid."""
     if not recorded(sample):
         pytest.skip(f"{sample} waits for re-recording")
     mf, _, masks, size = geometry(sample)
