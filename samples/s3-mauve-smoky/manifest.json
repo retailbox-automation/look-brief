@@ -3988,6 +3988,5309 @@
      }
     }
    }
+  },
+  "render:look:fresh+eyes:shade:gold": {
+   "step": "render:look:fresh+eyes:shade:gold",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCh9FnPF2L7gLvXY3uIJ-iAId-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:09Z",
+   "label": "look:fresh+eyes:shade:gold",
+   "image": "results/render__look__fresh_eyes__shade__gold.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "gold",
+      "shade_name": "Gold",
+      "palette": [
+       "#C9A050",
+       "#3F1F14"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+eyes:shade:copper": {
+   "step": "render:look:fresh+eyes:shade:copper",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjvd8qSYv_hNp4l2PqBhol3d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:17Z",
+   "label": "look:fresh+eyes:shade:copper",
+   "image": "results/render__look__fresh_eyes__shade__copper.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper",
+      "shade_name": "Copper",
+      "palette": [
+       "#B5653D",
+       "#3A1C12"
+      ],
+      "texture": "metallic",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+eyes:shade:bronze": {
+   "step": "render:look:fresh+eyes:shade:bronze",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCgd-UJe8ZvAHGRUnPi8NYlKd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:24Z",
+   "label": "look:fresh+eyes:shade:bronze",
+   "image": "results/render__look__fresh_eyes__shade__bronze.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "bronze",
+      "shade_name": "Bronze",
+      "palette": [
+       "#8A5A36",
+       "#2F1710"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+eyes:shade:emerald": {
+   "step": "render:look:fresh+eyes:shade:emerald",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjvzOSlRIM0JFm9usrHG5r6d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:31Z",
+   "label": "look:fresh+eyes:shade:emerald",
+   "image": "results/render__look__fresh_eyes__shade__emerald.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "emerald",
+      "shade_name": "Emerald",
+      "palette": [
+       "#0F6B4A",
+       "#0E2A20"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+eyes:shade:plum": {
+   "step": "render:look:fresh+eyes:shade:plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCg0i10V-qF2hzF3W1bItzw7d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:39Z",
+   "label": "look:fresh+eyes:shade:plum",
+   "image": "results/render__look__fresh_eyes__shade__plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "plum",
+      "shade_name": "Plum",
+      "palette": [
+       "#6E2A4A",
+       "#2A1220"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+eyes:shade:burgundy": {
+   "step": "render:look:fresh+eyes:shade:burgundy",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCi_Sn32rd9ST5_A8izC5hord-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:46Z",
+   "label": "look:fresh+eyes:shade:burgundy",
+   "image": "results/render__look__fresh_eyes__shade__burgundy.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "burgundy",
+      "shade_name": "Burgundy",
+      "palette": [
+       "#6E1A2E",
+       "#2A0E14"
+      ],
+      "texture": "matte",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+cheeks:shade:copper": {
+   "step": "render:look:fresh+cheeks:shade:copper",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCiWfjI4E5Q_DeXow2MkFwsAd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:40:53Z",
+   "label": "look:fresh+cheeks:shade:copper",
+   "image": "results/render__look__fresh_cheeks__shade__copper.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "copper",
+      "shade_name": "Copper",
+      "palette": [
+       "#B8603C"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 62,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+cheeks:shade:coral-brick": {
+   "step": "render:look:fresh+cheeks:shade:coral-brick",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCh3H592IxdnxX1Tf2A_7ls3d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:01Z",
+   "label": "look:fresh+cheeks:shade:coral-brick",
+   "image": "results/render__look__fresh_cheeks__shade__coral-brick.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "coral-brick",
+      "shade_name": "Coral brick",
+      "palette": [
+       "#B84A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 68,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+cheeks:shade:mulled-rose": {
+   "step": "render:look:fresh+cheeks:shade:mulled-rose",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCifQYw_S4aVgk1jxWewo5kRd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:08Z",
+   "label": "look:fresh+cheeks:shade:mulled-rose",
+   "image": "results/render__look__fresh_cheeks__shade__mulled-rose.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "mulled-rose",
+      "shade_name": "Mulled rose",
+      "palette": [
+       "#8E3A3C"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 36,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+cheeks:shade:warm-berry": {
+   "step": "render:look:fresh+cheeks:shade:warm-berry",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCg4ENz3Wa7wEVoGXKHHwp19d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:15Z",
+   "label": "look:fresh+cheeks:shade:warm-berry",
+   "image": "results/render__look__fresh_cheeks__shade__warm-berry.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "warm-berry",
+      "shade_name": "Warm berry",
+      "palette": [
+       "#8C3A4A"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+cheeks:shade:deep-plum": {
+   "step": "render:look:fresh+cheeks:shade:deep-plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjyHgK2pA03zM_3FyL4jcjvd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:23Z",
+   "label": "look:fresh+cheeks:shade:deep-plum",
+   "image": "results/render__look__fresh_cheeks__shade__deep-plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "deep-plum",
+      "shade_name": "Deep plum",
+      "palette": [
+       "#5A2036"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 48,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "warm-nude",
+      "shade_name": "Warm nude",
+      "palette": [
+       "#A85E58"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 90
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:bronze": {
+   "step": "render:look:fresh+lips:shade:bronze",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCiMZM-7MeP4yXKhhPEy9H2hd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:30Z",
+   "label": "look:fresh+lips:shade:bronze",
+   "image": "results/render__look__fresh_lips__shade__bronze.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "bronze",
+      "shade_name": "Bronze",
+      "palette": [
+       "#9C5B3A"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:caramel-nude": {
+   "step": "render:look:fresh+lips:shade:caramel-nude",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjPbc4zZWyarghJFA5ww5Crd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:37Z",
+   "label": "look:fresh+lips:shade:caramel-nude",
+   "image": "results/render__look__fresh_lips__shade__caramel-nude.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "caramel-nude",
+      "shade_name": "Caramel nude",
+      "palette": [
+       "#9A5A50"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:brick": {
+   "step": "render:look:fresh+lips:shade:brick",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unChEO5KBE1_ny2_n7KyY_wpLd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:45Z",
+   "label": "look:fresh+lips:shade:brick",
+   "image": "results/render__look__fresh_lips__shade__brick.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "brick",
+      "shade_name": "Brick",
+      "palette": [
+       "#A8412F"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:deep-red": {
+   "step": "render:look:fresh+lips:shade:deep-red",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCiYD5gx5guQBwcYvinSwXG6d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:52Z",
+   "label": "look:fresh+lips:shade:deep-red",
+   "image": "results/render__look__fresh_lips__shade__deep-red.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:berry-rose": {
+   "step": "render:look:fresh+lips:shade:berry-rose",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unChw2ypGgDnrm20ywBSRwNY7d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:41:59Z",
+   "label": "look:fresh+lips:shade:berry-rose",
+   "image": "results/render__look__fresh_lips__shade__berry-rose.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "berry-rose",
+      "shade_name": "Berry rose",
+      "palette": [
+       "#8A2F45"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:berry-gloss": {
+   "step": "render:look:fresh+lips:shade:berry-gloss",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjBM1Gn80zouvH_nANlsv4Sd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:07Z",
+   "label": "look:fresh+lips:shade:berry-gloss",
+   "image": "results/render__look__fresh_lips__shade__berry-gloss.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "berry-gloss",
+      "shade_name": "Berry gloss",
+      "palette": [
+       "#8A2F45"
+      ],
+      "texture": "sheer",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:plum": {
+   "step": "render:look:fresh+lips:shade:plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unChVYoTvn7ZKZEkzuMvx4ZDGd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:14Z",
+   "label": "look:fresh+lips:shade:plum",
+   "image": "results/render__look__fresh_lips__shade__plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "plum",
+      "shade_name": "Plum",
+      "palette": [
+       "#6E2A3E"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:oxblood": {
+   "step": "render:look:fresh+lips:shade:oxblood",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjY2wbe-LqEKjUyFvm3Yiubd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.8,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:23Z",
+   "label": "look:fresh+lips:shade:oxblood",
+   "image": "results/render__look__fresh_lips__shade__oxblood.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "oxblood",
+      "shade_name": "Oxblood",
+      "palette": [
+       "#7A0F1E"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh+lips:shade:dark-berry": {
+   "step": "render:look:fresh+lips:shade:dark-berry",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCg3gS4rt7D-byJRV7GQRvgrd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.8,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:33Z",
+   "label": "look:fresh+lips:shade:dark-berry",
+   "image": "results/render__look__fresh_lips__shade__dark-berry.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "fresh",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "soft-gold",
+      "shade_name": "Soft gold",
+      "palette": [
+       "#D9B080",
+       "#6E4A2A"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 92,
+      "slot_intensity": [
+       92,
+       76
+      ],
+      "shimmer": [
+       85,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-black",
+      "shade_name": "Soft black",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 62
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 74
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "soft",
+      "shade_name": "Soft",
+      "palette": [
+       "#3B2F2F"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-brick",
+      "shade_name": "Soft brick",
+      "palette": [
+       "#A84A48"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 50,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "deep-bronze",
+      "shade_name": "Deep bronze",
+      "palette": [
+       "#8A4A2B"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 18
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "dark-berry",
+      "shade_name": "Dark berry",
+      "palette": [
+       "#4A1230"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#6A3A34"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 34,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:gold": {
+   "step": "render:look:evening+eyes:shade:gold",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjSV5XzKjUVU-mgW9VTZIE-d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:40Z",
+   "label": "look:evening+eyes:shade:gold",
+   "image": "results/render__look__evening_eyes__shade__gold.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "gold",
+      "shade_name": "Gold",
+      "palette": [
+       "#C9A050",
+       "#3F1F14"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:copper": {
+   "step": "render:look:evening+eyes:shade:copper",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCgEzs-QLRG-c3XednFoQSU5d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:47Z",
+   "label": "look:evening+eyes:shade:copper",
+   "image": "results/render__look__evening_eyes__shade__copper.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper",
+      "shade_name": "Copper",
+      "palette": [
+       "#B5653D",
+       "#3A1C12"
+      ],
+      "texture": "metallic",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:bronze": {
+   "step": "render:look:evening+eyes:shade:bronze",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCiQN2kqgk_P6O3-f5ddEOf_d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:42:54Z",
+   "label": "look:evening+eyes:shade:bronze",
+   "image": "results/render__look__evening_eyes__shade__bronze.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "bronze",
+      "shade_name": "Bronze",
+      "palette": [
+       "#8A5A36",
+       "#2F1710"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:emerald": {
+   "step": "render:look:evening+eyes:shade:emerald",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjUCzdPL9GKycFQjfQTcEmod-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:02Z",
+   "label": "look:evening+eyes:shade:emerald",
+   "image": "results/render__look__evening_eyes__shade__emerald.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "emerald",
+      "shade_name": "Emerald",
+      "palette": [
+       "#0F6B4A",
+       "#0E2A20"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:plum": {
+   "step": "render:look:evening+eyes:shade:plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjaOyKSDj-8tvDIlI8rej7Ad-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:09Z",
+   "label": "look:evening+eyes:shade:plum",
+   "image": "results/render__look__evening_eyes__shade__plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "plum",
+      "shade_name": "Plum",
+      "palette": [
+       "#6E2A4A",
+       "#2A1220"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+eyes:shade:burgundy": {
+   "step": "render:look:evening+eyes:shade:burgundy",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unChTbVq2Q_xlbNjcCsWBi6Jbd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:16Z",
+   "label": "look:evening+eyes:shade:burgundy",
+   "image": "results/render__look__evening_eyes__shade__burgundy.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "burgundy",
+      "shade_name": "Burgundy",
+      "palette": [
+       "#6E1A2E",
+       "#2A0E14"
+      ],
+      "texture": "matte",
+      "pattern": "2colors279",
+      "intensity": 95,
+      "slot_intensity": [
+       95,
+       90
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+cheeks:shade:copper": {
+   "step": "render:look:evening+cheeks:shade:copper",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCipI52vQjGDhwZGNRXsc1Fqd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:24Z",
+   "label": "look:evening+cheeks:shade:copper",
+   "image": "results/render__look__evening_cheeks__shade__copper.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "copper",
+      "shade_name": "Copper",
+      "palette": [
+       "#B8603C"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 62,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+cheeks:shade:coral-brick": {
+   "step": "render:look:evening+cheeks:shade:coral-brick",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjebyxs_RzdaTAEni_705ggd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:31Z",
+   "label": "look:evening+cheeks:shade:coral-brick",
+   "image": "results/render__look__evening_cheeks__shade__coral-brick.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "coral-brick",
+      "shade_name": "Coral brick",
+      "palette": [
+       "#B84A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 68,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+cheeks:shade:mulled-rose": {
+   "step": "render:look:evening+cheeks:shade:mulled-rose",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unChWLa3HpW0aSpmaiPk329aAd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:38Z",
+   "label": "look:evening+cheeks:shade:mulled-rose",
+   "image": "results/render__look__evening_cheeks__shade__mulled-rose.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "mulled-rose",
+      "shade_name": "Mulled rose",
+      "palette": [
+       "#8E3A3C"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 36,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+cheeks:shade:warm-berry": {
+   "step": "render:look:evening+cheeks:shade:warm-berry",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjjMbBR9zgfqqY_9RciWrHjd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:46Z",
+   "label": "look:evening+cheeks:shade:warm-berry",
+   "image": "results/render__look__evening_cheeks__shade__warm-berry.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "warm-berry",
+      "shade_name": "Warm berry",
+      "palette": [
+       "#8C3A4A"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 50,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+cheeks:shade:deep-plum": {
+   "step": "render:look:evening+cheeks:shade:deep-plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCh7KBK9afzSqESG3AMCmkAnd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:43:53Z",
+   "label": "look:evening+cheeks:shade:deep-plum",
+   "image": "results/render__look__evening_cheeks__shade__deep-plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "deep-plum",
+      "shade_name": "Deep plum",
+      "palette": [
+       "#5A2036"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 48,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "deep-red",
+      "shade_name": "Deep red",
+      "palette": [
+       "#B01A30"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 94
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:bronze": {
+   "step": "render:look:evening+lips:shade:bronze",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjWI8RtyOZM59yTZHTkhbRcd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:00Z",
+   "label": "look:evening+lips:shade:bronze",
+   "image": "results/render__look__evening_lips__shade__bronze.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "bronze",
+      "shade_name": "Bronze",
+      "palette": [
+       "#9C5B3A"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:caramel-nude": {
+   "step": "render:look:evening+lips:shade:caramel-nude",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjaLsaqxUzOcHL_qr77fskzd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:08Z",
+   "label": "look:evening+lips:shade:caramel-nude",
+   "image": "results/render__look__evening_lips__shade__caramel-nude.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "caramel-nude",
+      "shade_name": "Caramel nude",
+      "palette": [
+       "#9A5A50"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:brick": {
+   "step": "render:look:evening+lips:shade:brick",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjKjUWO8hmcYfsUAcJIX1Kpd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:15Z",
+   "label": "look:evening+lips:shade:brick",
+   "image": "results/render__look__evening_lips__shade__brick.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "brick",
+      "shade_name": "Brick",
+      "palette": [
+       "#A8412F"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:berry-rose": {
+   "step": "render:look:evening+lips:shade:berry-rose",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCgx611wWaU_5He9baAjGOB7d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:22Z",
+   "label": "look:evening+lips:shade:berry-rose",
+   "image": "results/render__look__evening_lips__shade__berry-rose.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "berry-rose",
+      "shade_name": "Berry rose",
+      "palette": [
+       "#8A2F45"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:berry-gloss": {
+   "step": "render:look:evening+lips:shade:berry-gloss",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCgam9fZ5FT5_77yjQbfXZO4d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:30Z",
+   "label": "look:evening+lips:shade:berry-gloss",
+   "image": "results/render__look__evening_lips__shade__berry-gloss.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "berry-gloss",
+      "shade_name": "Berry gloss",
+      "palette": [
+       "#8A2F45"
+      ],
+      "texture": "sheer",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:plum": {
+   "step": "render:look:evening+lips:shade:plum",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCiRZqY_RGCrljiookwxWQjXd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:37Z",
+   "label": "look:evening+lips:shade:plum",
+   "image": "results/render__look__evening_lips__shade__plum.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "plum",
+      "shade_name": "Plum",
+      "palette": [
+       "#6E2A3E"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:oxblood": {
+   "step": "render:look:evening+lips:shade:oxblood",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjYw38z2jScHKTRaLWE-30nd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:44Z",
+   "label": "look:evening+lips:shade:oxblood",
+   "image": "results/render__look__evening_lips__shade__oxblood.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "oxblood",
+      "shade_name": "Oxblood",
+      "palette": [
+       "#7A0F1E"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
+  },
+  "render:look:evening+lips:shade:dark-berry": {
+   "step": "render:look:evening+lips:shade:dark-berry",
+   "mode": "live",
+   "task_id": "V2EilqAw8c17Cr4wUDreEX4jBooAxgwKDWoc373unCjb2IPK93cm6htd5wpoEtLfd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.8,
+   "units": 1,
+   "recorded_at": "2026-11-01T01:44:54Z",
+   "label": "look:evening+lips:shade:dark-berry",
+   "image": "results/render__look__evening_lips__shade__dark-berry.png",
+   "recipe": {
+    "version": 2,
+    "group": "deep",
+    "look": "evening",
+    "skin_hex": "#be8567",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "copper-night",
+      "shade_name": "Copper night",
+      "palette": [
+       "#C98A48",
+       "#2A140E"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 96,
+      "slot_intensity": [
+       96,
+       92
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "wing",
+      "shade_name": "Wing",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "matte",
+      "pattern": "Upper4",
+      "intensity": 80
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "volume",
+      "shade_name": "Volume",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "UpperDense1",
+      "intensity": 84
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "defined",
+      "shade_name": "Defined",
+      "palette": [
+       "#2B1B17"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 42
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "dark-cherry",
+      "shade_name": "Dark cherry",
+      "palette": [
+       "#7E2A38"
+      ],
+      "texture": "satin",
+      "pattern": "1color5",
+      "intensity": 38,
+      "glow": 25
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "dark-bronze",
+      "shade_name": "Dark bronze",
+      "palette": [
+       "#6B3F28"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 26
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "deep-gold",
+      "shade_name": "Deep gold",
+      "palette": [
+       "#C9A24A"
+      ],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 45,
+      "glow": {
+       "glowIntensity": 45,
+       "shimmerIntensity": 25,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "dark-berry",
+      "shade_name": "Dark berry",
+      "palette": [
+       "#4A1230"
+      ],
+      "texture": "matte",
+      "pattern": "original",
+      "intensity": 76
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "deep-wine",
+      "shade_name": "Deep wine",
+      "palette": [
+       "#7A1A2C"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 35,
+      "stroke": [
+       30,
+       70
+      ]
+     }
+    }
+   }
   }
  },
  "map": {
@@ -4058,6 +9361,16 @@
  "quiet_edits": [
   "brows:shade:soft",
   "brows:shade:defined",
-  "highlight:shade:radiant"
+  "highlight:shade:radiant",
+  "look:fresh+cheeks:shade:coral-brick",
+  "look:fresh+cheeks:shade:mulled-rose",
+  "look:fresh+cheeks:shade:warm-berry",
+  "look:fresh+lips:shade:caramel-nude",
+  "look:evening+cheeks:shade:mulled-rose",
+  "look:evening+cheeks:shade:warm-berry",
+  "look:fresh+cheeks:softer@soft-brick",
+  "look:fresh+cheeks:bolder@soft-brick",
+  "look:fresh+lips:bolder@warm-nude",
+  "look:evening+cheeks:softer@dark-cherry"
  ]
 }

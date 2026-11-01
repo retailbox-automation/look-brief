@@ -1,8 +1,8 @@
 {
  "step": "render:lips:shade:ruby",
- "task_id": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs7JsPHaJn4H403fM3k1GVw0d-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T23:55:29Z",
- "seconds": 6.6,
+ "task_id": "bj99lx9_4qYu0nfWjp_zmDO_vhS92UzOqNRYkv7p_7-k1p5LwCF50Rf4PcIxZMRId-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-11-01T01:34:43Z",
+ "seconds": 17.3,
  "units": 1,
  "request_without_file_ids": {
   "version": "1.0",
@@ -130,11 +130,11 @@
     },
     "palettes": [
      {
-      "color": "#B0606E",
+      "color": "#A01028",
       "texture": "matte",
-      "colorIntensity": 30,
-      "thickness": 12,
-      "smoothness": 90
+      "colorIntensity": 40,
+      "thickness": 30,
+      "smoothness": 70
      }
     ]
    }

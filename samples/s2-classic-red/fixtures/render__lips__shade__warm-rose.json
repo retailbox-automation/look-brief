@@ -1,8 +1,8 @@
 {
  "step": "render:lips:shade:warm-rose",
- "task_id": "KxjiH3APSQR5qhXDzUALhwm04sjYdFNOWWM6BAy968YvpeZ8N03iTqxE9P8J7cE6d-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-11-01T00:52:03Z",
- "seconds": 6.7,
+ "task_id": "-Tsh7RNn1x7sA9hgWd41Vv_MX15_9qpAvkyeaeG7lTyGGC8371AKe5IpXOpDrr11d-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-11-01T01:46:01Z",
+ "seconds": 8.7,
  "units": 1,
  "request_without_file_ids": {
   "version": "1.0",
@@ -130,11 +130,11 @@
     },
     "palettes": [
      {
-      "color": "#8E0F1A",
+      "color": "#A86A66",
       "texture": "matte",
-      "colorIntensity": 45,
-      "thickness": 30,
-      "smoothness": 70
+      "colorIntensity": 28,
+      "thickness": 12,
+      "smoothness": 90
      }
     ]
    }
