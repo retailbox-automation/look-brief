@@ -53,6 +53,7 @@ STYLE_ZONES = ("liner", "lashes", "brows", "highlight", "lip_line")
 FIXED_ZONES = {"bronzer": "A light warm layer is part of this look."}  # no choice: the zone says why
 NONE_ZONES = ("highlight",)  # the product can be left out (elsewhere it would not show, or not truly go)
 NONE_ID = "none"
+LIP_LINE_STYLE = "defined"  # the lip liner she chose as a style, not the one that goes with the lips
 # Softer / Bolder stay in the colour family: the raw order of distance to her skin jumped from berry rose to fuchsia.
 FAMILY_HUE = 30.0  # the next shade differs by at most this much of hue h* ...
 FAMILY_CHROMA_RISE = 15.0  # ... and gains at most this much chroma C*
@@ -63,7 +64,10 @@ NEUTRAL_CHROMA = 6.0  # below this a colour has no hue to keep
 CONCEALER_FINISH = {"colorIntensity": 20, "colorUnderEyeIntensity": 85, "coverageLevel": 50}
 CONCEALER_FINISH_SOFT = {"colorIntensity": 8, "colorUnderEyeIntensity": 70, "coverageLevel": 35}  # light, medium
 # A red lip takes the lip liner under it: shade of the lips -> (lip liner, strength).
-LIP_LINE_UNDER = {"ruby": ("red", 45)}
+# The liner goes with the lips, in the groups that wear a red lip: under a red the liner of the approved looks, under
+# any other shade the plain liner of the group. Other groups keep the liner of the look.
+LIP_LINE_UNDER = {"light": {"ruby": ("ruby-line", 40)}, "medium": {"ruby": ("red", 45), "wine": ("wine-line", 40)}}
+PLAIN_LIP_LINE = {"light": ("natural", 30), "medium": ("rosy", 28)}
 # Strength and shimmer of the two lid colours (lid, outer corner) on the ladder shades.
 EYE_SLOTS = {"light": ((92, 88), (70, 0)), "medium": ((92, 88), (70, 0)), "olive": ((94, 89), (76, 0)),
              "deep": ((95, 90), (80, 0))}

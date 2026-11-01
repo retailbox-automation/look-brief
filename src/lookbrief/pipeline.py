@@ -200,24 +200,30 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
 
 
 def plan_edit(state: dict, zone: str, op: str, recorded: set[str] | None = None) -> dict:
-    """What pressing a button does now. {"edits": [...], "replaces": bool}, or {"reason": <key of rcp.BLOCK_NOTES>}.
-    `recorded` (Replay): the edit must land on a recorded render; if the combination is not recorded but the single
-    change is, it replaces the current one (one change at a time). Buttons and the server share this rule."""
+    """What pressing a button does now. {"edits": [...], "replaces": bool, "notice": <key of rcp.EDIT_NOTICES or "">},
+    or {"reason": <key of rcp.BLOCK_NOTES>}. `recorded` (Replay): the edit must land on a recorded render. If the
+    combination is not recorded, the single change on the same look replaces the earlier one (one change at a time);
+    if the look does not hold it (a style), it lands on the base look. Buttons and the server share this rule."""
     base = state["recipe_base"]
     now = state.get("recipe") or base
     edits = state.get("edits") or []
     reason = rcp.blocked(now, zone, op)
     if reason:
         return {"reason": reason}
-    if rcp.quiet_key(now, zone, op) in (state.get("quiet_edits") or ()):
+    if rcp.quiet_key(now, zone, op, base["look"]) in (state.get("quiet_edits") or ()):
         return {"reason": "quiet"}
     step = rcp.resolve_edit(now, zone, op)
     nxt = rcp.add_edit(base, edits, *step)
     if recorded is None or rcp.edit_key(nxt) in recorded:
-        return {"edits": nxt, "replaces": False}
+        dropped = zone == rcp.LOOK_ZONE and any(e[0] != rcp.LOOK_ZONE for e in edits)
+        return {"edits": nxt, "replaces": False, "notice": "look" if dropped else ""}
+    look = [e for e in edits if e[0] == rcp.LOOK_ZONE]
+    on_look = rcp.add_edit(base, look, *step)
+    if rcp.edit_key(on_look) in recorded:
+        return {"edits": on_look, "replaces": True, "notice": "one_change"}
     single = rcp.add_edit(base, [], *step)
     if rcp.edit_key(single) in recorded:
-        return {"edits": single, "replaces": True}
+        return {"edits": single, "replaces": True, "notice": "moved"}
     return {"reason": "not_recorded"}
 
 

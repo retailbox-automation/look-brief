@@ -37,7 +37,7 @@ def main() -> int:
             continue
         r = vis.edit_visibility(sd)
         for key, e in r["edits"].items():
-            zone = key.split(":", 1)[0]
+            zone = key.rsplit("+", 1)[-1].split(":", 1)[0]  # look:evening+lips:shade:ruby -> lips
             kind = "thin" if zone in palettes.STYLE_ZONES else "wide"
             rows.append(f"| {sd.name} | {kind} | `{key}` | {e['p90']:.2f} | {e['mean']:.2f} | "
                         f"{'shows' if e['ok'] else 'quiet'} |")

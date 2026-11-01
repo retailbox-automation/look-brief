@@ -17,7 +17,7 @@ from PIL import Image
 
 from . import landmarks, makeup_map, palettes
 from .color import delta_e2000
-from .recipe import EDIT_OPS, LOOK_ZONE, edit_key, record_grid
+from .recipe import EDIT_OPS, LOOK_ZONE, edit_key, look_recipe, record_grid
 
 MIN_P90 = 2.5
 ZONE_MIN_P90 = {"brows": 3.5}  # set by the critic's second look at close-up crops of the brows
@@ -99,17 +99,25 @@ def edit_visibility(sample_dir: Path) -> dict:
             missing.append(name)
 
     for change in record_grid(recipe):
-        zone, _ = change[0]
-        if zone != LOOK_ZONE:
-            measure(edit_key(change), "render:base", f"render:{edit_key(change)}", zone)
-    for zone, z in recipe["zones"].items():
+        zone = change[-1][0]
+        if zone != LOOK_ZONE:  # against the render it starts from: the base, or the look the circle sits on
+            measure(edit_key(change), f"render:{edit_key(change[:-1])}", f"render:{edit_key(change)}", zone)
+    starts: list[tuple[list[list[str]], dict]] = [([], recipe["zones"])]
+    starts += [([[LOOK_ZONE, look]], look_recipe(recipe["group"], look, recipe["skin_hex"])["zones"])
+               for look in palettes.LOOK_IDS if look != recipe["look"]]
+    for start, zones in starts:
+        prefix = f"{edit_key(start)}+" if start else ""
+        for zone in palettes.STEP_ZONES:
+            own = zones[zone]["shade_id"]
 
-        def render_of(shade: str, zone: str = zone, start: str = z["shade_id"]) -> str:
-            return "render:base" if shade == start else f"render:{zone}:shade:{shade}"
+            def render_of(shade: str, zone: str = zone, own: str = own, prefix: str = prefix,
+                          start: list = start) -> str:
+                return f"render:{edit_key(start)}" if shade == own else f"render:{prefix}{zone}:shade:{shade}"
 
-        for s in palettes.ladder(recipe["group"], zone) if zone in palettes.STEP_ZONES else ():
-            for op in EDIT_OPS:
-                target = palettes.step_from(recipe["group"], zone, recipe["skin_hex"], s.id, op)
-                if target:
-                    measure(f"{zone}:{op}@{s.id}", render_of(s.id), render_of(target), zone)
+            ladder = [s.id for s in palettes.ladder(recipe["group"], zone)]
+            for shade in ladder if own in ladder else [*ladder, own]:
+                for op in EDIT_OPS:
+                    target = palettes.step_from(recipe["group"], zone, recipe["skin_hex"], shade, op)
+                    if target:
+                        measure(f"{prefix}{zone}:{op}@{shade}", render_of(shade), render_of(target), zone)
     return {"edits": edits, "quiet": [k for k, v in edits.items() if not v["ok"]], "missing": missing}

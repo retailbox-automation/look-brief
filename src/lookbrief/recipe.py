@@ -13,7 +13,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-from dataclasses import replace
 
 import numpy as np
 
@@ -33,6 +32,11 @@ BLOCK_NOTES = {  # why a button is off
     "quiet": "This change would not show on the photo.",
 }
 NO_CHOICE_NOTE = "This shade stays close to your own {zone} on this photo."  # no step of the zone shows on her
+EDIT_NOTICES = {  # what the sheet says when a tap did more than change one thing
+    "moved": "Styles are recorded on Soft glam, so your look moved to Soft glam.",
+    "one_change": "Updated. Samples hold one recorded change at a time — this replaced your previous change.",
+    "look": "This look replaces your earlier change.",
+}
 SHADE_PREFIX = "shade:"
 LOOK_ZONE = "look"  # an edit ["look", "evening"] swaps the whole recipe
 TONE_ZONES = ("lips", "cheeks", "eyes")  # the zones whose shade follows the inspiration on a live photo
@@ -49,8 +53,9 @@ FOUNDATION_GLOW = 20
 def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None = None) -> dict:
     s = palettes.shade(group, zone, shade_id or spec.shade)
     pattern = spec.pattern or s.pattern or palettes.ZONE_PATTERNS.get(zone, "")
+    chosen = s.id != spec.shade and s.intensity is not None  # a shade picked over the look keeps its own strength
     z = {"category": palettes.ZONES[zone], "shade_id": s.id, "shade_name": s.name, "palette": list(s.colors),
-         "texture": s.texture, "pattern": pattern, "intensity": spec.intensity}
+         "texture": s.texture, "pattern": pattern, "intensity": s.intensity if chosen else spec.intensity}
     if zone == "eyes":
         z |= {"slot_intensity": list(spec.slots), "shimmer": list(spec.shimmer)}
     elif zone == "highlight":
@@ -60,6 +65,14 @@ def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None =
     elif zone == "cheeks":
         z["glow"] = spec.glow
     return z
+
+
+def _liner_follows_lips(zones: dict, group: str, lips: str) -> None:
+    """One rule for a look's picks and for a circle. A liner she chose as a style stays."""
+    under = palettes.LIP_LINE_UNDER.get(group)
+    if under is not None and zones["lip_line"]["shade_id"] != palettes.LIP_LINE_STYLE:
+        shade_id, intensity = under.get(lips, palettes.PLAIN_LIP_LINE[group])
+        zones["lip_line"] = _zone(group, "lip_line", palettes.ZoneLook(shade_id, intensity))
 
 
 def look_recipe(group: str, look: str, skin_hex: str, shades: dict[str, str] | None = None) -> dict:
@@ -72,9 +85,8 @@ def look_recipe(group: str, look: str, skin_hex: str, shades: dict[str, str] | N
     if set(picks) - set(spec):
         raise ValueError(f"the {look} look has no zones {sorted(set(picks) - set(spec))}")
     zones = {z: _zone(group, z, zl, picks.get(z)) for z, zl in spec.items()}
-    under = palettes.LIP_LINE_UNDER.get(picks.get("lips", ""))
-    if under and "lip_line" not in picks:  # a red lip takes the liner under it
-        zones["lip_line"] = _zone(group, "lip_line", replace(spec["lip_line"], intensity=under[1]), under[0])
+    if "lips" in picks and "lip_line" not in picks:
+        _liner_follows_lips(zones, group, picks["lips"])
     return {"version": RECIPE_VERSION, "group": group, "look": look, "skin_hex": skin_hex, "zones": zones}
 
 
@@ -164,6 +176,9 @@ def apply_edit(recipe: dict, zone: str, op: str) -> dict:
     if zone == "eyes":  # every circle of the lids carries the strengths of the base look
         slots, shimmer = palettes.EYE_SLOTS[recipe["group"]]
         z |= {"slot_intensity": list(slots), "shimmer": list(shimmer), "intensity": slots[0]}
+    elif zone == "lips":  # so does a lip circle, on any look
+        z["intensity"] = palettes.LOOKS[recipe["group"]][palettes.DEFAULT_LOOK]["lips"].intensity
+        _liner_follows_lips(out["zones"], recipe["group"], s.id)
     return out
 
 
@@ -190,21 +205,27 @@ def edit_key(edits: list[list[str]]) -> str:
     return "+".join(f"{z}:{o}" for z, o in edits)
 
 
-def quiet_key(recipe: dict, zone: str, op: str) -> str:
+def quiet_key(recipe: dict, zone: str, op: str, base_look: str = palettes.DEFAULT_LOOK) -> str:
     """The key of a button in a sample's `quiet_edits`. Softer / Bolder are a step between two shades, so theirs names
-    the shade she wears: from another shade it is another step."""
-    if op in EDIT_OPS:
-        return f"{zone}:{op}@{recipe['zones'][zone]['shade_id']}"
-    return edit_key([[zone, op]])
+    the shade she wears: from another shade it is another step. The circles of another look are renders of their own,
+    measured against that look: `look:evening+lips:shade:ruby`."""
+    key = f"{zone}:{op}@{recipe['zones'][zone]['shade_id']}" if op in EDIT_OPS else edit_key([[zone, op]])
+    other_look = recipe["look"] != base_look and zone in palettes.STEP_ZONES
+    return f"{LOOK_ZONE}:{recipe['look']}+{key}" if other_look else key
 
 
 def record_grid(base: dict) -> list[list[list[str]]]:
-    """Every single change a sample records over its base render: all circles and styles but the selected one, the
-    other looks. Softer / Bolder need no render of their own."""
+    """What a sample records over its base render: all circles and styles but the selected one, the other looks, and
+    on each other look every circle of the lids, cheeks and lips. Softer / Bolder need no render of their own."""
     group = base["group"]
     grid = [[[z, SHADE_PREFIX + s.id]] for z, zl in base["zones"].items() for s in palettes.circles(group, z)
             if s.id != zl["shade_id"]]
-    grid += [[[LOOK_ZONE, look]] for look in palettes.LOOK_IDS if look != base["look"]]
+    others = [look for look in palettes.LOOK_IDS if look != base["look"]]
+    grid += [[[LOOK_ZONE, look]] for look in others]
+    for look in others:
+        zones = look_recipe(group, look, base["skin_hex"])["zones"]
+        grid += [[[LOOK_ZONE, look], [z, SHADE_PREFIX + s.id]] for z in palettes.STEP_ZONES
+                 for s in palettes.circles(group, z) if s.id != zones[z]["shade_id"]]
     return grid
 
 
