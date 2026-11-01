@@ -74,6 +74,11 @@ def ratio(c: Linear, r: Linear, t: Linear, m: Mask) -> Linear:
 
 
 def _coverage(r: Linear, t: Linear, m: Mask, color: Linear) -> Mask:
+    """How far the render moved towards the product. Shimmer is random from render to render: a sparkle that only R has
+    is not a product, and counted as one it lays a dark dot on the lid she chose."""
+    import cv2
+
+    r = np.minimum(r, np.asarray(cv2.medianBlur(r, 5), dtype=r.dtype))
     d = r - color
     return np.clip(((r - t) * d).sum(-1) / np.maximum((d * d).sum(-1), 1e-4), 0, 1) * m
 

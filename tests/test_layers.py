@@ -149,6 +149,34 @@ def test_the_soft_mask_of_liner_covers_lids_and_lashes_together():
     assert soft[50 - box[0], 50 - box[2]] > .5 and soft[120 - box[0], 240 - box[2]] > .5
 
 
+def _flat(value: int = 180) -> np.ndarray:
+    return layers.to_linear(np.full((21, 21, 3), value, dtype=np.uint8))
+
+
+def test_a_sparkle_only_the_reference_has_paints_nothing():
+    """Shimmer is random from render to render. A sparkle lost between two renders is not a product: read as coverage
+    it left a dark dot on the lid she chose."""
+    r, t, dark = _flat(), _flat(), layers.to_linear(np.array([20, 16, 14], dtype=np.uint8))
+    r[10, 10] = layers.to_linear(np.array([255, 255, 255], dtype=np.uint8))
+    out = layers.alpha(_flat(), r, t, np.ones((21, 21), np.float32), dark)
+    assert out[10, 10] == pytest.approx(_flat()[10, 10], abs=1e-3)
+
+
+def test_a_thin_stroke_of_the_product_still_lands():
+    r, t, dark = _flat(), _flat(), layers.to_linear(np.array([20, 16, 14], dtype=np.uint8))
+    t[:, 10] = dark
+    out = layers.alpha(_flat(), r, t, np.ones((21, 21), np.float32), dark)
+    assert out[10, 10] == pytest.approx(dark, abs=1e-3), "the one-pixel line is the product"
+    assert out[10, 5] == pytest.approx(_flat()[10, 5], abs=1e-3)
+
+
+def test_a_stroke_both_renders_hold_paints_nothing():
+    r, t, dark = _flat(), _flat(), layers.to_linear(np.array([20, 16, 14], dtype=np.uint8))
+    r[:, 10] = t[:, 10] = dark
+    out = layers.alpha(_flat(), r, t, np.ones((21, 21), np.float32), dark)
+    assert out[10, 10] == pytest.approx(_flat()[10, 10], abs=1e-3)
+
+
 def test_the_lash_layer_stays_at_the_lid_rim():
     """TG 4336: on the whole eye area the strokes of a lash render lay over the lid she chose."""
     zones = {z: np.zeros((200, 300), dtype=bool) for z in ("eyes", "liner", "lashes")}
