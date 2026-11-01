@@ -1,6 +1,7 @@
 import json
 import re
 import time
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -103,6 +104,8 @@ def test_replay_edits_undo_and_a_second_edit_replaces_the_first(client):
     assert r.status_code == 200 and r.json()["edits"] == [["lips", "shade:rose-gloss"]]
     assert r.json()["images"]["render"].endswith("render-lips-shade-rose-gloss.png")
     r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
+    assert [e[0] for e in r.json()["edits"]] == ["cheeks"], "Undo returns to the change this one replaced"
+    r = client.post(f"/api/sessions/{sid}/edits", json={"action": "undo"})
     assert r.json()["edits"] == []
     assert client.post(f"/api/sessions/{sid}/edits", json={"zone": "nose", "op": "softer"}).status_code == 400
 
@@ -149,6 +152,57 @@ def test_the_state_marks_the_zones_of_named_styles(client):
     assert all(style[z] for z in ("liner", "lashes", "brows", "highlight", "lip_line"))
     bronzer = next(z for g in st["zone_groups"] for z in g["zones"] if z["zone"] == "bronzer")
     assert bronzer["note"] == "A light warm layer is part of this look." and not bronzer["style"]
+
+
+def _edit(client, sid, **body):
+    r = client.post(f"/api/sessions/{sid}/edits", json=body)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_a_circle_on_another_look_is_a_render_of_that_look(client):
+    sid = _replay_session(client)
+    _edit(client, sid, zone="look", op="evening")
+    st = _edit(client, sid, zone="eyes", op="shade:champagne")
+    assert st["recipe"]["look"] == "evening" and st["notice"] == ""
+    assert st["edits"] == [["look", "evening"], ["eyes", "shade:champagne"]]
+    st = _edit(client, sid, action="undo")
+    assert st["edits"] == [["look", "evening"]] and st["recipe"]["look"] == "evening"
+
+
+def test_a_style_on_another_look_moves_says_so_and_undo_returns_to_the_look(client):
+    sid = _replay_session(client)
+    _edit(client, sid, zone="look", op="fresh")
+    st = _edit(client, sid, zone="liner", op="shade:flick")
+    assert st["recipe"]["look"] == "softglam" and st["edits"] == [["liner", "shade:flick"]]
+    assert st["notice"] == "Styles are recorded on Soft glam, so your look moved to Soft glam."
+    st = _edit(client, sid, action="undo")
+    assert st["edits"] == [["look", "fresh"]] and st["recipe"]["look"] == "fresh"
+
+
+def test_a_look_over_a_zone_change_says_it_replaced_it_and_undo_brings_the_change_back(client):
+    sid = _replay_session(client)
+    change = [["lips", "shade:warm-rose"]]
+    _edit(client, sid, zone="lips", op="shade:warm-rose")
+    st = _edit(client, sid, zone="look", op="evening")
+    assert st["notice"] == "This look replaces your earlier change."
+    assert _edit(client, sid, action="undo")["edits"] == change
+
+
+def test_undo_steps_back_through_every_change_and_reset_forgets_them(client):
+    sid = _replay_session(client)
+    _edit(client, sid, zone="look", op="evening")
+    st = _edit(client, sid, zone="look", op="softglam")
+    assert st["edits"] == [] and st["can_undo"] is True, "she can return to Evening"
+    assert _edit(client, sid, action="undo")["edits"] == [["look", "evening"]]
+    st = _edit(client, sid, action="reset")
+    assert st["edits"] == [] and st["can_undo"] is False
+
+
+def test_the_page_keeps_the_colours_of_the_shades_in_print():
+    css = (Path(app_mod.__file__).parent / "static" / "app.css").read_text()
+    rule = next(line for line in css.splitlines() if line.startswith(".swatch, .shade-dot"))
+    assert "print-color-adjust: exact" in rule
 
 
 def test_a_zone_with_nothing_left_says_so_and_offers_nothing(tmp_path, monkeypatch):
@@ -282,6 +336,14 @@ def test_live_requires_consent_and_checks_photos(live_client):
     bad = {"bride": ("b.jpg", b"not an image", "image/jpeg"), "inspiration": _files()["inspiration"]}
     r = live_client.post("/api/live/sessions", files=bad, data={"consent": "yes"})
     assert r.status_code == 422 and r.json()["checks"]["bride"]["issues"][0]["code"] == "not_an_image"
+
+
+def test_undo_or_reset_with_nothing_to_undo_renders_nothing_and_costs_nothing(live_client):
+    sid = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"}).json()["session_id"]
+    assert live_client.get(f"/api/sessions/{sid}").json()["units_spent"] == 6
+    for action in ("undo", "reset"):
+        r = live_client.post(f"/api/sessions/{sid}/edits", json={"action": action})
+        assert r.status_code == 200 and r.json()["units_spent"] == 6 and r.json()["edits"] == [], action
 
 
 def test_live_flow_ledger_caps_and_delete(live_client):

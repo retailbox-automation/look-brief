@@ -11,6 +11,7 @@
   let heroView = "makeup"; // "makeup" | "hair"
   let zonesShown = true; // zone outlines show once; the first zone or edit tap hides them so the face change is visible
 
+  const POLL_RETRY_MS = 1500;
   // Where the zone labels sit around each outline (px from the anchor point). Only zones with an outline have a pin.
   const PIN = {
     eyes: { side: "left", dx: 34, dy: -26 },
@@ -19,7 +20,9 @@
   };
 
   async function api(path, opts) {
-    const r = await fetch(path, opts);
+    let r;
+    try { r = await fetch(path, opts); }
+    catch (e) { return { ok: false, status: 0, body: { error: "network", reason: "We could not reach the server. Check your connection and try again." } }; }
     let body = null;
     try { body = await r.json(); } catch (e) { body = { error: "bad_response" }; }
     return { ok: r.ok, status: r.status, body };
@@ -118,26 +121,29 @@
   const lookCaption = () => `${(state.edits || []).some(([zone]) => zone !== "look") ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
 
   // ---------- photo: close up on the chosen zone ----------
-  // zone -> [outline it centres on, scale]. Brows, liner and lashes live around the eyes.
+  // zone -> [outline it centres on, largest scale]. Brows, liner and lashes live around the eyes.
   const ZOOM = {
     eyes: ["eyes", 2.3], liner: ["eyes", 2.3], lashes: ["eyes", 2.3], brows: ["eyes", 2.3],
     lips: ["lips", 2.3], lip_line: ["lips", 2.3],
     cheeks: ["cheeks", 1.5], bronzer: ["cheeks", 1.5], highlight: ["cheeks", 1.5],
   };
   const FRAME_SHARE = 3.8 / 4; // the frame shows this share of the photo's height (aspect 3:3.8 over 3:4)
+  const ZONE_MARGIN = 1.15; // the zone fills the frame width at most to 1 / this: both outer eye corners stay in it
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
   function zoomTo(z) { // z null: the whole face
-    const [polys, scale] = ZOOM[z] || [];
+    const [polys, largest] = ZOOM[z] || [];
     const pts = ((state.outlines || {})[polys] || []).flat();
     const box = $("hero-img");
     const on = pts.length > 0;
     box.closest(".hero-frame").classList.toggle("zoomed", on);
     $("whole-btn").hidden = !on;
-    box.style.setProperty("--zoom", on ? scale : 1);
-    if (!on) { box.style.transform = ""; return; }
+    if (!on) { box.style.setProperty("--zoom", 1); box.style.transform = ""; return; }
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const scale = Math.min(largest, 1 / ((x1 - x0) * ZONE_MARGIN));
+    box.style.setProperty("--zoom", scale);
+    const cx = (x0 + x1) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
     // centre the zone in the frame, in % of the photo's own box; the clamp keeps the frame fully covered
     const tx = clamp(0.5 - scale * cx, 1 - scale, 0), ty = clamp(FRAME_SHARE / 2 - scale * cy, FRAME_SHARE - scale, 0);
     box.style.transform = `translate(${(tx * 100).toFixed(2)}%, ${(ty * 100).toFixed(2)}%) scale(${scale})`;
@@ -243,9 +249,9 @@
       if (b.getAttribute("aria-pressed") !== "true") doEdit({ zone: b.dataset.zone, op: b.dataset.op });
     }));
     const ed = state.edits || [];
-    $("undo").disabled = ed.length === 0;
+    $("undo").disabled = !state.can_undo;
     $("reset").disabled = ed.length === 0;
-    $("edit-tools").hidden = ed.length === 0;
+    $("edit-tools").hidden = !state.can_undo;
     selectZone(selZone);
   }
 
@@ -287,7 +293,8 @@
   }
 
   async function poll() {
-    const { ok, body } = await api(`/api/sessions/${sid}`);
+    const { ok, status, body } = await api(`/api/sessions/${sid}`);
+    if (status === 0) { $("status").textContent = "Connection lost. Trying again…"; setTimeout(poll, POLL_RETRY_MS); return; }
     if (!ok) { $("status").textContent = "Session not found."; return; }
     state = body;
     if (body.status === "ready") {
@@ -315,23 +322,21 @@
     const { ok, body } = await api(`/api/sessions/${sid}/edits`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     busy = false;
     if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "That change didn't work."; return; }
-    const was = state.edits || [];
     state = body;
     heroView = "makeup"; // the view that carries the change, never the hair preview
     if (payload.zone && zonesShown) showZones(false);
     const opts = state.edit_options || [];
     const now = state.edits || [];
-    // a change in the same zone is the next choice there; in another zone it took the place of the earlier change
-    const replaced = state.mode === "replay" && payload.zone && now.length > 0 && was.length === now.length
-      && was[0][0] !== now[0][0] && was[0][0] !== "look" && now[0][0] !== "look";
     const heldOne = state.mode === "replay" && now.length > 0 && opts.length > 0 && !opts.some((o) => o.available);
-    $("edit-msg").textContent = replaced ? "Updated. Samples hold one recorded change at a time — this replaced your previous change."
-      : heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another."
+    $("edit-msg").textContent = body.notice
+      || (heldOne ? "Updated. Samples hold one recorded change at a time — undo it to try another."
       : payload.action === "undo" ? "Undone."
       : payload.action === "reset" ? "Back to your look."
-      : "Updated.";
+      : "Updated.");
     render();
-    const hr = $("img-hero").getBoundingClientRect(); // after a zone change, show the photo if less than half is on screen
+    // after a zone change, show the photo if less than half of its frame is on screen; the photo itself is scaled on a
+    // close-up, its box says nothing about what she sees
+    const hr = document.querySelector(".hero-frame").getBoundingClientRect();
     const scrolled = !!payload.zone && Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
     // to the top of the page (the look starts it), not to the photo's top edge: on iPhone Safari the page top keeps
     // the safe-area padding, while the photo's edge (= the top of #look) lands under the status bar with the pills
@@ -350,7 +355,7 @@
   $("whole-btn").addEventListener("click", () => zoomTo(null));
   $("make-brief").addEventListener("click", async () => {
     const { ok, body } = await api(`/api/sessions/${sid}/brief`, { method: "POST" });
-    if (!ok) { $("edit-msg").textContent = body.detail || "Couldn't create the brief link."; return; }
+    if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "Couldn't create the brief link."; return; }
     const a = $("artist-link"), b = $("bride-link");
     if (a.getAttribute("href") !== body.artist_url) document.querySelector('[data-copy="artist-link"]').textContent = "Copy"; // new links: nothing copied yet
     a.href = body.artist_url; a.textContent = location.origin + body.artist_url;
@@ -362,7 +367,11 @@
     if (t) { navigator.clipboard && navigator.clipboard.writeText($(t.dataset.copy).textContent); t.textContent = "Copied"; }
   });
   const del = $("delete");
-  if (del) del.addEventListener("click", async () => { await api(`/api/sessions/${sid}/delete`, { method: "POST" }); location.href = "/"; });
+  if (del) del.addEventListener("click", async () => {
+    const { ok, body } = await api(`/api/sessions/${sid}/delete`, { method: "POST" });
+    if (!ok) { $("edit-msg").textContent = body.reason || body.detail || "Couldn't delete the photos."; return; }
+    location.href = "/";
+  });
   $("img-after").style.clipPath = "inset(0 0 0 50%)";
   poll();
 })();

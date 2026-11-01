@@ -327,6 +327,17 @@ ZOOM_JS = """() => {
 }"""
 
 
+def eye_span(page) -> tuple[float, float]:
+    """Left and right of the eye outlines, in shares of the photo's width."""
+    xs = [p[0] for poly in state_of(page)["outlines"]["eyes"] for p in poly]
+    return min(xs), max(xs)
+
+
+def fitted(page) -> float:
+    left, right = eye_span(page)
+    return min(2.3, 1 / ((right - left) * 1.15))
+
+
 def zoom_settled(page, scale: float) -> dict:
     page.wait_for_function(f"Math.abs(new DOMMatrix(getComputedStyle(document.getElementById('hero-img')).transform).a"
                            f" - {scale}) < 0.01", timeout=3_000)
@@ -342,7 +353,8 @@ def test_a_zone_brings_the_photo_close_and_whole_face_takes_it_back(base_url, br
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
     assert page.evaluate(ZOOM_JS)["scale"] == 1 and not page.evaluate(ZOOM_JS)["whole"], "the whole face first"
     sheet_top = page.locator(".sheet").bounding_box()["y"]
-    for label, scale in (("Eyelids", 2.3), ("Eyeliner", 2.3), ("Lashes", 2.3), ("Brows", 2.3), ("Lips", 2.3),
+    eyes = fitted(page)
+    for label, scale in (("Eyelids", eyes), ("Eyeliner", eyes), ("Lashes", eyes), ("Brows", eyes), ("Lips", 2.3),
                          ("Lip liner", 2.3), ("Cheeks", 1.5), ("Bronzer", 1.5), ("Highlighter", 1.5)):
         page.get_by_role("button", name=label, exact=True).click()
         m = zoom_settled(page, scale)
@@ -364,6 +376,128 @@ def test_a_zone_brings_the_photo_close_and_whole_face_takes_it_back(base_url, br
     zoom_settled(page, 2.3)
     transform = page.locator("#img-after").evaluate("el => getComputedStyle(el.parentElement).transform")
     assert transform == "none", "before and after stays the whole face"
+
+
+@pytest.mark.parametrize("sample", ["s0-champagne-rose", "s2-classic-red", "s3-mauve-smoky"])
+def test_the_close_up_of_the_eyes_keeps_both_outer_corners_in_the_frame(base_url, browser_ctx, sample):
+    page = browser_ctx.new_page()
+    page.goto(f"{base_url}/try/{sample}")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    scale = fitted(page)
+    page.get_by_role("button", name="Eyelids", exact=True).click()
+    zoom_settled(page, scale)
+    shift = page.evaluate("""() => new DOMMatrix(getComputedStyle(document.getElementById("hero-img")).transform).e
+                                   / document.querySelector(".hero-frame").clientWidth""")
+    left, right = (x * scale + shift for x in eye_span(page))
+    assert scale <= 2.3 and 0 <= left < right <= 1, (sample, scale, left, right)
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_a_circle_on_evening_stays_on_evening_and_undo_keeps_it(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    hero, evening = page.locator("#img-hero"), page.get_by_role("button", name="Evening", exact=True)
+    evening.click()
+    expect(hero).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
+    open_zone(page, "eyes")
+    tap_circle(page, circles(page, "eyes")[0])
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-look-evening_eyes-shade-"))
+    expect(evening).to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Undo last change").click()
+    expect(page.locator("#edit-msg")).to_have_text("Undone.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-look-evening\."))
+    expect(evening).to_have_attribute("aria-pressed", "true")
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_a_style_on_evening_moves_to_soft_glam_says_so_and_undo_comes_back(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    evening = page.get_by_role("button", name="Evening", exact=True)
+    evening.click()
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
+    page.get_by_role("button", name="Eyeliner", exact=True).click()
+    page.get_by_role("button", name="Eyeliner: Flick", exact=True).click()
+    expect(page.locator("#edit-msg")).to_have_text("Styles are recorded on Soft glam, so your look moved to Soft glam.",
+                                                   timeout=20_000)
+    expect(page.get_by_role("button", name="Soft glam", exact=True)).to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Undo last change").click()
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
+    expect(evening).to_have_attribute("aria-pressed", "true")
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_a_look_over_a_zone_change_says_it_replaced_it(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    open_zone(page, "lips")
+    tap_circle(page, circles(page, "lips")[0])
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.get_by_role("button", name="Classic", exact=True).click()
+    expect(page.locator("#edit-msg")).to_have_text("This look replaces your earlier change.", timeout=20_000)
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_a_change_made_low_on_the_page_brings_the_close_up_back_on_screen(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": 390, "height": 664})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    page.get_by_role("button", name="Eyelids", exact=True).click()
+    page.evaluate("window.scrollTo(0, 300)")
+    seen = page.evaluate("""() => { const f = document.querySelector(".hero-frame").getBoundingClientRect();
+                                    return [f.bottom, f.height]; }""")
+    assert seen[0] < seen[1] / 2, "less than half of the frame is on screen, whatever the scaled photo measures"
+    page.get_by_role("button", name="Eyelids: bolder", exact=True).click()
+    page.wait_for_function("scrollY === 0", timeout=5_000)
+    page.close()
+
+
+NO_NETWORK = "We could not reach the server. Check your connection and try again."
+
+
+@needs("s0-champagne-rose")
+def test_a_lost_connection_says_so_and_the_buttons_work_again(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    open_zone(page, "lips")
+    first = circles(page, "lips")[0]
+    page.route("**/edits", lambda route: route.abort())
+    tap_circle(page, first)
+    expect(page.locator("#edit-msg")).to_have_text(NO_NETWORK, timeout=5_000)
+    page.unroute("**/edits")
+    tap_circle(page, first)
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(render_name(first)))
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_the_first_load_keeps_trying_after_a_lost_connection(base_url, browser_ctx):
+    dropped = []
+
+    def flaky(route):
+        if route.request.method == "GET" and len(dropped) < 2:
+            dropped.append(route.request.url)
+            route.abort()
+        else:
+            route.continue_()
+
+    page = browser_ctx.new_page()
+    page.route(re.compile(r"/api/sessions/[^/]+$"), flaky)
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    assert len(dropped) == 2
+    page.close()
 
 
 @needs("s0-champagne-rose")

@@ -145,8 +145,9 @@ def test_a_style_is_read_inside_its_own_mask(synthetic):
 
 def test_softer_and_bolder_are_measured_on_lids_cheeks_and_lips_only(synthetic):
     sd, _ = synthetic
-    zones = {k.split(":")[0] for k in visibility.edit_visibility(sd)["edits"] if "@" in k}
-    assert zones == {"eyes", "cheeks", "lips"}
+    keys = [k for k in visibility.edit_visibility(sd)["edits"] if "@" in k]
+    assert {k.rsplit("+", 1)[-1].split(":")[0] for k in keys} == {"eyes", "cheeks", "lips"}
+    assert any(k.startswith("look:evening+lips:") for k in keys), "the steps of another look are measured on that look"
 
 
 def test_a_missing_render_is_reported(synthetic):

@@ -54,8 +54,8 @@ def _zone(group: str, zone: str, spec: palettes.ZoneLook, shade_id: str | None =
     s = palettes.shade(group, zone, shade_id or spec.shade)
     pattern = spec.pattern or s.pattern or palettes.ZONE_PATTERNS.get(zone, "")
     chosen = s.id != spec.shade and s.intensity is not None  # a shade picked over the look keeps its own strength
-    z = {"category": palettes.ZONES[zone], "shade_id": s.id, "shade_name": s.name, "palette": list(s.colors),
-         "texture": s.texture, "pattern": pattern, "intensity": s.intensity if chosen else spec.intensity}
+    z: dict = {"category": palettes.ZONES[zone], "shade_id": s.id, "shade_name": s.name, "palette": list(s.colors),
+               "texture": s.texture, "pattern": pattern, "intensity": s.intensity if chosen else spec.intensity}
     if zone == "eyes":
         z |= {"slot_intensity": list(spec.slots), "shimmer": list(spec.shimmer)}
     elif zone == "highlight":

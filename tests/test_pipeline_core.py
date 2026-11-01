@@ -128,7 +128,7 @@ def test_replay_keeps_one_change_a_new_one_replaces_it():
     keys = {"base", "lips:shade:ruby", "cheeks:shade:peach"}
     st = _state(base, [["lips", "shade:ruby"]])
     plan = pipeline.plan_edit(st, "cheeks", "shade:peach", keys)
-    assert plan == {"edits": [["cheeks", "shade:peach"]], "replaces": True}
+    assert plan == {"edits": [["cheeks", "shade:peach"]], "replaces": True, "notice": "one_change"}
     assert _options(st, keys)[("cheeks", "shade:peach")]["replaces"] is True
 
 
@@ -137,14 +137,14 @@ def test_a_recorded_combination_is_kept():
     st = _state(base, [["lips", "shade:ruby"]])
     keys = {"base", "lips:shade:ruby", "lips:shade:ruby+cheeks:shade:peach", "cheeks:shade:peach"}
     assert pipeline.plan_edit(st, "cheeks", "shade:peach", keys) == {
-        "edits": [["lips", "shade:ruby"], ["cheeks", "shade:peach"]], "replaces": False}
+        "edits": [["lips", "shade:ruby"], ["cheeks", "shade:peach"]], "replaces": False, "notice": ""}
 
 
 def test_softer_is_stored_as_the_shade_and_needs_no_render_of_its_own():
     base = _look()
     _, softer = rcp.resolve_edit(base, "lips", "softer")
     plan = pipeline.plan_edit(_state(base), "lips", "softer", {"base", f"lips:{softer}"})
-    assert plan == {"edits": [["lips", softer]], "replaces": False}
+    assert plan == {"edits": [["lips", softer]], "replaces": False, "notice": ""}
 
 
 def test_softer_starts_from_the_shade_on_her_face_not_the_base():
@@ -162,13 +162,65 @@ def test_stepping_back_to_the_base_shade_is_the_base_render():
     softer = palettes.step_from("light", "lips", SKIN["light"], start, "softer")
     assert palettes.step_from("light", "lips", SKIN["light"], softer, "bolder") == start
     st = _state(base, [["lips", f"shade:{softer}"]])
-    assert pipeline.plan_edit(st, "lips", "bolder", {"base"}) == {"edits": [], "replaces": False}
+    assert pipeline.plan_edit(st, "lips", "bolder", {"base"}) == {"edits": [], "replaces": False, "notice": ""}
 
 
 def test_the_base_look_button_returns_to_the_sample():
     base = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
     st = _state(base, [["look", "evening"]])
-    assert pipeline.plan_edit(st, "look", "softglam", {"base", "look:evening"}) == {"edits": [], "replaces": False}
+    plan = pipeline.plan_edit(st, "look", "softglam", {"base", "look:evening"})
+    assert plan == {"edits": [], "replaces": False, "notice": ""}
+
+
+EVENING = [["look", "evening"]]
+
+
+def test_a_circle_on_another_look_stays_on_that_look():
+    keys = {"base", "look:evening", "look:evening+eyes:shade:champagne", "eyes:shade:champagne"}
+    plan = pipeline.plan_edit(_state(edits=EVENING), "eyes", "shade:champagne", keys)
+    assert plan == {"edits": [*EVENING, ["eyes", "shade:champagne"]], "replaces": False, "notice": ""}
+
+
+def test_softer_on_another_look_stays_on_that_look():
+    st = _state(edits=EVENING)
+    op = rcp.resolve_edit(st["recipe"], "lips", "softer")[1]
+    plan = pipeline.plan_edit(st, "lips", "softer", {"base", "look:evening", f"look:evening+lips:{op}"})
+    assert plan == {"edits": [*EVENING, ["lips", op]], "replaces": False, "notice": ""}
+
+
+def test_a_second_zone_on_a_look_replaces_the_first_and_keeps_the_look():
+    keys = {"base", "look:evening", "look:evening+eyes:shade:champagne", "look:evening+cheeks:shade:peach"}
+    st = _state(edits=[*EVENING, ["eyes", "shade:champagne"]])
+    assert pipeline.plan_edit(st, "cheeks", "shade:peach", keys) == {
+        "edits": [*EVENING, ["cheeks", "shade:peach"]], "replaces": True, "notice": "one_change"}
+
+
+def test_a_style_on_another_look_moves_to_the_base_look_and_says_so():
+    keys = {"base", "look:evening", "liner:shade:flick"}
+    plan = pipeline.plan_edit(_state(edits=EVENING), "liner", "shade:flick", keys)
+    assert plan == {"edits": [["liner", "shade:flick"]], "replaces": True, "notice": "moved"}
+
+
+def test_a_look_over_a_zone_change_says_it_replaced_it():
+    st = _state(edits=[["lips", "shade:ruby"]])
+    plan = pipeline.plan_edit(st, "look", "evening", {"base", "look:evening", "lips:shade:ruby"})
+    assert plan == {"edits": EVENING, "replaces": False, "notice": "look"}
+
+
+def test_a_quiet_circle_is_quiet_on_its_own_look_only():
+    quiet = ["look:evening+lips:shade:warm-rose"]
+    assert ("lips", "shade:warm-rose") not in _options(_state(edits=EVENING, quiet=quiet))
+    assert ("lips", "shade:warm-rose") in _options(_state(quiet=quiet))
+
+
+def test_a_quiet_step_names_its_look():
+    st = _state(edits=EVENING, quiet=["look:evening+lips:softer@ruby"])
+    assert ("lips", "softer") not in _options(st)
+    assert ("lips", "softer") in _options(_state(edits=[["look", "fresh"]], quiet=["look:evening+lips:softer@ruby"]))
+
+
+def test_a_style_quiet_on_the_base_look_is_quiet_everywhere():
+    assert ("lashes", "shade:fluttery") not in _options(_state(edits=EVENING, quiet=["lashes:shade:fluttery"]))
 
 
 def test_live_walks_softer_to_the_end_of_the_order():

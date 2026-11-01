@@ -29,6 +29,7 @@ HERE = Path(__file__).resolve().parent
 SAFE_NAME = re.compile(r"^[a-z0-9_.-]+\.(jpg|png)$")
 REVIEW_LABELS = {"do": "I'll do this", "swap": "I'll swap the product", "discuss": "Let's discuss"}
 LIVE_ORDER = "hair_first"
+UNDO_DEPTH = 20
 NOT_RECORDED = {"error": "not_recorded", "reason": "This combination isn't in the recorded set. "
                 "Undo or try another single edit — or use Live with your own photos."}
 # hair 2 + transfer 2 + base re-render 1 + even-out 1
@@ -212,6 +213,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
                                                 "checks", "order", "map_reference", "views")})
+            out["can_undo"] = bool(st.get("undo") or st.get("edits"))
             none_left = pipeline.no_choice_zones(st)
             notes = {**{z: rcp.NO_CHOICE_NOTE.format(zone=palettes.ZONE_LABELS[z].lower()) for z in none_left},
                      **palettes.FIXED_ZONES}
@@ -422,11 +424,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise HTTPException(410, "the photos of this session were deleted")
             state = sess["state"]
             edits = list(state.get("edits") or [])
+            undo = list(state.get("undo") or [])  # what each change replaced: Undo returns to exactly that
+            notice = ""
             if body.action == "reset":
-                edits = []
+                edits, undo, same_face = [], [], not edits
             elif body.action == "undo":
-                edits = edits[:-1]
+                same_face = not edits and not undo
+                edits = undo.pop() if undo else edits[:-1]
             else:
+                same_face = False
                 keys = replay_keys(sess) if sess["mode"] == "replay" else None
                 try:
                     plan = pipeline.plan_edit(state, body.zone or "", body.op or "", keys)
@@ -437,7 +443,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if "reason" in plan:  # the button is off on the page too: the server refuses the same tap
                     return JSONResponse({"error": plan["reason"], "reason": rcp.BLOCK_NOTES[plan["reason"]]},
                                         status_code=400)
-                edits = plan["edits"]
+                undo = [*undo, edits][-UNDO_DEPTH:]
+                edits, notice = plan["edits"], plan["notice"]
+            if same_face:  # nothing to render, nothing to pay for
+                state["undo"] = undo
+                store.update_session(sid, state=state)
+                return public_state(store.session(sid) or sess)
             engine = engine_for(sess)
             if sess["mode"] == "live":
                 if sess["units_spent"] + UNITS["makeup-vto"] > s.live_session_unit_cap:
@@ -457,8 +468,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return JSONResponse({"error": e.code, "reason": f"{h.title}. {h.fix}"}, status_code=502)
             except ValueError as e:
                 raise HTTPException(400, str(e)) from e
+            state["undo"] = undo
             store.update_session(sid, state=state)
-            return public_state(store.session(sid) or sess)
+            return {**public_state(store.session(sid) or sess), "notice": rcp.EDIT_NOTICES.get(notice, "")}
 
     @app.post("/api/sessions/{sid}/delete")
     def delete_photos(sid: str, request: Request):

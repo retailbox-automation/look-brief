@@ -10,7 +10,9 @@
   const UP_TO_DATE = "Your brief is already up to date — no new edits.";
 
   async function api(path, opts) {
-    const r = await fetch(path, opts);
+    let r;
+    try { r = await fetch(path, opts); }
+    catch (e) { return { ok: false, status: 0, body: { error: "network", reason: "We could not reach the server. Check your connection and try again." } }; }
     let body = null;
     try { body = await r.json(); } catch (e) { body = {}; }
     return { ok: r.ok, body };
@@ -122,12 +124,12 @@
   $("agree").addEventListener("click", async () => {
     await flushNotes();
     const { ok, body } = await api(`/api/briefs/${bid}/agree`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token }) });
-    if (ok) { view = body; render(); } else { $("agree-help").textContent = body.detail || "Couldn't agree yet."; }
+    if (ok) { view = body; render(); } else { $("agree-help").textContent = body.reason || body.detail || "Couldn't agree yet."; }
   });
   const rev = $("revise");
   if (rev) rev.addEventListener("click", async () => {
     const { ok, body } = await api(`/api/briefs/${bid}/revise`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token }) });
-    if (!ok) { $("agree-help").textContent = body.detail || "Couldn't update the brief."; return; }
+    if (!ok) { $("agree-help").textContent = body.reason || body.detail || "Couldn't update the brief."; return; }
     noteUntil = body.unchanged ? Date.now() + 6000 : 0;
     view = body; render();
   });

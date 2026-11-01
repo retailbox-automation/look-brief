@@ -102,11 +102,44 @@ def test_pin_overrides_a_shade_and_keeps_the_look():
     assert r["zones"] == plain["zones"]
 
 
-def test_a_ruby_lip_takes_the_red_liner_under_it():
-    r = rcp.base_recipe(None, "light", SKIN["light"], "softglam", {"lips": "ruby"})
-    assert r["zones"]["lip_line"]["palette"] == ["#8E0F1A"] and r["zones"]["lip_line"]["intensity"] == 45
-    effects = {e["category"]: e for e in rcp.to_vto_effects(r)}
-    assert effects["lip_liner"]["palettes"][0]["color"] == "#8E0F1A"
+@pytest.mark.parametrize(("group", "lips", "liner", "strength"), [
+    ("light", "ruby", "ruby-line", 40), ("medium", "ruby", "red", 45), ("medium", "wine", "wine-line", 40),
+    ("light", "dusty-rose", "natural", 30), ("medium", "warm-rose", "rosy", 28)])
+def test_the_liner_goes_with_the_lips_by_one_rule(group, lips, liner, strength):
+    tapped = rcp.apply_edit(_look(group, "fresh" if group == "medium" else "evening"), "lips", f"shade:{lips}")
+    picked = rcp.base_recipe(None, group, SKIN[group], "softglam", {"lips": lips})
+    for r in (tapped, picked):
+        z = r["zones"]["lip_line"]
+        assert (z["shade_id"], z["intensity"]) == (liner, strength)
+
+
+def test_a_red_lip_on_the_sample_goes_back_to_the_liner_it_had():
+    base = _look("medium")
+    r = rcp.apply_edits(base, [["lips", "shade:warm-rose"], ["lips", "shade:ruby"]])
+    assert r["zones"]["lip_line"] == base["zones"]["lip_line"]
+
+
+def test_a_liner_she_chose_as_a_style_stays_when_the_lips_change():
+    r = rcp.apply_edits(_look("light"), [["lip_line", "shade:defined"], ["lips", "shade:ruby"]])
+    assert r["zones"]["lip_line"]["shade_id"] == "defined"
+
+
+def test_the_liner_of_the_deep_looks_stays_with_any_lips():
+    base = _look("deep")
+    assert rcp.apply_edit(base, "lips", "shade:plum")["zones"]["lip_line"] == base["zones"]["lip_line"]
+
+
+def test_a_shade_picked_over_the_look_keeps_its_own_strength():
+    picked = rcp.look_recipe("deep", "softglam", SKIN["deep"], {"cheeks": "copper"})["zones"]["cheeks"]
+    tapped = rcp.apply_edit(_look("deep"), "cheeks", "shade:copper")["zones"]["cheeks"]
+    assert picked["intensity"] == tapped["intensity"] == 62
+    assert _look("deep")["zones"]["cheeks"]["intensity"] == 36, "the look's own shade keeps the look's strength"
+
+
+def test_a_lip_circle_has_one_strength_on_every_look():
+    strengths = {rcp.apply_edit(_look("light", look), "lips", "shade:warm-coral")["zones"]["lips"]["intensity"]
+                 for look in palettes.LOOK_IDS}
+    assert strengths == {68}
 
 
 def test_an_explicit_lip_liner_wins_over_the_one_under_ruby():
@@ -399,7 +432,12 @@ def test_add_edit_of_a_look_clears_the_rest_and_the_base_look_means_no_edit():
 def test_the_recorded_grid_is_every_circle_and_style_and_two_looks():
     base = _look()
     keys = [rcp.edit_key(e) for e in rcp.record_grid(base)]
-    assert len(keys) == len(set(keys)) == 26 + 2
+    assert len(keys) == len(set(keys)) == 26 + 2 + 40
+    assert {"look:evening+eyes:shade:champagne", "look:evening+cheeks:shade:peach", "look:fresh+lips:shade:ruby",
+            "look:fresh+lips:shade:rose-gloss"} <= set(keys)
+    assert "look:evening+lips:shade:ruby" not in keys, "the shade that look already wears"
+    assert not [k for k in keys if "look:" in k and k.split("+")[-1].split(":")[0] not in palettes.STEP_ZONES[:3]
+                and "+" in k], "styles of thin zones are not recorded on other looks"
     assert {"look:fresh", "look:evening", "lips:shade:rose-gloss", "eyes:shade:bronze", "liner:shade:wing",
             "lashes:shade:fluttery", "highlight:shade:radiant", "lip_line:shade:defined", "cheeks:shade:brick",
             "cheeks:shade:berry"} <= set(keys)
@@ -409,12 +447,12 @@ def test_the_recorded_grid_is_every_circle_and_style_and_two_looks():
 
 
 def test_the_deep_grid_has_fewer_lips():
-    assert len(rcp.record_grid(_look("deep"))) == 26 + 2
+    assert len(rcp.record_grid(_look("deep"))) == 26 + 2 + 39
 
 
 def test_a_sample_with_a_liner_outside_the_ladder_records_the_natural_one_too():
     keys = [rcp.edit_key(e) for e in rcp.record_grid(_look("medium"))]
-    assert len(keys) == 28 + 2 and "lip_line:shade:natural" in keys and "highlight:shade:radiant" in keys
+    assert len(keys) == 28 + 2 + 41 and "lip_line:shade:natural" in keys and "highlight:shade:radiant" in keys
     assert "highlight:shade:none" not in keys, "no highlighter is the base of medium"
 
 
