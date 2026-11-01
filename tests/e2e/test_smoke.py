@@ -836,6 +836,22 @@ IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute difference (0..255)
 }"""
 
 
+@needs("s0-champagne-rose")
+@pytest.mark.parametrize("zone", ["cheeks", "lips", "lip_line"])
+def test_the_mark_on_a_far_tab_does_not_widen_the_page(base_url, browser_ctx, zone):
+    """The screen-reader words of a tab mark are positioned: outside the scrolling row they stretched the phone page."""
+    page = browser_ctx.new_page()
+    page.goto(f"{base_url}/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    open_zone(page, zone)
+    choices = f'#zones button[data-zone="{zone}"][data-op^="shade:"]:not([disabled])[aria-pressed="false"]'
+    page.locator(choices).first.click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator(f'#zone-tabs button[data-zone="{zone}"] .tab-mark')).to_be_attached()
+    root = "document.documentElement"
+    assert page.evaluate(f"{root}.scrollWidth") == page.evaluate(f"{root}.clientWidth")
+
+
 @needs("s2-classic-red")
 def test_artist_signs_only_the_hairstyle_under_the_hair_preview(base_url, browser_ctx):
     page = browser_ctx.new_page()

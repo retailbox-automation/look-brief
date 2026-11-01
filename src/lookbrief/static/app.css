@@ -153,7 +153,7 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .tab-group { flex: none; }
 .tab-group-name { display: block; margin: 0 0 4px 2px; font: 11.5px/1.2 var(--sans); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
 .tab-row { display: flex; gap: 6px; }
-.tab { flex: none; min-width: 44px; min-height: 44px; padding: 0 13px; font: 14.5px/1.2 var(--sans); color: var(--ink); background: var(--chip); border: 1px solid #e6ded6; border-radius: 10px; white-space: nowrap; cursor: pointer; }
+.tab { position: relative; flex: none; min-width: 44px; min-height: 44px; padding: 0 13px; font: 14.5px/1.2 var(--sans); color: var(--ink); background: var(--chip); border: 1px solid #e6ded6; border-radius: 10px; white-space: nowrap; cursor: pointer; }
 .tab[aria-pressed=true] { background: var(--rose); border-color: var(--rose); color: #fff; }
 .tab-mark { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--rose); vertical-align: 1px; }
 .tab[aria-pressed=true] .tab-mark { background: #fff; }
