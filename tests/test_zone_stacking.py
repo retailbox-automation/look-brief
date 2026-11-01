@@ -16,7 +16,7 @@ from helpers import ROOT, SAMPLES, geometry, grow, load_rgb, recorded_samples, z
 from PIL import Image
 
 from lookbrief import app as app_mod
-from lookbrief import makeup_map, pipeline
+from lookbrief import layers, makeup_map, pipeline
 from lookbrief import recipe as rcp
 from lookbrief.color import delta_e2000
 from lookbrief.config import Settings
@@ -261,6 +261,107 @@ def test_a_session_holds_one_file_per_look_however_often_she_goes_there(client, 
     assert len(list((tmp_path / "data" / "sessions" / sid).glob("stack-*.jpg"))) == 1
 
 
+# ---------------- the cap of a session ----------------
+LIPS = ["light-pink", "peach-pink", "rosy-peach", "warm-coral", "nude-rose", "rose-gloss", "warm-rose", "raspberry"]
+
+
+def stack_files(tmp_path, sid) -> set[str]:
+    return {p.name for p in (tmp_path / "data" / "sessions" / sid).glob("stack-*.jpg")}
+
+
+def file_of(st) -> str:
+    return st["images"]["render"].rsplit("/", 1)[1]
+
+
+def test_the_cap_holds_while_she_keeps_choosing_and_the_current_look_stays(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    for lip in LIPS:
+        st = edit(client, sid, zone="lips", op=f"shade:{lip}")
+        assert len(stack_files(tmp_path, sid)) <= 3 and file_of(st) in stack_files(tmp_path, sid)
+        assert client.get(st["images"]["render"]).status_code == 200
+
+
+def test_a_file_a_brief_shows_survives_eviction_with_its_links_and_its_hash(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    sent = edit(client, sid, zone="lips", op=f"shade:{LIPS[0]}")
+    b = client.post(f"/api/sessions/{sid}/brief").json()
+    artist = b["artist_url"].split("t=")[1]
+    view = client.get(f"/api/briefs/{b['brief_id']}?t={artist}").json()
+    for lip in LIPS[1:]:
+        edit(client, sid, zone="lips", op=f"shade:{lip}")
+    assert file_of(sent) in stack_files(tmp_path, sid), "the oldest file, and the brief still shows it"
+    assert len(stack_files(tmp_path, sid)) == 3, "and the cap held around it"
+    r = client.get(view["images"]["render"])
+    assert r.status_code == 200, "the /b-media link of the sent brief"
+    assert hashlib.sha256(r.content).hexdigest() == view["snapshot"]["images_sha256"]["render"]
+    assert client.get(b["artist_url"].replace("/b/", "/card/")).status_code == 200
+
+
+def test_after_a_brief_is_revised_the_file_it_no_longer_shows_can_go(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    first = edit(client, sid, zone="lips", op=f"shade:{LIPS[0]}")
+    b = client.post(f"/api/sessions/{sid}/brief").json()
+    edit(client, sid, zone="lips", op=f"shade:{LIPS[1]}")
+    bride = b["bride_url"].split("t=")[1]
+    assert client.post(f"/api/briefs/{b['brief_id']}/revise", json={"t": bride}).status_code == 200
+    for lip in LIPS[2:]:
+        edit(client, sid, zone="lips", op=f"shade:{lip}")
+    assert file_of(first) not in stack_files(tmp_path, sid)
+
+
+def test_undo_after_eviction_makes_the_same_bytes_again(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    trail = []
+    for lip in LIPS:
+        st = edit(client, sid, zone="lips", op=f"shade:{lip}")
+        trail.append((file_of(st), hashlib.sha256(image(client, st)).hexdigest()))
+    assert trail[0][0] not in stack_files(tmp_path, sid), "precondition: the first file was evicted"
+    for name, digest in reversed(trail[:-1]):
+        st = edit(client, sid, action="undo")
+        assert file_of(st) == name and hashlib.sha256(image(client, st)).hexdigest() == digest
+        assert len(stack_files(tmp_path, sid)) <= 3
+
+
+def test_a_brief_waits_for_an_edit_in_flight(client, monkeypatch):
+    """The edit may evict the file of the look the brief is about to reference: one at a time per session, and the
+    brief reads the session after the edit."""
+    real, entered, go = pipeline.rerender, threading.Event(), threading.Event()
+
+    def held(*a, **kw):
+        entered.set()
+        assert go.wait(20)
+        return real(*a, **kw)
+
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    monkeypatch.setattr(pipeline, "rerender", held)
+    done: dict = {}
+    other = TestClient(client.app, cookies=client.cookies)
+    changing = threading.Thread(target=lambda: done.update(edit=client.post(
+        f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": f"shade:{LIPS[0]}"})))
+    changing.start()
+    assert entered.wait(20)
+    briefing = threading.Thread(target=lambda: done.update(brief=other.post(f"/api/sessions/{sid}/brief")))
+    briefing.start()
+    briefing.join(0.5)
+    assert briefing.is_alive(), "the brief must not read the session while an edit is under way"
+    go.set()
+    changing.join(30)
+    briefing.join(30)
+    assert done["edit"].status_code == 200 and done["brief"].status_code == 200
+    b = done["brief"].json()
+    snap = client.get(f"/api/briefs/{b['brief_id']}?t={b['bride_url'].split('t=')[1]}").json()["snapshot"]
+    assert [e[0] for e in snap["edits"]] == ["eyes", "lips"], "the brief holds the look after the edit"
+
+
 # ---------------- acceptance 5 ----------------
 ASSEMBLED = "Assembled from 3 recorded YouCam Makeup VTO results, one per zone"
 
@@ -363,8 +464,6 @@ def test_composing_waits_for_the_slot_of_image_work(client, monkeypatch):
 def test_one_compose_adds_under_40_mb():
     """A full look: eight zones. numpy buffers are traced; PIL decodes one render at a time on top."""
     import tracemalloc
-
-    from lookbrief import layers
 
     sample = "s0-champagne-rose"
     mf, face, _, _ = geometry(sample)

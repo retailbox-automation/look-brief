@@ -14,6 +14,7 @@ import hashlib
 import io
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -33,6 +34,7 @@ ORDER = ("eyes", "brows", "cheeks", "highlight", "lips", "lip_line", "liner", "l
 FLOOR = 1e-3
 RATIO_RANGE = (0.03, 12.0)
 JPEG_QUALITY = 92
+MAX_STACK_FILES = 60  # per session: one file is 0.2 s to make again, the same bytes
 # zone -> (mask zones that move together, dilation px, blur sigma)
 EYE_AREA = (("eyes", "liner", "lashes"), 26, 5)
 BROW_AREA = (("brows",), 12, 4)
@@ -204,6 +206,15 @@ def file_name(edits: list[list[str]]) -> str:
     """The same choices give the same file, whatever the click order; a list of nine zones would not fit a name."""
     key = rcp.edit_key(canonical(edits))
     return f"stack-{hashlib.sha256(key.encode()).hexdigest()[:16]}.jpg"
+
+
+def trim(workdir: Path, keep: set[str]) -> None:
+    """The oldest stack files of a session past the cap go. `keep` never goes, past the cap or not: the current look and
+    what a brief shows. Undo makes a file that went again, byte for byte."""
+    stacks = sorted(workdir.glob("stack-*.jpg"), key=lambda p: (p.stat().st_mtime_ns, p.name))
+    spare = [p for p in stacks if p.name not in keep]
+    for p in spare[:max(len(stacks) - MAX_STACK_FILES, 0)]:
+        p.unlink()
 
 
 def caption(zone_renders: int) -> str:

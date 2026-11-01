@@ -3,6 +3,7 @@ the real multi-zone renders the samples hold (Evening wears Wing and Volume on e
 
 import io
 import json
+import os
 
 import cv2
 import numpy as np
@@ -146,6 +147,60 @@ def test_the_soft_mask_of_liner_covers_lids_and_lashes_together():
     zones["eyes"][120, 240] = True
     box, soft = layers.soft_mask(zones, "liner")
     assert soft[50 - box[0], 50 - box[2]] > .5 and soft[120 - box[0], 240 - box[2]] > .5
+
+
+# ---------------- the cap of a session ----------------
+def _stacks(folder, n: int) -> list[str]:
+    """n stack files, the lowest number the oldest."""
+    names = [f"stack-{i:016x}.jpg" for i in range(n)]
+    for i, name in enumerate(names):
+        (folder / name).write_bytes(b"x")
+        os.utime(folder / name, (1000 + i, 1000 + i))
+    return names
+
+
+def _left(folder) -> set[str]:
+    return {p.name for p in folder.iterdir()}
+
+
+def test_a_session_keeps_sixty_stack_files_and_loses_the_oldest(tmp_path):
+    names = _stacks(tmp_path, 62)
+    layers.trim(tmp_path, {names[-1]})
+    assert _left(tmp_path) == set(names[2:])
+
+
+def test_at_the_cap_nothing_goes(tmp_path):
+    names = _stacks(tmp_path, 60)
+    layers.trim(tmp_path, {names[-1]})
+    assert _left(tmp_path) == set(names)
+
+
+def test_under_the_cap_nothing_goes(tmp_path):
+    names = _stacks(tmp_path, 3)
+    layers.trim(tmp_path, set())
+    assert _left(tmp_path) == set(names)
+
+
+def test_a_kept_file_stays_however_old_and_the_next_oldest_goes(tmp_path):
+    names = _stacks(tmp_path, 61)
+    layers.trim(tmp_path, {names[0]})
+    assert _left(tmp_path) == set(names) - {names[1]}
+
+
+def test_kept_files_may_pass_the_cap_they_are_never_deleted(tmp_path):
+    names = _stacks(tmp_path, 62)
+    layers.trim(tmp_path, set(names))
+    assert _left(tmp_path) == set(names)
+
+
+def test_only_stack_files_are_touched(tmp_path):
+    names = _stacks(tmp_path, 61)
+    others = ["bride.jpg", "render-base.png", "base.jpg", "look.jpg"]
+    for name in others:
+        (tmp_path / name).write_bytes(b"x")
+        os.utime(tmp_path / name, (1, 1))
+    layers.trim(tmp_path, set())
+    assert _left(tmp_path) == {*names[1:], *others}
 
 
 # ---------------- which recorded render a zone comes from ----------------

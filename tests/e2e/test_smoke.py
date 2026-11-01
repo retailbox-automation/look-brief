@@ -40,7 +40,9 @@ pytestmark = pytest.mark.e2e
 AXE = Axe()
 ASSEMBLED = "Assembled from {n} recorded YouCam Makeup VTO results, one per zone"
 UP_TO_DATE = "Your brief is already up to date — no new edits."
-HERO_ON_SCREEN_JS = "() => { const r = document.getElementById('img-hero').getBoundingClientRect(); " \
+# the frame, not the photo: on a close-up the photo is scaled and its box runs past what she sees, so its box is on
+# screen while the frame is 329 px above it, and when depends on how far the zoom has got (session.js says the same)
+HERO_ON_SCREEN_JS = "() => { const r = document.querySelector('.hero-frame').getBoundingClientRect(); " \
     "return r.height > 0 && r.bottom > 0 && r.top < innerHeight; }"
 WCAG = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]}}
 LABEL = {"eyes": "Eyelids", "lips": "Lips", "cheeks": "Cheeks", "brows": "Brows"}
@@ -363,6 +365,32 @@ def test_nadyas_path_on_a_phone(base_url, browser_ctx, sample, lid, name):
     expect(page.locator("#edit-msg")).to_have_text("Back to your look.", timeout=20_000)
     expect(hero).to_have_attribute("src", re.compile(r"render-base"))
     expect(page.locator(".tab-mark")).to_have_count(0)
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_removing_the_only_change_says_she_is_back_to_her_look(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    msg, hero = page.locator("#edit-msg"), page.locator("#img-hero")
+    open_zone(page, "eyes")
+    page.get_by_role("button", name="Eyelids: Chocolate", exact=True).click()
+    expect(msg).to_have_text("Updated.", timeout=20_000)
+    page.locator("#remove-eyes").click()
+    expect(msg).to_have_text("Back to your look.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-base"))
+    # with only a look left, the look stays and the same plain sentence holds
+    evening = page.get_by_role("button", name="Evening", exact=True)
+    evening.click()
+    expect(hero).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
+    open_zone(page, "liner")
+    page.get_by_role("button", name="Eyeliner: Flick", exact=True).click()
+    expect(msg).to_have_text("Updated.", timeout=20_000)
+    page.locator("#remove-liner").click()
+    expect(msg).to_have_text("Back to your look.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-look-evening\."))
+    expect(evening).to_have_attribute("aria-pressed", "true")
     page.close()
 
 

@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from . import __version__, attest, build_id, palettes, photo_check, pipeline
+from . import __version__, attest, build_id, layers, palettes, photo_check, pipeline
 from . import recipe as rcp
 from .config import Settings, youcam_key
 from .engine import LiveEngine, NotRecorded, ReplayEngine, SessionCtx
@@ -475,6 +475,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise HTTPException(400, str(e)) from e
             state["undo"] = undo
             store.update_session(sid, state=state)
+            if sess["mode"] == "replay":
+                layers.trim(session_dir(sid), {state["images"]["render"], *store.brief_images(sid)})
             return {**public_state(store.session(sid) or sess), "notice": rcp.EDIT_NOTICES.get(notice, "")}
 
     @app.post("/api/sessions/{sid}/delete")
@@ -569,15 +571,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/sessions/{sid}/brief")
     def create_brief(sid: str, request: Request):
-        sess = owned_session(sid, request)
-        if sess["status"] != "ready":
-            raise HTTPException(409, "session is not ready")
-        if sess.get("deleted_at"):
-            raise HTTPException(410, "the photos of this session were deleted")
-        snap = snapshot_from(sess)
-        b = store.latest_brief_for_session(sid)
-        if b is None or canon(b["snapshot"]) != canon(snap):  # same look again: same links, not a new brief
-            b = store.create_brief(sid, snap)
+        owned_session(sid, request)
+        with live_session_lock(sid):  # after an edit in flight: it may evict the file of the look it replaces
+            sess = store.session(sid)
+            if sess is None or sess["status"] != "ready":
+                raise HTTPException(409, "session is not ready")
+            if sess.get("deleted_at"):
+                raise HTTPException(410, "the photos of this session were deleted")
+            snap = snapshot_from(sess)
+            b = store.latest_brief_for_session(sid)
+            if b is None or canon(b["snapshot"]) != canon(snap):  # same look again: same links, not a new brief
+                b = store.create_brief(sid, snap)
         return {"brief_id": b["id"], "bride_url": f"/b/{b['id']}?t={b['bride_token']}",
                 "artist_url": f"/b/{b['id']}?t={b['artist_token']}"}
 
@@ -610,15 +614,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(403, "only the bride link can update the brief")
         b = store.brief(bid)
         assert b is not None
-        sess = store.session(b["session_id"])
-        if sess is None or sess["status"] != "ready":
-            raise HTTPException(409, "session is not ready")
-        if sess.get("deleted_at"):
-            raise HTTPException(410, "the photos of this session were deleted")
-        snap = snapshot_from(sess)
-        if canon(snap) == canon(b["snapshot"]):  # nothing changed: keep the version and the artist's answers
-            return {**brief_view(bid, role, body.t), "unchanged": True}
-        store.revise_brief(bid, snap)
+        with live_session_lock(b["session_id"]):  # after an edit in flight, as a new brief
+            sess = store.session(b["session_id"])
+            if sess is None or sess["status"] != "ready":
+                raise HTTPException(409, "session is not ready")
+            if sess.get("deleted_at"):
+                raise HTTPException(410, "the photos of this session were deleted")
+            snap = snapshot_from(sess)
+            if canon(snap) == canon(b["snapshot"]):  # nothing changed: keep the version and the artist's answers
+                return {**brief_view(bid, role, body.t), "unchanged": True}
+            store.revise_brief(bid, snap)
         return brief_view(bid, role, body.t)
 
     @app.post("/api/briefs/{bid}/agree")

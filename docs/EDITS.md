@@ -34,6 +34,8 @@ look. I pick Eyeliner, add Wing, but I want that Chocolate eyelid to stay." A zo
 - **Blend**, in linear light inside the mask of the zone: the ratio T/R on the frame. Liner and lashes that add to the
   frame are painted instead, liner keeping the depth of the render in its opaque core (`layers.PAINT`, one line to swap).
   Going back to a lighter style uses the ratio: paint cannot lighten.
+- **On disk.** A session keeps at most 60 assembled files. The oldest goes first, never the current look or a file a
+  brief shows, so a sent link and its hash keep working, and Undo makes a file that went again, the same bytes.
 - **It says so.** "Assembled from N recorded YouCam Makeup VTO results, one per zone" on the photo, before and after,
   the brief and the card, where N counts the zone renders; no single task id is shown as if it were the whole image.
   The signed record holds the method and the task id of every frame, zone render and reference.

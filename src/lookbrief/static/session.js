@@ -118,7 +118,8 @@
   }
 
   const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
-  const lookCaption = () => state.composition ? state.composition.caption : `${(state.edits || []).some(([zone]) => zone !== "look") ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
+  const hasZoneChange = () => (state.edits || []).some(([zone]) => zone !== "look");
+  const lookCaption = () => state.composition ? state.composition.caption : `${hasZoneChange() ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
   const lookAlt = () => `Your look: ${state.composition ? state.composition.caption : "the makeup recipe on your photo (YouCam Makeup VTO)"}`;
 
   // ---------- photo: close up on the chosen zone ----------
@@ -333,7 +334,7 @@
     $("edit-msg").textContent = body.notice
       || (payload.action === "undo" ? "Undone."
       : payload.action === "reset" ? "Back to your look."
-      : payload.action === "remove" ? "Removed. Your other changes stay."
+      : payload.action === "remove" ? (hasZoneChange() ? "Removed. Your other changes stay." : "Back to your look.")
       : "Updated.");
     render();
     // after any change, Undo included, show the photo if less than half of its frame is on screen: a change she cannot

@@ -165,6 +165,11 @@ class Store:
                         (session_id,))
         return self.brief(row["id"]) if row else None
 
+    def brief_images(self, session_id: str) -> set[str]:
+        """Every file the briefs of a session show now: a sent link and its hash depend on them."""
+        rows = self._all("SELECT snapshot_json FROM briefs WHERE session_id=?", (session_id,))
+        return {name for r in rows for name in json.loads(r["snapshot_json"])["images"].values()}
+
     def revise_brief(self, bid: str, snapshot: dict) -> int:
         b = self.brief(bid)
         if b is None:
