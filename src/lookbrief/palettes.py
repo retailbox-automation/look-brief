@@ -51,7 +51,7 @@ OLIVE_MIN_HUE = 60.0  # h* of the forehead; above this the middle band reads yel
 STEP_ZONES = ("eyes", "cheeks", "lips")  # Softer and Bolder live here; elsewhere the named styles are the choice
 STYLE_ZONES = ("liner", "lashes", "brows", "highlight", "lip_line")
 FIXED_ZONES = {"bronzer": "A light warm layer is part of this look."}  # no choice: the zone says why
-NONE_ZONES = ("highlight", "lip_line")  # the product can be left out (elsewhere it would not show, or not truly go)
+NONE_ZONES = ("highlight",)  # the product can be left out (elsewhere it would not show, or not truly go)
 NONE_ID = "none"
 # Softer / Bolder stay in the colour family: the raw order of distance to her skin jumped from berry rose to fuchsia.
 FAMILY_HUE = 30.0  # the next shade differs by at most this much of hue h* ...
@@ -165,8 +165,8 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
             _blush("warm-rose", "Warm rose", "#B85A68", 38),
             _blush("peach", "Peach", "#EE8F6A", 50),
             _blush("terracotta", "Terracotta", "#C8603C", 50),
-            _blush("rose", "Rose", "#DE6A72", 46),
-            _blush("plum-rose", "Plum rose", "#A84868", 44)),
+            _blush("brick", "Brick", "#A83C34", 46),
+            _blush("berry", "Berry", "#9A3A58", 40)),
         "bronzer": (_bare("natural", "Natural", "#C08A55", 20),),
         "highlight": (_bare("radiant", "Radiant", "#F0D0B0", 22),),
         "lips": _ladder(
@@ -380,6 +380,9 @@ def ladder(group: str, zone: str) -> tuple[Shade, ...]:
     return LADDERS[group][zone]
 
 
+NO_PRODUCT = Shade(NONE_ID, "None", (), "")  # a look can go without a zone even where "none" is no choice
+
+
 def circles(group: str, zone: str) -> tuple[Shade, ...]:
     """What the sheet offers in a zone: the ladder, plus "none" where the product can be left out; nothing in a zone
     without a choice."""
@@ -387,11 +390,11 @@ def circles(group: str, zone: str) -> tuple[Shade, ...]:
         return ()
     if zone not in NONE_ZONES:
         return LADDERS[group][zone]
-    return (*LADDERS[group][zone], Shade(NONE_ID, "None", (), ""))
+    return (*LADDERS[group][zone], NO_PRODUCT)
 
 
 def shade(group: str, zone: str, shade_id: str) -> Shade:
-    for s in (*circles(group, zone), *LADDERS[group][zone], *LOOK_SHADES[group].get(zone, ())):
+    for s in (NO_PRODUCT, *LADDERS[group][zone], *LOOK_SHADES[group].get(zone, ())):
         if s.id == shade_id:
             return s
     raise ValueError(f"no shade {shade_id!r} for {zone} in the {group} palette")

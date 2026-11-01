@@ -297,7 +297,7 @@ def test_a_shade_only_a_look_wears_cannot_be_picked():
 
 
 # ---------------- thin zones: styles with their own pattern and strength, "none" where it shows ----------------
-@pytest.mark.parametrize("zone", ["highlight", "lip_line"])
+@pytest.mark.parametrize("zone", ["highlight"])
 def test_a_product_can_be_left_out_of_the_request(zone):
     out = rcp.apply_edit(_look("deep"), zone, "shade:none")
     assert out["zones"][zone]["shade_id"] == "none" and out["zones"][zone]["palette"] == []
@@ -306,7 +306,7 @@ def test_a_product_can_be_left_out_of_the_request(zone):
     assert zone not in [x["zone"] for x in rcp.shade_list(out, _map())], "the artist has nothing to bring"
 
 
-@pytest.mark.parametrize("zone", ["eyes", "lips", "cheeks", "brows", "lashes", "bronzer", "liner"])
+@pytest.mark.parametrize("zone", ["eyes", "lips", "cheeks", "brows", "lashes", "bronzer", "liner", "lip_line"])
 def test_other_zones_cannot_be_left_out(zone):
     with pytest.raises(ValueError):
         rcp.apply_edit(_look(), zone, "shade:none")
@@ -398,20 +398,22 @@ def test_add_edit_of_a_look_clears_the_rest_and_the_base_look_means_no_edit():
 def test_the_recorded_grid_is_every_circle_and_style_and_two_looks():
     base = _look()
     keys = [rcp.edit_key(e) for e in rcp.record_grid(base)]
-    assert len(keys) == len(set(keys)) == 27 + 2
+    assert len(keys) == len(set(keys)) == 26 + 2
     assert {"look:fresh", "look:evening", "lips:shade:rose-gloss", "eyes:shade:bronze", "liner:shade:wing",
-            "lashes:shade:fluttery", "highlight:shade:radiant", "lip_line:shade:none"} <= set(keys)
+            "lashes:shade:fluttery", "highlight:shade:radiant", "lip_line:shade:defined", "cheeks:shade:brick",
+            "cheeks:shade:berry"} <= set(keys)
+    assert "lip_line:shade:none" not in keys
     assert f"lips:shade:{base['zones']['lips']['shade_id']}" not in keys, "the base shade is the base render"
     assert not [k for k in keys if "softer" in k or "bolder" in k or "finish" in k or k.startswith("bronzer")]
 
 
 def test_the_deep_grid_has_fewer_blushes_and_lips():
-    assert len(rcp.record_grid(_look("deep"))) == 26 + 2
+    assert len(rcp.record_grid(_look("deep"))) == 25 + 2
 
 
 def test_a_sample_with_a_liner_outside_the_ladder_records_the_natural_one_too():
     keys = [rcp.edit_key(e) for e in rcp.record_grid(_look("medium"))]
-    assert len(keys) == 29 + 2 and "lip_line:shade:natural" in keys and "highlight:shade:radiant" in keys
+    assert len(keys) == 28 + 2 and "lip_line:shade:natural" in keys and "highlight:shade:radiant" in keys
     assert "highlight:shade:none" not in keys, "no highlighter is the base of medium"
 
 

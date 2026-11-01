@@ -35,7 +35,7 @@ def test_options_cover_looks_steps_and_every_circle():
         assert {(z, f"shade:{s.id}") for s in palettes.circles("light", z)} <= set(opts), z
         steps = {(z, op) for op in rcp.EDIT_OPS}
         assert (steps <= set(opts)) is (z in palettes.STEP_ZONES), z
-    assert len(opts) == 3 + 6 + 35
+    assert len(opts) == 3 + 6 + 34
     assert not [k for k in opts if k[0] == "bronzer"], "bronzer is no choice"
 
 
@@ -60,7 +60,7 @@ def test_a_circle_carries_what_the_sheet_draws():
 
 
 def test_the_none_choice_has_no_colour():
-    o = _options(_state())[("lip_line", "shade:none")]
+    o = _options(_state(_look("deep")))[("highlight", "shade:none")]
     assert o["hex"] is None and o["colors"] == [] and o["name"] == "None" and o["available"] is True
 
 
@@ -81,11 +81,11 @@ def test_the_softer_gate_of_the_old_rule_is_gone():
 def test_a_quiet_button_is_not_offered_and_the_server_refuses_it():
     base = _look()
     key = rcp.quiet_key(base, "lips", "softer")
-    st = _state(base, quiet=[key, "lips:shade:ruby", "lip_line:shade:none"])
+    st = _state(base, quiet=[key, "lips:shade:ruby", "lashes:shade:volume"])
     opts = _options(st)
     assert ("lips", "softer") not in opts and ("lips", "bolder") in opts
     assert ("lips", "shade:ruby") not in opts and ("lips", "shade:nude-rose") in opts
-    assert ("lip_line", "shade:none") not in opts and ("lip_line", "shade:defined") in opts
+    assert ("lashes", "shade:volume") not in opts and ("lashes", "shade:fluttery") in opts
     assert pipeline.plan_edit(st, "lips", "softer") == {"reason": "quiet"}
     assert pipeline.plan_edit(st, "lips", "shade:ruby") == {"reason": "quiet"}
 

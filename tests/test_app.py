@@ -131,15 +131,15 @@ def test_lighter_and_deeper_are_gone_from_the_api(client):
 
 
 def test_the_none_choice_drops_the_zone_from_the_request(client):
-    sid = _replay_session(client)
-    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lip_line", "op": "shade:none"})
-    assert r.status_code == 200 and "lip_liner" not in [e["category"] for e in r.json()["vto_effects"]]
-    assert "lip_line" not in [x["zone"] for x in r.json()["shades"]] and len(r.json()["shades"]) == 7
+    sid = _sample_session(client, "s3-mauve-smoky")
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "highlight", "op": "shade:none"})
+    assert r.status_code == 200 and "highlighter" not in [e["category"] for e in r.json()["vto_effects"]]
+    assert "highlight" not in [x["zone"] for x in r.json()["shades"]] and len(r.json()["shades"]) == 8
 
 
-def test_none_is_a_named_style_of_two_zones(client):
+def test_none_is_a_named_style_of_the_highlighter(client):
     opts = client.get(f"/api/sessions/{_replay_session(client)}").json()["edit_options"]
-    assert {o["zone"]: o["name"] for o in opts if o["op"] == "shade:none"} == {"highlight": "None", "lip_line": "None"}
+    assert {o["zone"]: o["name"] for o in opts if o["op"] == "shade:none"} == {"highlight": "None"}
 
 
 def test_the_state_marks_the_zones_of_named_styles(client):
@@ -511,17 +511,16 @@ def test_card_shows_the_agreed_look(client, sample, edit, label):
 
 
 def test_card_lists_every_zone_of_the_recipe_with_its_shade(client):
-    sid = _replay_session(client)
-    client.post(f"/api/sessions/{sid}/edits", json={"zone": "lip_line", "op": "shade:none"})
+    sid = _sample_session(client, "s3-mauve-smoky")
+    client.post(f"/api/sessions/{sid}/edits", json={"zone": "highlight", "op": "shade:none"})
     b = client.post(f"/api/sessions/{sid}/brief").json()
     bride = b["bride_url"].split("t=")[1]
     snap = client.get(f"/api/briefs/{b['brief_id']}?t={bride}").json()["snapshot"]
-    assert "lip_line" not in snap["review_zones"], "a product she left out is not reviewed"
-    assert len(snap["review_zones"]) == 7 + 2, "seven zones (s2 wears no highlighter), the hair and the skin"
+    assert "highlight" not in snap["review_zones"], "a product she left out is not reviewed"
+    assert len(snap["review_zones"]) == 8 + 2, "eight zones, the hair and the skin"
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
-    assert "Ruby" in html and "Rose gold" in html and "#B0102E" in html
-    table = html.split("</table>")[0].split("<table")[1]
-    assert "Lip liner" not in table and "Highlighter" not in table
+    assert "Berry rose" in html and "Gold" in html and "#8A2F45" in html
+    assert "Highlighter" not in html.split("</table>")[0].split("<table")[1]
 
 
 def test_the_brief_names_the_concealer_in_the_skin_row(client):

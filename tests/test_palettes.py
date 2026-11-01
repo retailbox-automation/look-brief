@@ -67,17 +67,18 @@ def test_the_deep_steps_follow_the_final_looks():
 
 def test_the_steps_of_light_and_medium_follow_the_final_looks():
     assert palettes.shade("light", "cheeks", "warm-rose").colors == ("#B85A68",)
-    assert "muted-rose" not in {s.id for s in palettes.ladder("light", "cheeks")}
+    assert {s.id: s.colors[0] for s in palettes.ladder("light", "cheeks")} == {
+        "warm-rose": "#B85A68", "peach": "#EE8F6A", "terracotta": "#C8603C", "brick": "#A83C34", "berry": "#9A3A58"}
     assert palettes.shade("light", "highlight", "radiant").colors == ("#F0D0B0",)
     assert palettes.shade("light", "lip_line", "natural").stroke == (12, 90)
     assert palettes.shade("medium", "lips", "wine").colors == ("#7A1A2E",)
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)
-def test_none_is_offered_on_highlighter_and_lip_liner_only(group):
+def test_none_is_offered_on_the_highlighter_only(group):
     for zone in palettes.ZONES:
         ids = [s.id for s in palettes.circles(group, zone)]
-        assert (palettes.NONE_ID in ids) is (zone in ("highlight", "lip_line")), zone
+        assert (palettes.NONE_ID in ids) is (zone == "highlight"), zone
 
 
 @pytest.mark.parametrize("group", palettes.GROUPS)

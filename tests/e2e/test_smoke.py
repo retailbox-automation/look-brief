@@ -13,6 +13,8 @@ import pytest
 from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import expect, sync_playwright
 
+from lookbrief import palettes
+
 SAMPLES = Path(os.environ.get("LOOKBRIEF_SAMPLES", Path(__file__).resolve().parents[2] / "samples"))
 
 
@@ -298,12 +300,15 @@ def test_a_button_at_the_end_of_its_way_is_off_says_why_and_sends_nothing(base_u
     page = browser_ctx.new_page()
     page.goto(base_url + "/try/s0-champagne-rose")
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
-    opts = state_of(page)["edit_options"]
-    opt = next(o for o in opts if o.get("reason") in ("softest", "boldest") and o["zone"] in LABEL)
-    open_zone(page, opt["zone"])
-    btn = page.get_by_role("button", name=f"{LABEL[opt['zone']]}: {opt['op']}", exact=True)
+    nearest = palettes.skin_order("light", "lips", "#dfa588")[0]  # the start of her way: nothing softer in this family
+    open_zone(page, "lips")
+    page.get_by_role("button", name=f"Lips: {nearest.name}", exact=True).click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    opt = next(o for o in state_of(page)["edit_options"] if (o["zone"], o["op"]) == ("lips", "softer"))
+    assert opt["reason"] == "softest"
+    btn = page.get_by_role("button", name="Lips: softer", exact=True)
     expect(btn).to_be_disabled()
-    expect(page.get_by_test_id(f"note-{opt['zone']}")).to_have_text(opt["note"])
+    expect(page.get_by_test_id("note-lips")).to_have_text(opt["note"])
     sent = []
     page.on("request", lambda r: sent.append(r.url) if r.method == "POST" else None)
     btn.click(force=True)
@@ -397,7 +402,7 @@ def test_details_keep_the_numbers_out_of_the_sheet(base_url, browser_ctx):
     sheet = page.locator(".sheet").inner_text()
     assert "ΔE" not in sheet and "Coverage" not in sheet and not re.search(r"#[0-9A-Fa-f]{6}", sheet), sheet
     page.get_by_text("The numbers behind your look").click()
-    expect(page.locator("#zone-numbers tbody tr")).to_have_count(9)
+    expect(page.locator("#zone-numbers tbody tr")).to_have_count(len(state_of(page)["shades"]))
     page.get_by_text("How far is the recipe from your inspiration?").click()
     expect(page.locator("#gaps tbody tr")).to_have_count(3)
     assert re.search(r"\d\.\d", page.locator("#gaps tbody").inner_text()), "the numbers stay on the page"
