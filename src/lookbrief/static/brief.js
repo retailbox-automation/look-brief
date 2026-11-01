@@ -36,7 +36,6 @@
     if (!im.hair && hairImg) {
       $("b-hair").alt = "Bride's selfie with the inspiration hair (YouCam Hair Transfer)";
       $("b-hair-cap").textContent = "Hair (YouCam Hair Transfer on her selfie)";
-      $("more-photos-h").textContent = "Inspiration photo and hair preview";
     }
     const signed = !!view.attestation;
     const rows = view.snapshot.review_zones.map((z) => {
@@ -46,7 +45,7 @@
       const detail = z === "skin"
         ? `${dots} ${esc(zi.shade_name)} · ${codes}`
         : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${codes} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
-        : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
+        : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hairstyle only, as in the hair preview below. Makeup as in the agreed look above";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;
       }

@@ -2,13 +2,13 @@
  "payload": {
   "type": "lookbrief.agreement.v1",
   "statement": "The Look Brief server recorded that the bride link and the makeup-artist link both agreed to this exact brief version. This is a server attestation, not a personal signature.",
-  "brief_id": "-P92QAs-SAgx",
+  "brief_id": "0VO8I1Nga67F",
   "version": 1,
   "issuer": "https://lookbrief.retailbox-automation.com",
-  "issued_at": "2026-11-01T01:46:02Z",
+  "issued_at": "2026-11-01T14:35:48Z",
   "agreed_at": {
-   "artist": "2026-11-01T01:46:02Z",
-   "bride": "2026-11-01T01:46:02Z"
+   "artist": "2026-11-01T14:35:48Z",
+   "bride": "2026-11-01T14:35:48Z"
   },
   "reviews_sha256": "20488b0659809f7ab3f0673a3646dc5ab809c3ba2e7fde80f93b2d234121cf45",
   "zones": [
@@ -319,7 +319,7 @@
   "mode": "replay"
  },
  "alg": "Ed25519",
- "key_id": "cf83909f69d66c60",
- "public_key_b64": "wGx8cHLi/9kgi3tRUuPheepZeHQn7UfIUIYluXuEDbs=",
- "signature_b64": "UvclZNhL4ZM8ep3k5MnMlM/whxk+26Z3j/w+6nD0MnvQgBYWvAC5XHoOR+EzT8EsU+YNgfDrYmO++Ac+8gaOCQ=="
+ "key_id": "cb7ac473e6c1cc7f",
+ "public_key_b64": "OptWjpZ422ScBp4JNnwFkgoGlAeM1kC3pY62k1bUimI=",
+ "signature_b64": "wruL5SC2kgjh7TNBYQnDq/rNNC19HWMEhrF4/wPAsCBAMB0Xmu2QJsMKMPGjCpJPVyrA3MUvsKQsQU6N94zDAA=="
 }

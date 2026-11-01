@@ -646,6 +646,21 @@ IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute difference (0..255)
 
 
 @needs("s2-classic-red")
+def test_artist_signs_only_the_hairstyle_under_the_hair_preview(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s2-classic-red")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    page.get_by_role("button", name="Send brief to my makeup artist").click()
+    expect(page.get_by_test_id("artist-link")).to_be_visible(timeout=10_000)
+    bride = browser_ctx.new_page()
+    bride.goto(base_url + page.get_by_test_id("artist-link").get_attribute("href"))
+    expect(bride.get_by_test_id("review-hair")).to_contain_text(
+        "Hairstyle only, as in the hair preview below. Makeup as in the agreed look above")
+    bride.get_by_text("Inspiration photo and hair preview").click()
+    expect(bride.locator("#b-hair-cap")).to_have_text("Hair preview, first version of the look")
+
+
+@needs("s2-classic-red")
 def test_edits_show_on_the_photo_in_every_view_and_zones_step_aside(base_url, browser_ctx):
     """Nadya on an iPhone (31.10): in "Makeup + hair" an edit only changed the text; the zone outlines covered the
     face; the top pills went under the status bar. An edit must change the photo itself, whatever view is on."""

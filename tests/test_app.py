@@ -670,10 +670,41 @@ def test_brief_target_is_the_recipe_render_she_agrees_to(client, sample, edit):
         v = client.get(f"/api/briefs/{bid}?t={t}").json()
         assert v["snapshot"]["target"] == "render"
         assert client.get(v["images"]["render"]).status_code == 200
-    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", client.get(f"/card/{bid}?t={bride}").text)
+    card = client.get(f"/card/{bid}?t={bride}").text
+    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", card)
     assert sum(f.startswith("Agreed look") for f in figs) == 1, f"exactly one photo is the agreed look: {figs}"
     assert figs[0] == "Bare face" and figs[1].startswith("Agreed look")
-    assert "How we read the inspiration (Makeup Transfer)" in figs
+    assert "Inspiration" in figs
+
+
+@pytest.mark.parametrize("sample", ["s0-champagne-rose", "s2-classic-red", "s3-mauve-smoky"])
+def test_card_leaves_out_the_raw_makeup_transfer(client, sample):
+    """The raw transfer has blotches and heavy eyes the recipe avoids: it stays in the folded step, not on the card."""
+    sid = _sample_session(client, sample)
+    bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    view = client.get(f"/api/briefs/{bid}?t={bride}").json()
+    card = client.get(f"/card/{bid}?t={bride}").text
+    assert view["images"]["look"].split("?")[0] not in card
+    assert "Makeup Transfer" not in "".join(re.findall(r"<figcaption>([^<]*)</figcaption>", card))
+
+
+def test_card_hair_preview_covers_the_hairstyle_only(client):
+    """The hair frame is recorded on the first version of the look: an edit does not reach it, the artist signs hair."""
+    sid = _sample_session(client, "s2-classic-red")
+    r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "shade:rose-gloss"})
+    assert r.status_code == 200, r.text
+    bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    card = client.get(f"/card/{bid}?t={bride}").text
+    figs = re.findall(r"<figcaption>([^<]*)</figcaption>", card)
+    assert "Hair preview, first version of the look" in figs and "Makeup + hair" not in figs
+    assert "Hairstyle only, as in the hair preview. Makeup as in the agreed look" in card
+
+
+def test_card_hair_row_of_a_hair_first_look_points_at_the_agreed_photo(client):
+    sid = _sample_session(client, "s0-champagne-rose")
+    bid, bride, _ = _links(client.post(f"/api/sessions/{sid}/brief").json())
+    card = client.get(f"/card/{bid}?t={bride}").text
+    assert "Hairstyle as in the agreed look photo" in card and "Hair preview" not in card
 
 
 def test_hair_first_before_photo_is_her_face_with_the_new_hair(client):
