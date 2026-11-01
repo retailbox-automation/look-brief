@@ -1,8 +1,8 @@
 {
  "step": "render:look:fresh",
- "task_id": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs7j8NjRi2meySdu4f0py_vLd-BTT-LvvMAmKHuvXEbI5Q",
- "recorded_at": "2026-10-31T23:55:51Z",
- "seconds": 6.6,
+ "task_id": "2aLHyDAYE4MYLvXU1IBC32hA6TlWZ7a6nXjhN9cvfSIZSrWF7RL58wFX4NC5QYC-d-BTT-LvvMAmKHuvXEbI5Q",
+ "recorded_at": "2026-11-01T00:44:19Z",
+ "seconds": 8.9,
  "units": 1,
  "request_without_file_ids": {
   "version": "1.0",
@@ -30,27 +30,27 @@
     },
     "palettes": [
      {
-      "color": "#D9B08C",
+      "color": "#E0B098",
       "texture": "shimmer",
-      "shimmerColor": "#D9B08C",
-      "shimmerIntensity": 60,
-      "colorIntensity": 70
+      "shimmerColor": "#E0B098",
+      "shimmerIntensity": 80,
+      "colorIntensity": 90
      },
      {
       "color": "#8A6450",
       "texture": "matte",
-      "colorIntensity": 62
+      "colorIntensity": 76
      }
     ]
    },
    {
     "category": "eye_liner",
     "pattern": {
-     "name": "Upper283"
+     "name": "Upper1"
     },
     "palettes": [
      {
-      "color": "#7A5C52",
+      "color": "#4A342C",
       "texture": "matte",
       "colorIntensity": 50
      }
@@ -64,7 +64,7 @@
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 60
+      "colorIntensity": 70
      }
     ]
    },
@@ -77,7 +77,7 @@
      {
       "color": "#5A4034",
       "texture": "matte",
-      "colorIntensity": 35
+      "colorIntensity": 30
      }
     ]
    },
@@ -88,10 +88,10 @@
     },
     "palettes": [
      {
-      "color": "#C87A6E",
+      "color": "#D0705E",
       "texture": "satin",
-      "glowStrength": 30,
-      "colorIntensity": 34
+      "glowStrength": 40,
+      "colorIntensity": 44
      }
     ]
    },
@@ -103,7 +103,7 @@
     "palettes": [
      {
       "color": "#C08A55",
-      "colorIntensity": 20
+      "colorIntensity": 16
      }
     ]
    },
@@ -117,11 +117,24 @@
     },
     "palettes": [
      {
-      "color": "#D98C86",
-      "texture": "sheer",
-      "colorIntensity": 55,
-      "gloss": 45,
-      "transparencyIntensity": 30
+      "color": "#D0857F",
+      "texture": "satin",
+      "colorIntensity": 66
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#B0706E",
+      "texture": "matte",
+      "colorIntensity": 28,
+      "thickness": 12,
+      "smoothness": 90
      }
     ]
    }

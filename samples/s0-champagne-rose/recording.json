@@ -388,5 +388,35 @@
     "face_width_share": 0.568
    }
   }
+ },
+ {
+  "at": "2026-11-01T00:44:19Z",
+  "credit_before": 442,
+  "credit_after": 441,
+  "units_spent": 1,
+  "photo_check": {
+   "bride": {
+    "role": "bride",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": -13.2,
+    "pitch_deg": 6.7,
+    "roll_deg": 10.1,
+    "face_width_share": 0.539
+   },
+   "inspiration": {
+    "role": "inspiration",
+    "ok": true,
+    "issues": [],
+    "width": 768,
+    "height": 1024,
+    "yaw_deg": 1.2,
+    "pitch_deg": 7.5,
+    "roll_deg": 0.1,
+    "face_width_share": 0.568
+   }
+  }
  }
 ]

@@ -3272,139 +3272,6 @@
     }
    }
   },
-  "render:look:fresh": {
-   "step": "render:look:fresh",
-   "mode": "live",
-   "task_id": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs7j8NjRi2meySdu4f0py_vLd-BTT-LvvMAmKHuvXEbI5Q",
-   "seconds": 6.6,
-   "units": 1,
-   "recorded_at": "2026-10-31T23:55:51Z",
-   "label": "look:fresh",
-   "image": "results/render__look__fresh.png",
-   "recipe": {
-    "version": 2,
-    "group": "light",
-    "look": "fresh",
-    "skin_hex": "#dfa588",
-    "zones": {
-     "eyes": {
-      "category": "eye_shadow",
-      "shade_id": "sunlit-taupe",
-      "shade_name": "Sunlit taupe",
-      "palette": [
-       "#D9B08C",
-       "#8A6450"
-      ],
-      "texture": "shimmer",
-      "pattern": "2colors279",
-      "intensity": 70,
-      "slot_intensity": [
-       70,
-       62
-      ],
-      "shimmer": [
-       60,
-       0
-      ]
-     },
-     "liner": {
-      "category": "eye_liner",
-      "shade_id": "taupe-brown",
-      "shade_name": "Taupe brown",
-      "palette": [
-       "#7A5C52"
-      ],
-      "texture": "matte",
-      "pattern": "Upper283",
-      "intensity": 50
-     },
-     "lashes": {
-      "category": "eyelashes",
-      "shade_id": "natural",
-      "shade_name": "Natural",
-      "palette": [
-       "#17110f"
-      ],
-      "texture": "",
-      "pattern": "Natural17",
-      "intensity": 60
-     },
-     "brows": {
-      "category": "eyebrows",
-      "shade_id": "natural",
-      "shade_name": "Natural",
-      "palette": [
-       "#5A4034"
-      ],
-      "texture": "matte",
-      "pattern": "color",
-      "intensity": 35
-     },
-     "cheeks": {
-      "category": "blush",
-      "shade_id": "soft-peach",
-      "shade_name": "Soft peach",
-      "palette": [
-       "#C87A6E"
-      ],
-      "texture": "satin",
-      "pattern": "1color2",
-      "intensity": 34,
-      "glow": 30
-     },
-     "bronzer": {
-      "category": "bronzer",
-      "shade_id": "natural",
-      "shade_name": "Natural",
-      "palette": [
-       "#C08A55"
-      ],
-      "texture": "",
-      "pattern": "Bronzer1",
-      "intensity": 20
-     },
-     "highlight": {
-      "category": "highlighter",
-      "shade_id": "none",
-      "shade_name": "None",
-      "palette": [],
-      "texture": "",
-      "pattern": "OvalFace28",
-      "intensity": 0,
-      "glow": {
-       "glowIntensity": 35,
-       "shimmerIntensity": 15,
-       "shimmerDensity": 35,
-       "shimmerSize": 25
-      }
-     },
-     "lips": {
-      "category": "lip_color",
-      "shade_id": "rosy-peach",
-      "shade_name": "Rosy peach",
-      "palette": [
-       "#D98C86"
-      ],
-      "texture": "sheer",
-      "pattern": "original",
-      "intensity": 55
-     },
-     "lip_line": {
-      "category": "lip_liner",
-      "shade_id": "none",
-      "shade_name": "None",
-      "palette": [],
-      "texture": "",
-      "pattern": "Natural1",
-      "intensity": 0,
-      "stroke": [
-       30,
-       70
-      ]
-     }
-    }
-   }
-  },
   "render:look:evening": {
    "step": "render:look:evening",
    "mode": "live",
@@ -3937,6 +3804,141 @@
       "texture": "matte",
       "pattern": "Natural1",
       "intensity": 30,
+      "stroke": [
+       12,
+       90
+      ]
+     }
+    }
+   }
+  },
+  "render:look:fresh": {
+   "step": "render:look:fresh",
+   "mode": "live",
+   "task_id": "2aLHyDAYE4MYLvXU1IBC32hA6TlWZ7a6nXjhN9cvfSIZSrWF7RL58wFX4NC5QYC-d-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.9,
+   "units": 1,
+   "recorded_at": "2026-11-01T00:44:19Z",
+   "label": "look:fresh",
+   "image": "results/render__look__fresh.png",
+   "recipe": {
+    "version": 2,
+    "group": "light",
+    "look": "fresh",
+    "skin_hex": "#dfa588",
+    "zones": {
+     "eyes": {
+      "category": "eye_shadow",
+      "shade_id": "peach-taupe",
+      "shade_name": "Peach taupe",
+      "palette": [
+       "#E0B098",
+       "#8A6450"
+      ],
+      "texture": "shimmer",
+      "pattern": "2colors279",
+      "intensity": 90,
+      "slot_intensity": [
+       90,
+       76
+      ],
+      "shimmer": [
+       80,
+       0
+      ]
+     },
+     "liner": {
+      "category": "eye_liner",
+      "shade_id": "soft-brown",
+      "shade_name": "Soft brown",
+      "palette": [
+       "#4A342C"
+      ],
+      "texture": "matte",
+      "pattern": "Upper1",
+      "intensity": 50
+     },
+     "lashes": {
+      "category": "eyelashes",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#17110f"
+      ],
+      "texture": "",
+      "pattern": "Natural17",
+      "intensity": 70
+     },
+     "brows": {
+      "category": "eyebrows",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#5A4034"
+      ],
+      "texture": "matte",
+      "pattern": "color",
+      "intensity": 30
+     },
+     "cheeks": {
+      "category": "blush",
+      "shade_id": "soft-coral",
+      "shade_name": "Soft coral",
+      "palette": [
+       "#D0705E"
+      ],
+      "texture": "satin",
+      "pattern": "1color2",
+      "intensity": 44,
+      "glow": 40
+     },
+     "bronzer": {
+      "category": "bronzer",
+      "shade_id": "natural",
+      "shade_name": "Natural",
+      "palette": [
+       "#C08A55"
+      ],
+      "texture": "",
+      "pattern": "Bronzer1",
+      "intensity": 16
+     },
+     "highlight": {
+      "category": "highlighter",
+      "shade_id": "none",
+      "shade_name": "None",
+      "palette": [],
+      "texture": "",
+      "pattern": "OvalFace28",
+      "intensity": 0,
+      "glow": {
+       "glowIntensity": 35,
+       "shimmerIntensity": 15,
+       "shimmerDensity": 35,
+       "shimmerSize": 25
+      }
+     },
+     "lips": {
+      "category": "lip_color",
+      "shade_id": "rosy-nude",
+      "shade_name": "Rosy nude",
+      "palette": [
+       "#D0857F"
+      ],
+      "texture": "satin",
+      "pattern": "original",
+      "intensity": 66
+     },
+     "lip_line": {
+      "category": "lip_liner",
+      "shade_id": "rosy",
+      "shade_name": "Rosy",
+      "palette": [
+       "#B0706E"
+      ],
+      "texture": "matte",
+      "pattern": "Natural1",
+      "intensity": 28,
       "stroke": [
        12,
        90
