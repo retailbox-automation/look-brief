@@ -208,6 +208,24 @@ def test_a_lip_liner_she_chose_survives_either_click_order(client):
     assert a["recipe_sha256"] == b["recipe_sha256"] and image(client, a) == image(client, b)
 
 
+def test_bolder_steps_inside_a_stack_and_keeps_the_other_zones(client):
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:bronze")
+    edit(client, sid, zone="liner", op="shade:wing")
+    st = edit(client, sid, zone="eyes", op="bolder")  # bronze -> chocolate on this palette
+    assert sorted(st["edits"]) == [["eyes", "shade:chocolate"], ["liner", "shade:wing"]]
+    assert st["composition"]["zone_renders"] == 2
+
+
+def test_softer_back_to_the_look_drops_that_zone_and_keeps_the_others(client):
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    edit(client, sid, zone="liner", op="shade:wing")
+    st = edit(client, sid, zone="eyes", op="softer")  # chocolate -> rose gold, the lid Soft glam wears
+    assert st["edits"] == [["liner", "shade:wing"]] and st["recipe"]["zones"]["eyes"]["shade_id"] == "rose-gold"
+    assert st["composition"] is None and st["images"]["render"].endswith("render-liner-shade-wing.png")
+
+
 # ---------------- what stays a real render ----------------
 def test_one_change_stays_the_real_render_with_its_task_id(client):
     sid = session(client, "s0-champagne-rose")

@@ -10,9 +10,46 @@ units then showed why strength cannot be the button: intensity +-8-10 moves a zo
 - **Circles:** every shade of lids, cheeks and lips, metallic and gloss looks among them. They are recorded on all three
   looks; on Classic and Evening a key reads `look:evening+lips:shade:ruby` and is measured against the render of that look.
 - **Styles:** liner, lashes, brows, highlighter and lip liner offer named steps with their own pattern and strength;
-  the highlighter can be left out. They are recorded on Soft glam: on Classic and Evening a style moves the look to Soft
-  glam, says so, and Undo returns to the look. Bronzer has no choice: a light warm layer that is part of the look.
+  the highlighter can be left out. They are recorded on Soft glam only; on Classic and Evening a style is the step
+  between two of those renders and the look stays (see below). Bronzer has no choice: a light warm layer that is part
+  of the look.
 No colour is computed: every colour sent is a shade of the palette.
+
+## Zones stack (`src/lookbrief/layers.py`, `tests/test_layers.py`, `tests/test_zone_stacking.py`)
+Nadya on an iPhone (01.11.2026): "When I pick Eyelids, say Chocolate, I like it, but then I want a better wing in this
+look. I pick Eyeliner, add Wing, but I want that Chocolate eyelid to stay." A zone holds one choice and the others stay.
+"Remove this step" returns one zone to the look; taking a product off entirely exists only for the highlighter.
+
+- **Live** makes one real call with the whole recipe.
+- **Replay, a list that is recorded** (one change, a look, a circle on a look): that real render, untouched, with its
+  task id.
+- **Replay, anything else** is assembled on the server from recorded single-zone renders, one per zone, into one JPEG
+  (quality 92), so the brief, the card, the PDF and the signature keep one file. The same choices give the same bytes
+  in any click order: the zones land in a fixed order (lids, brows, cheeks, highlighter, lips, lip liner, liner, lashes)
+  and the file is named by the sorted choices.
+- **Sources.** The frame is the look (`render:base`, `render:look:<look>`). Lids, cheeks, lips: the look's own recorded
+  circle against the frame. Thin zones: the Soft glam single of the choice against the Soft glam single of what the
+  frame wears, or `render:base` where no such single exists. A choice with no source, or whose two renders are the same
+  render, is off and says so: the photo could not change while the tab said it had.
+- **Blend**, in linear light inside the mask of the zone: the ratio T/R on the frame. Liner and lashes that add to the
+  frame are painted instead, liner keeping the depth of the render in its opaque core (`layers.PAINT`, one line to swap).
+  Going back to a lighter style uses the ratio: paint cannot lighten.
+- **It says so.** "Assembled from N recorded YouCam Makeup VTO results, one per zone" on the photo, before and after,
+  the brief and the card, where N counts the zone renders; no single task id is shown as if it were the whole image.
+  The signed record holds the method and the task id of every frame, zone render and reference.
+
+Checked against what the samples hold for real: Evening is recorded with Wing and Volume on all 6 lids of all 3 samples,
+18 multi-zone renders. The same clicks on Soft glam (lid + Wing + Volume) against them, eye area, dE2000:
+
+| | Mean, average | Mean, worst | p95, average | p95, worst |
+|---|---|---|---|---|
+| Assembled pixels | 0.81 | 1.05 | 2.98 | 4.25 |
+| The same after the JPEG she gets | 1.22 | 1.46 | 3.45 | 4.49 |
+| A real render through the same JPEG, against itself | 0.84 | 1.01 | 2.18 | 2.80 |
+
+On the 216-225 pixels of the wing itself: mean 2.54 at worst, against 11.1 at best for the last click alone. Six zones on
+the whole face have no real render to compare with. One compose of eight zones: 0.21 s on the development machine, about
+39 MB of arrays at its peak, under the same one-at-a-time slot as every render. Not measured on the 1 CPU container.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
 Inside the mask of the zone (open eye and mouth left out), against the render without edits, or between the two shades

@@ -4,7 +4,8 @@
   sample folder so the same run can be replayed later.
 * ReplayEngine — serves recorded real YouCam results from samples/<id>/manifest.json. This is the
   default for judges (allowed by the organiser, Devpost forum thread 45693): no key, no units, and
-  every result is labelled as recorded with its original task_id and timestamp.
+  every result is labelled as recorded with its original task_id and timestamp. Several changed zones
+  have no recording: `compose` stacks the recorded zone renders (lookbrief.layers) and the label says so.
 * GridEngine — a LiveEngine for recording a sample's grid: what the sample already holds is served
   from it for free, and spending stops at a ceiling.
 """

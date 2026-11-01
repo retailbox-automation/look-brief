@@ -376,6 +376,19 @@ def test_live_flow_ledger_caps_and_delete(live_client):
     assert "Recorded samples still work" in r2.json()["reason"]
 
 
+def test_live_remove_is_one_more_paid_render_under_the_same_cap(live_client):
+    sid = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"}).json()["session_id"]
+    st = live_client.get(f"/api/sessions/{sid}").json()
+    lips = next(f"shade:{s.id}" for s in palettes.ladder(st["recipe"]["group"], "lips")
+                if s.id != st["recipe"]["zones"]["lips"]["shade_id"])
+    live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": lips})
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"zone": "cheeks", "op": "bolder"})
+    assert r.status_code == 200 and r.json()["units_spent"] == 8, "the session cap of this fixture"
+    r = live_client.post(f"/api/sessions/{sid}/edits", json={"action": "remove", "zone": "lips"})
+    assert r.status_code == 429 and r.json()["error"] == "session_cap", "a removal is a render: it cannot pass the cap"
+    assert [e[0] for e in live_client.get(f"/api/sessions/{sid}").json()["edits"]] == ["lips", "cheeks"]
+
+
 def test_live_refused_when_credit_low(live_client, monkeypatch):
     monkeypatch.setattr(FakeYouCam, "credit_value", 50)
     r = live_client.post("/api/live/sessions", files=_files(), data={"consent": "yes"})

@@ -81,6 +81,11 @@ API from the server only, behind a consent screen, with a unit budget, a per-net
 per-session cap; when any limit is reached it falls back to the recorded samples. Uploaded photos are deleted after
 24 hours or on request.
 
+**Zone choices stack.** One change shows the recorded render itself. Several changed zones have no recorded render, so
+Replay assembles them on the server from recorded single-zone renders, one per zone, and says so on the photo, the brief
+and the card; the signed record lists every component task id. Live makes one real call with the whole recipe.
+[`docs/EDITS.md`](docs/EDITS.md) has the rule and the measurement.
+
 ## Run it in 5 minutes
 
 Requirements: Python 3.12 and [uv](https://docs.astral.sh/uv/).
@@ -149,8 +154,10 @@ which the hair-first order plus a foundation layer under the reading avoids with
   measure the map before hair; the hair-first order measures it on her face with the new hair.
 - The look is built from ready-made shades and does not copy the transfer: on the recorded faces the gap is large,
   especially on lips and on one set of eyelids. The accuracy table shows it zone by zone.
-- Samples hold what was recorded. Lids, cheeks and lips can be changed on every look; a style of a thin zone is
-  recorded on Soft glam only, so on Classic and Evening it moves the look to Soft glam and says so.
+- Samples hold what was recorded. A look with several changed zones is assembled from recorded zone renders, not one
+  API call: against 18 real multi-zone renders the eye area sits at mean ΔE2000 0.81 before the JPEG and 1.22 after, and
+  six zones on the whole face have no real render to compare with. A thin-zone style is recorded on Soft glam only: on
+  Classic and Evening it is the step between two recorded renders, and a style with no such step is off.
 - Nose and contour changes are reported but not re-rendered.
 - No external users yet; the samples are fictional, AI-generated faces.
 - The public demo is Replay-only; Live needs your own key.
