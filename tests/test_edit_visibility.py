@@ -93,6 +93,20 @@ def test_a_render_that_changes_nothing_is_quiet(synthetic):
     assert set(rep["quiet"]) == set(rep["edits"]), "must-differ control below: a painted render is not quiet"
 
 
+def test_a_softer_that_ends_further_from_her_bare_skin_is_not_offered(synthetic):
+    """Softer and Bolder are named for what they do to the photo: a step that goes the other way gets no button."""
+    sd, steps = synthetic
+    base = steps["render:base"]["recipe"]
+    start = base["zones"]["lips"]["shade_id"]
+    softer = palettes.step_from("deep", "lips", base["skin_hex"], start, "softer")
+    _paint(sd, steps, f"render:lips:shade:{softer}", "lips")  # visible, and further from the bare lips than the base
+    rep = visibility.edit_visibility(sd)
+    step = rep["edits"][f"lips:softer@{start}"]
+    assert step["p90"] >= visibility.min_p90("lips"), "must-differ control: the step shows, only its direction is wrong"
+    assert step["wrong_way"] and f"lips:softer@{start}" in rep["quiet"]
+    assert f"lips:shade:{softer}" not in rep["quiet"], "the circle itself stays: it only has no name of softer"
+
+
 def test_a_painted_circle_shows_and_its_neighbours_steps_show_with_it(synthetic):
     sd, steps = synthetic
     base = steps["render:base"]["recipe"]

@@ -59,6 +59,9 @@ def zone_masks(face: landmarks.FaceGeometry) -> dict[str, np.ndarray]:
     }
 
 
+WRONG_WAY = 0.15  # mean dE2000 against the bare face: below this a step is level, not the wrong way
+
+
 def min_p90(zone: str) -> float:
     return ZONE_MIN_P90.get(zone, MIN_P90)
 
@@ -98,6 +101,19 @@ def edit_visibility(sample_dir: Path) -> dict:
         else:
             missing.append(name)
 
+    bare_lab = makeup_map._lab(makeup_map.to_rgb_array(bare))
+
+    def from_bare(key: str, zone: str) -> float:
+        return float(delta_e2000(bare_lab[masks[zone]], zone_lab(key, zone)).mean())
+
+    def wrong_way(name: str, a: str, b: str, zone: str, op: str) -> None:
+        """Softer must not end further from her bare skin than it starts, Bolder not closer: the palette order is a
+        promise about colour, the render decides what she sees (a third of the steps went the other way on 01.11)."""
+        if name in edits:
+            moved = from_bare(b, zone) - from_bare(a, zone)
+            if (moved > WRONG_WAY if op == "softer" else moved < -WRONG_WAY):
+                edits[name].update(ok=False, wrong_way=True)
+
     for change in record_grid(recipe):
         zone = change[-1][0]
         if zone != LOOK_ZONE:  # against the render it starts from: the base, or the look the circle sits on
@@ -119,5 +135,7 @@ def edit_visibility(sample_dir: Path) -> dict:
                 for op in EDIT_OPS:
                     target = palettes.step_from(recipe["group"], zone, recipe["skin_hex"], shade, op)
                     if target:
-                        measure(f"{prefix}{zone}:{op}@{shade}", render_of(shade), render_of(target), zone)
+                        name = f"{prefix}{zone}:{op}@{shade}"
+                        measure(name, render_of(shade), render_of(target), zone)
+                        wrong_way(name, render_of(shade), render_of(target), zone, op)
     return {"edits": edits, "quiet": [k for k, v in edits.items() if not v["ok"]], "missing": missing}

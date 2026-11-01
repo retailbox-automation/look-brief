@@ -334,17 +334,19 @@
       : payload.action === "reset" ? "Back to your look."
       : "Updated.");
     render();
-    // after a zone change, show the photo if less than half of its frame is on screen; the photo itself is scaled on a
-    // close-up, its box says nothing about what she sees
+    // after any change, Undo included, show the photo if less than half of its frame is on screen: a change she cannot
+    // see reads as a button that did nothing. The photo itself is scaled on a close-up, its box says nothing about what
+    // she sees
     const hr = document.querySelector(".hero-frame").getBoundingClientRect();
-    const scrolled = !!payload.zone && Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
+    const scrolled = Math.min(hr.bottom, innerHeight) - Math.max(hr.top, 0) < hr.height / 2;
     // to the top of the page (the look starts it), not to the photo's top edge: on iPhone Safari the page top keeps
     // the safe-area padding, while the photo's edge (= the top of #look) lands under the status bar with the pills
     if (scrolled) window.scrollTo({ top: 0, behavior: "smooth" });
     const usable = (el) => el && !el.disabled && !el.closest("[hidden]");
     const back = refocus && document.querySelector(refocus);
-    if (refocus && usable(back)) back.focus({ preventScroll: scrolled });
-    else if (refocus && usable($("undo"))) $("undo").focus({ preventScroll: scrolled }); // the button pressed is gone or disabled
+    // never scroll for the focus: Undo sits below the fold, and a button that turned itself off would take the photo away
+    if (refocus && usable(back)) back.focus({ preventScroll: true });
+    else if (refocus && usable($("undo"))) $("undo").focus({ preventScroll: true }); // the button pressed is gone or disabled
   }
 
   $("ba").addEventListener("input", (e) => { $("img-after").style.clipPath = `inset(0 0 0 ${e.target.value}%)`; });

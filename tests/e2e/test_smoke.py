@@ -461,6 +461,48 @@ def test_a_change_made_low_on_the_page_brings_the_close_up_back_on_screen(base_u
     page.close()
 
 
+@needs("s0-champagne-rose")
+def test_undo_low_on_the_page_brings_the_photo_back_on_screen(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": 390, "height": 664})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    page.get_by_role("button", name="Evening", exact=True).click()
+    expect(page.locator("#edit-msg")).not_to_have_text("One moment…", timeout=20_000)
+    undo = page.locator("#undo")
+    undo.scroll_into_view_if_needed()
+    page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+    undo.scroll_into_view_if_needed()
+    assert page.evaluate("scrollY") > 300, "the setup puts the photo off the screen"
+    undo.click()
+    page.wait_for_function("scrollY === 0", timeout=5_000)
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_a_step_that_takes_its_own_button_away_keeps_the_photo_where_it_was(base_url, browser_ctx):
+    """Focus falls to Undo, below the fold, when the pressed button goes: that used to scroll the photo off the screen."""
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    open_zone(page, "lips")
+    softer = page.get_by_role("button", name="Lips: softer", exact=True)
+    softer.evaluate("b => window.scrollTo(0, b.getBoundingClientRect().bottom + scrollY - innerHeight + 4)")
+    before = page.evaluate("scrollY")
+    seen = """(() => { const f = document.querySelector('.hero-frame').getBoundingClientRect();
+                       return Math.min(f.bottom, innerHeight) - Math.max(f.top, 0); })()"""
+    height = page.evaluate("document.querySelector('.hero-frame').offsetHeight")
+    assert page.evaluate(seen) > height / 2, "the photo starts on screen"
+    softer.click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    page.wait_for_timeout(400)
+    opt = [o for o in state_of(page)["edit_options"] if (o["zone"], o["op"]) == ("lips", "softer") and o["available"]]
+    assert not opt, "the setup: this tap leaves no softer step"
+    assert page.evaluate("scrollY") <= before and page.evaluate(seen) > 0
+    page.close()
+
+
 NO_NETWORK = "We could not reach the server. Check your connection and try again."
 
 
