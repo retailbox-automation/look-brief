@@ -301,6 +301,18 @@ def test_a_file_a_brief_shows_survives_eviction_with_its_links_and_its_hash(clie
     assert client.get(b["artist_url"].replace("/b/", "/card/")).status_code == 200
 
 
+def test_the_current_look_stays_when_briefs_hold_the_whole_cap(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
+    sid = session(client, "s0-champagne-rose")
+    edit(client, sid, zone="eyes", op="shade:chocolate")
+    for lip in LIPS[:3]:
+        edit(client, sid, zone="lips", op=f"shade:{lip}")
+        client.post(f"/api/sessions/{sid}/brief").raise_for_status()
+    st = edit(client, sid, zone="lips", op=f"shade:{LIPS[3]}")
+    assert client.get(st["images"]["render"]).status_code == 200
+    assert len(stack_files(tmp_path, sid)) == 4, "what a brief shows and what she looks at stay, past the cap if need"
+
+
 def test_after_a_brief_is_revised_the_file_it_no_longer_shows_can_go(client, tmp_path, monkeypatch):
     monkeypatch.setattr(layers, "MAX_STACK_FILES", 3)
     sid = session(client, "s0-champagne-rose")

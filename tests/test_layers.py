@@ -175,8 +175,8 @@ def test_at_the_cap_nothing_goes(tmp_path):
     assert _left(tmp_path) == set(names)
 
 
-def test_under_the_cap_nothing_goes(tmp_path):
-    names = _stacks(tmp_path, 3)
+def test_one_under_the_cap_nothing_goes(tmp_path):
+    names = _stacks(tmp_path, 59)
     layers.trim(tmp_path, set())
     assert _left(tmp_path) == set(names)
 
