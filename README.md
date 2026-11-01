@@ -2,8 +2,8 @@
 
 **Agree on your wedding makeup before you pay for the trial.** The bride uploads her selfie and the photo she
 loves. YouCam **AI Makeup Transfer** puts that exact makeup on *her* face and **AI Hair Transfer** adds the hair;
-Look Brief measures the makeup zone by zone (eyelids, cheeks, lips — shade, strength, coverage), turns it into an
-editable recipe that **AI Makeup VTO** re-renders ("bolder blush", "lids a shade deeper"), and sends it to her
+Look Brief measures the makeup on her eyelids, cheeks and lips, builds three looks from ready-made shades in nine
+zones and renders them with **AI Makeup VTO**. She changes a shade or a style zone by zone, and sends the look to her
 makeup artist, who confirms every zone by link without an account. The result is one agreed-look card, signed by
 the server, so the paid trial only executes what both already saw.
 
@@ -15,15 +15,15 @@ the server, so the paid trial only executes what both already saw.
 
 | Claim | Check it | What you will see |
 |---|---|---|
-| Real YouCam API results, not mock-ups | Demo → any sample → caption under each picture; `samples/*/manifest.json`, `samples/*/fixtures/` | "Recorded real YouCam API result · task k-uiHOuju2… · 6.7s · 2026-10-31T13:23:48Z"; the same task ids and sanitized API responses in the repo |
+| Real YouCam API results, not mock-ups | Demo → any sample → caption under each picture; `samples/*/manifest.json`, `samples/*/fixtures/` | "Recorded real YouCam API result · task W6__…ldjt90TP · 6.6s · 2026-10-31T23:52:14Z"; the same task ids and sanitized API responses in the repo |
 | Three YouCam APIs work as one flow | [API map](#how-it-works) below; `src/lookbrief/engine.py` | Makeup Transfer → Hair Transfer → Makeup VTO, chained per session |
-| The editable recipe is measured against the transfer | [`docs/ACCURACY.md`](docs/ACCURACY.md), `uv run python scripts/accuracy_report.py` | Mean shade gap ΔE2000 **1.97** over 9 zones of 3 faces (eyelids 1.02, cheeks 2.55, lips 2.34) |
-| Calibrated with data, not by eye | [`docs/CALIBRATION.md`](docs/CALIBRATION.md), `uv run python scripts/calibration_report.py` | v1 rule **3.2 → v2 1.97**, both measured on images committed here |
+| The distance from the transfer is measured and shown | [`docs/ACCURACY.md`](docs/ACCURACY.md), `uv run python scripts/accuracy_report.py` | The look is ready-made shades chosen for her skin, not a copy of the transfer: mean shade gap ΔE2000 **5.2** on 3 faces (eyelids 3.55, cheeks 4.63, lips 7.41), plus all nine zones |
+| History: how the first computed recipe was calibrated | [`docs/CALIBRATION.md`](docs/CALIBRATION.md) | v1 3.2 → v2 1.97 on that earlier recipe, replaced by the ready-made shades |
 | The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
-| Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → "Even out redness" (foundation in her shade over the transfer) gives 4 %, lips stay at ΔE 0.66 |
+| Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → a foundation in her shade over the transfer gives 4 %, lips stay at ΔE 0.66. The makeup map is read from that layer; no render carries it |
 | The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
 | Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 124 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
-| Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Each offered edit moves its zone by mean ΔE2000 ≥ 3.5 (≥ 60 % of pixels over 2.3), two edits of one zone differ by ≥ 3.0; softer is off where the zone is already light |
+| Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Inside the zone the 90th percentile of ΔE2000 is at least 2.5 (brows 3.5); a step below that gets no button. Softer and Bolder go to the next shade of the same colour |
 | Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
 | No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
 
@@ -62,16 +62,18 @@ MediaPipe Face Landmarker points (nearest-feature cells around eyelids, cheeks, 
 a no-makeup control). Per zone it reports the median shade on the face, the bare-skin shade under it, strength
 and coverage (`src/lookbrief/makeup_map.py`, `landmarks.py`).
 
-**The recipe.** Each zone becomes a Makeup VTO effect: product shade pushed away from the skin, intensity from the
-transfer's coverage, lips lifted by L* +8 because VTO lands lip colour darker, and `skin_smooth: 0` always
-(`src/lookbrief/recipe.py`). Edits move one zone one step and re-render for 1 unit.
+**The recipe.** Nine zones: eyelids, eyeliner, lashes, brows, cheeks, bronzer, highlighter, lips, lip liner. Every
+colour is a ready-made shade of the palette for her skin group; no colour is computed (`src/lookbrief/palettes.py`,
+`recipe.py`). There are three looks: Classic, Soft glam and Evening. A concealer in her own colour sits under every
+look, with `skin_smooth: 0` always and no foundation in any render. On a live photo the transfer picks the closest
+shade on the lids, cheeks and lips. She taps a circle, Softer or Bolder (the next shade of the same colour) or a
+named style of a thin zone; each change is a new render for 1 unit.
 
-**Two orders and "Even out redness".** The recorded samples s2 and s3 run Makeup Transfer, then Hair Transfer. The
-heroine sample and Live run **hair first**: Hair Transfer on the selfie, then Makeup Transfer on her face with the
-new hair, so the map, the metric and every re-render share the same light. They also record **Even out redness**:
-Makeup VTO puts a foundation in her own shade (read from her forehead) on top of the transfer — lips and eyes stay
-as transferred — and the artist confirms it as its own zone. The step is always labelled "foundation in her shade
-over the transfer".
+**Two orders.** The recorded samples s2 and s3 run Makeup Transfer, then Hair Transfer. The heroine sample and Live
+run **hair first**: Hair Transfer on the selfie, then Makeup Transfer on her face with the new hair, so the map, the
+metric and every render share the same light. They also record one more step: Makeup VTO puts a foundation in her
+own shade (read from her forehead) on top of the transfer, so natural redness is not read as blush. The makeup map
+is read from that layer. It is not a zone and no render carries it.
 
 **Replay and Live.** Replay serves recorded real API results from `samples/` with their original task ids and
 timestamps — the organiser confirmed this is acceptable for judging (Devpost forum, thread 45693). Live calls the
@@ -91,7 +93,7 @@ uv run lookbrief            # http://127.0.0.1:8731 — three recorded samples, 
 
 Or with Docker: `docker build -t lookbrief . && docker run -p 8080:8080 lookbrief` → http://127.0.0.1:8080
 
-**Live mode with your own YouCam key** (6 units per look — hair, transfer, re-render, even-out — then 1 per zone edit):
+**Live mode with your own YouCam key** (6 units per look — hair, transfer, render and the foundation layer the map is read from — then 1 per zone edit):
 
 ```bash
 cp .env.example .env        # put your key in YOUCAM_API_KEY (server side only, never in the browser)
@@ -102,8 +104,8 @@ Limits are environment variables: `LOOKBRIEF_LIVE_UNIT_BUDGET` (default 200), `L
 `LOOKBRIEF_LIVE_SESSIONS_PER_IP_DAY` (5), `LOOKBRIEF_LIVE_SESSION_UNIT_CAP` (12). Live status: `GET /api/limits`.
 
 **Record your own sample** (rights-cleared faces only): put `bride.jpg` and `inspiration.jpg` in
-`samples/<id>/` with a `sample.json`, then `uv run python scripts/record_sample.py samples/<id>` (17 units with
-the full edit grid).
+`samples/<id>/` with a `sample.json`, then `uv run python scripts/record_sample.py samples/<id>`. The full grid costs
+about 70 units; `--dry` lists it first and `--max-units` sets a ceiling.
 
 ## The agreed-look card and what the signature means
 
@@ -139,14 +141,16 @@ Ten findings with evidence in this repo — [`docs/PLATFORM-FINDINGS.md`](docs/P
 that shaped the product: Makeup VTO smooths the whole face unless `skin_smooth` is set to 0; Makeup VTO is not
 deterministic for eye shadow and lips (identical recipe, up to 2.13 ΔE2000 apart) while blush is; lip colour
 lands darker than the hex it is given; and Makeup Transfer paints patchy blush on a face with natural redness,
-which the hair-first order plus "Even out redness" fixes with the API itself.
+which the hair-first order plus a foundation layer under the reading avoids with the API itself.
 
 ## Honest limits
 
 - Previews, not photos: Hair Transfer also changes the forehead area (ΔE76 1.9–3.3). Transfer-first samples
   measure the map before hair; the hair-first order measures it on her face with the new hair.
-- "Even out redness" is a foundation: it also softens freckles.
-- The editable recipe approximates the transfer; the accuracy table shows how closely, zone by zone.
+- The look is built from ready-made shades and does not copy the transfer: on the recorded faces the gap is large,
+  especially on lips and on one set of eyelids. The accuracy table shows it zone by zone.
+- Samples hold what was recorded. Lids, cheeks and lips can be changed on every look; a style of a thin zone is
+  recorded on Soft glam only, so on Classic and Evening it moves the look to Soft glam and says so.
 - Nose and contour changes are reported but not re-rendered.
 - No external users yet; the samples are fictional, AI-generated faces.
 - The public demo is Replay-only; Live needs your own key.
@@ -163,7 +167,7 @@ runs inside the product.
 ```
 src/lookbrief/   app.py (FastAPI) · youcam.py (API client) · engine.py (Live/Replay) · pipeline.py
                  landmarks.py · makeup_map.py · recipe.py · photo_check.py · attest.py · store.py (SQLite)
-samples/         3 recorded samples: inputs, results, sanitized fixtures, manifest, credit before/after
+samples/         3 public recorded samples: inputs, results, sanitized fixtures, manifest, credit before/after
 scripts/         record_sample.py · accuracy_report.py · calibration_report.py · verify_card.py · …
 docs/            ACCURACY.md · CALIBRATION.md · PLATFORM-FINDINGS.md (+ evidence)
 tests/           unit tests · e2e/ Playwright smoke

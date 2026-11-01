@@ -2,43 +2,134 @@
  "payload": {
   "type": "lookbrief.agreement.v1",
   "statement": "The Look Brief server recorded that the bride link and the makeup-artist link both agreed to this exact brief version. This is a server attestation, not a personal signature.",
-  "brief_id": "S9F72MAEW0Tm",
+  "brief_id": "-P92QAs-SAgx",
   "version": 1,
   "issuer": "https://lookbrief.retailbox-automation.com",
-  "issued_at": "2026-10-31T17:23:54Z",
+  "issued_at": "2026-11-01T01:46:02Z",
   "agreed_at": {
-   "artist": "2026-10-31T17:23:54Z",
-   "bride": "2026-10-31T17:23:54Z"
+   "artist": "2026-11-01T01:46:02Z",
+   "bride": "2026-11-01T01:46:02Z"
   },
-  "reviews_sha256": "977b29b9e6be0d09f250176ce2682b3bca31adcd409b4bebfdd14a0b9906e226",
+  "reviews_sha256": "20488b0659809f7ab3f0673a3646dc5ab809c3ba2e7fde80f93b2d234121cf45",
   "zones": [
    {
     "zone": "eyes",
     "label": "Eyelids",
-    "product_hex": "#936755",
-    "intensity": 71,
+    "shade_name": "Rose gold",
+    "palette": [
+     "#B9745F",
+     "#5C342A"
+    ],
+    "texture": "shimmer",
+    "product_hex": "#B9745F",
+    "intensity": 92,
     "on_face_hex": "#9a6954",
     "coverage": 0.253,
     "status": "do",
     "note": ""
    },
    {
+    "zone": "liner",
+    "label": "Eyeliner",
+    "shade_name": "Classic",
+    "palette": [
+     "#2B1B17"
+    ],
+    "texture": "matte",
+    "product_hex": "#2B1B17",
+    "intensity": 60,
+    "on_face_hex": null,
+    "coverage": null,
+    "status": "do",
+    "note": ""
+   },
+   {
+    "zone": "lashes",
+    "label": "Lashes",
+    "shade_name": "Natural",
+    "palette": [
+     "#17110f"
+    ],
+    "texture": "",
+    "product_hex": "#17110f",
+    "intensity": 75,
+    "on_face_hex": null,
+    "coverage": null,
+    "status": "do",
+    "note": ""
+   },
+   {
+    "zone": "brows",
+    "label": "Brows",
+    "shade_name": "Natural",
+    "palette": [
+     "#5A4034"
+    ],
+    "texture": "matte",
+    "product_hex": "#5A4034",
+    "intensity": 35,
+    "on_face_hex": null,
+    "coverage": null,
+    "status": "do",
+    "note": ""
+   },
+   {
     "zone": "cheeks",
     "label": "Cheeks",
-    "product_hex": "#b75f41",
-    "intensity": 61,
+    "shade_name": "Warm rose",
+    "palette": [
+     "#B85A68"
+    ],
+    "texture": "satin",
+    "product_hex": "#B85A68",
+    "intensity": 38,
     "on_face_hex": "#bb7054",
     "coverage": 0.0447,
     "status": "swap",
     "note": "I'll use a cream blush one shade cooler"
    },
    {
+    "zone": "bronzer",
+    "label": "Bronzer",
+    "shade_name": "Natural",
+    "palette": [
+     "#C08A55"
+    ],
+    "texture": "",
+    "product_hex": "#C08A55",
+    "intensity": 20,
+    "on_face_hex": null,
+    "coverage": null,
+    "status": "do",
+    "note": ""
+   },
+   {
     "zone": "lips",
     "label": "Lips",
-    "product_hex": "#da8e88",
-    "intensity": 52,
+    "shade_name": "Dusty rose",
+    "palette": [
+     "#B96F78"
+    ],
+    "texture": "satin",
+    "product_hex": "#B96F78",
+    "intensity": 68,
     "on_face_hex": "#c17670",
     "coverage": 0.1252,
+    "status": "do",
+    "note": ""
+   },
+   {
+    "zone": "lip_line",
+    "label": "Lip liner",
+    "shade_name": "Natural",
+    "palette": [
+     "#B0606E"
+    ],
+    "texture": "matte",
+    "product_hex": "#B0606E",
+    "intensity": 30,
+    "on_face_hex": null,
+    "coverage": null,
     "status": "do",
     "note": ""
    },
@@ -51,8 +142,13 @@
    {
     "zone": "skin",
     "label": "Skin",
+    "shade_name": "Concealer in her own shade",
+    "palette": [
+     "#dfa588"
+    ],
+    "texture": "",
     "product_hex": "#dfa588",
-    "intensity": 30,
+    "intensity": null,
     "on_face_hex": null,
     "coverage": null,
     "status": "do",
@@ -60,32 +156,131 @@
    }
   ],
   "recipe": {
-   "version": 1,
+   "version": 2,
+   "group": "light",
+   "look": "softglam",
+   "skin_hex": "#dfa588",
    "zones": {
     "eyes": {
      "category": "eye_shadow",
-     "pattern": "1color1",
-     "color": "#936755",
-     "intensity": 71,
-     "skin": "#a36b53"
+     "shade_id": "rose-gold",
+     "shade_name": "Rose gold",
+     "palette": [
+      "#B9745F",
+      "#5C342A"
+     ],
+     "texture": "shimmer",
+     "pattern": "2colors279",
+     "intensity": 92,
+     "slot_intensity": [
+      92,
+      88
+     ],
+     "shimmer": [
+      70,
+      0
+     ]
+    },
+    "liner": {
+     "category": "eye_liner",
+     "shade_id": "classic",
+     "shade_name": "Classic",
+     "palette": [
+      "#2B1B17"
+     ],
+     "texture": "matte",
+     "pattern": "Upper1",
+     "intensity": 60
+    },
+    "lashes": {
+     "category": "eyelashes",
+     "shade_id": "natural",
+     "shade_name": "Natural",
+     "palette": [
+      "#17110f"
+     ],
+     "texture": "",
+     "pattern": "Natural17",
+     "intensity": 75
+    },
+    "brows": {
+     "category": "eyebrows",
+     "shade_id": "natural",
+     "shade_name": "Natural",
+     "palette": [
+      "#5A4034"
+     ],
+     "texture": "matte",
+     "pattern": "color",
+     "intensity": 35
     },
     "cheeks": {
      "category": "blush",
-     "pattern": "1color1",
-     "color": "#b75f41",
-     "intensity": 61,
-     "skin": "#bd7b61"
+     "shade_id": "warm-rose",
+     "shade_name": "Warm rose",
+     "palette": [
+      "#B85A68"
+     ],
+     "texture": "satin",
+     "pattern": "1color2",
+     "intensity": 38,
+     "glow": 30
+    },
+    "bronzer": {
+     "category": "bronzer",
+     "shade_id": "natural",
+     "shade_name": "Natural",
+     "palette": [
+      "#C08A55"
+     ],
+     "texture": "",
+     "pattern": "Bronzer1",
+     "intensity": 20
+    },
+    "highlight": {
+     "category": "highlighter",
+     "shade_id": "none",
+     "shade_name": "None",
+     "palette": [],
+     "texture": "",
+     "pattern": "OvalFace28",
+     "intensity": 0,
+     "glow": {
+      "glowIntensity": 35,
+      "shimmerIntensity": 15,
+      "shimmerDensity": 35,
+      "shimmerSize": 25
+     }
     },
     "lips": {
      "category": "lip_color",
+     "shade_id": "dusty-rose",
+     "shade_name": "Dusty rose",
+     "palette": [
+      "#B96F78"
+     ],
+     "texture": "satin",
      "pattern": "original",
-     "color": "#da8e88",
-     "intensity": 52,
-     "skin": "#b4635b"
+     "intensity": 68
+    },
+    "lip_line": {
+     "category": "lip_liner",
+     "shade_id": "natural",
+     "shade_name": "Natural",
+     "palette": [
+      "#B0606E"
+     ],
+     "texture": "matte",
+     "pattern": "Natural1",
+     "intensity": 30,
+     "stroke": [
+      12,
+      90
+     ]
     }
    }
   },
-  "recipe_sha256": "7cfa307f95caf27ef69ffddf295d80f81843bdafe0e190560371c17f55598cae",
+  "recipe_sha256": "0bbf28fa8a0356d0c781b1f024fe73e33ffee97e2100abb71185f51c997700f9",
   "images_sha256": {
    "bride": "f960b1d6cfca9b50b6ebb93c6fac1a1060d907fd077ca33a2544becbae36637e",
    "inspiration": "e60ad0aa293d8013de4e1e96f04ecbf51405e284ef16fc1bfc48a98e88e649e2",
@@ -93,7 +288,7 @@
    "look": "2df832fdc472094864dfb3313a6c3bd7f5aba2fd2bf05d28db4e347bdc1f0cc9",
    "even": "c116cc8f59000a803d2ef9f0c0dbf34fa89af438b8683b52c59b23da8a4707a5",
    "layer": "4125fe5cb12093ea2be2093c2dca9680e75bbdc85c9ca620490e33d7da9493b6",
-   "render": "1e57cac8340a74c74ef0b5b277688600a535442236626b50bb450a412672b571"
+   "render": "ea6d454e3226becfacc067e9b0a570591b24f76ce47f8dd78cc8706813feb2ee"
   },
   "youcam_steps": {
    "hair_transfer": {
@@ -116,15 +311,15 @@
    },
    "render:base": {
     "mode": "replay",
-    "task_id": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIrT2Z9A2BPxWdXT4CYnueGd-BTT-LvvMAmKHuvXEbI5Q",
-    "recorded_at": "2026-10-31T17:18:12Z",
+    "task_id": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs4z-ki5cvzAM1e2ldjt90TPd-BTT-LvvMAmKHuvXEbI5Q",
+    "recorded_at": "2026-10-31T23:52:14Z",
     "seconds": 6.6
    }
   },
   "mode": "replay"
  },
  "alg": "Ed25519",
- "key_id": "d9756acbd81759b8",
- "public_key_b64": "Xy6EaVTzzhoPsAZwA1s0rlylV08krpsXqBO3mUIL6XU=",
- "signature_b64": "kUxa7Fif/77O5Ziz1smHx0JFa9qOH7LuKhIyt6+SidgrT0JysdU7Ah4ss1UM9/rj35FfCcZtUsn24c8NhvTOAg=="
+ "key_id": "cf83909f69d66c60",
+ "public_key_b64": "wGx8cHLi/9kgi3tRUuPheepZeHQn7UfIUIYluXuEDbs=",
+ "signature_b64": "UvclZNhL4ZM8ep3k5MnMlM/whxk+26Z3j/w+6nD0MnvQgBYWvAC5XHoOR+EzT8EsU+YNgfDrYmO++Ac+8gaOCQ=="
 }

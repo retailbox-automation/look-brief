@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Recompute the honest metric from the recorded samples and write docs/ACCURACY.md.
 
-For every sample: makeup map of the YouCam Makeup Transfer result, then the CIEDE2000 gap between the
-transfer and the Makeup VTO re-render of our recipe, on the pixels the transfer changed (per zone),
-plus coverage and the forehead control. Uses only files in samples/ — no API calls.
+For every visible sample: makeup map of the YouCam Makeup Transfer result, then the CIEDE2000 gap between the
+transfer and the Makeup VTO render of the look, on the pixels the transfer changed (per zone) and inside the mask
+of each of the nine zones, plus coverage and the forehead control. Uses only files in samples/ — no API calls.
     uv run python scripts/accuracy_report.py
 """
 
@@ -19,49 +19,49 @@ sys.path.insert(0, str(ROOT / "src"))
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from lookbrief import landmarks, makeup_map  # noqa: E402
+from lookbrief import landmarks, makeup_map, palettes, visibility  # noqa: E402
+from lookbrief.color import delta_e2000  # noqa: E402
 
-ZONES = ("eyes", "cheeks", "lips")
+ZONES = ("eyes", "cheeks", "lips")  # what the makeup map reads from the transfer
+
+
+def mask_gaps(face, look: np.ndarray, render: np.ndarray) -> dict[str, float]:
+    """All nine zones of the recipe: the median colour inside each zone's mask, transfer against render."""
+    lab_t, lab_r = makeup_map._lab(look), makeup_map._lab(render)
+    return {z: round(float(delta_e2000(np.median(lab_t[m], axis=0), np.median(lab_r[m], axis=0))), 2)
+            for z, m in visibility.zone_masks(face).items()}
 
 
 def main() -> int:
-    rows, gaps_all, out = [], {z: [] for z in ZONES}, {}
-    holdout_rows = []
+    rows, gaps_all, out, nine = [], {z: [] for z in ZONES}, {}, {}
     for sd in sorted(p for p in (ROOT / "samples").glob("s*") if (p / "manifest.json").exists()):
         mf = json.loads((sd / "manifest.json").read_text())
         meta = json.loads((sd / "sample.json").read_text())
-        is_holdout = meta.get("role") == "holdout"
+        if meta.get("hidden"):  # kept as evidence of the first recipe rule: docs/CALIBRATION.md
+            continue
         # hair_first samples are measured against her face with the new hair (same light as the transfer)
         bare_file = sd / mf["steps"]["hair_transfer"]["image"] if mf.get("order") == "hair_first" else sd / "bride.jpg"
         bare_img = Image.open(bare_file).convert("RGB")
         bare = np.asarray(bare_img, dtype=np.uint8)
         face = landmarks.detect(bare)
         assert face is not None, sd.name
-        # hair_first with the even-out step: compared with the evened look (transfer + foundation in her shade),
-        # the look the bride is shown; every re-render carries the same foundation (src/lookbrief/pipeline.py)
-        evened = mf.get("order") == "hair_first" and "even_out" in mf["steps"]
-        ref_step = "even_out" if evened else "mu_transfer"
-        look = makeup_map.to_rgb_array(Image.open(sd / mf["steps"][ref_step]["image"]), size=bare_img.size)
+        look = makeup_map.to_rgb_array(Image.open(sd / mf["steps"]["mu_transfer"]["image"]), size=bare_img.size)
         render = makeup_map.to_rgb_array(Image.open(sd / mf["steps"]["render:base"]["image"]), size=bare_img.size)
         m = makeup_map.compute(bare, look, face)
         g = makeup_map.compare(bare, look, render, face)
         rec = json.loads((sd / "recording.json").read_text()) if (sd / "recording.json").exists() else []
+        nine[meta["title"]] = mask_gaps(face, look, render)
         out[sd.name] = {
-            "title": meta["title"] + (" (vs the evened look, re-render with foundation)" if evened else ""),
-            "reference": ref_step,
+            "title": meta["title"],
             "skin_control_transfer_de76": m.skin_control_de,
             "skin_control_render_de76": g["skin_control_render_de76"],
             "zones": g["zones"],
-            "task_ids": {k: mf["steps"][k]["task_id"] for k in ("mu_transfer", ref_step, "render:base")},
+            "nine_zones_by_mask": nine[meta["title"]],
+            "task_ids": {k: mf["steps"][k]["task_id"] for k in ("mu_transfer", "render:base")},
         }
         for z in ZONES:
             zz = g["zones"].get(z)
-            if zz and is_holdout:
-                holdout_rows.append(
-                    f"| {out[sd.name]['title']} | {m.zones[z].label} | {zz['color_gap_de2000']:.2f} | "
-                    f"{zz['coverage_transfer'] * 100:.0f}% → {zz['coverage_render'] * 100:.0f}% |"
-                )
-            elif zz:
+            if zz:
                 gaps_all[z].append(zz["color_gap_de2000"])
                 rows.append(
                     f"| {meta['title']} | {makeup_map.MakeupMap.from_dict(m.to_dict()).zones[z].label} | "
@@ -71,32 +71,47 @@ def main() -> int:
         out[sd.name]["recordings"] = rec
     means = {z: round(float(np.mean(v)), 2) for z, v in gaps_all.items() if v}
     overall = round(float(np.mean([x for v in gaps_all.values() for x in v])), 2)
+    titles = list(nine)
     (ROOT / "docs").mkdir(exist_ok=True)
     (ROOT / "docs" / "accuracy.json").write_text(
         json.dumps({"per_sample": out, "mean_gap_de2000": means, "overall_mean_gap_de2000": overall}, indent=1)
     )
     lines = [
-        "# Accuracy: Makeup Transfer vs our editable re-render",
+        "# Accuracy: Makeup Transfer vs the look of ready-made shades",
         "",
         "Generated by `scripts/accuracy_report.py` from the recorded samples in `samples/` (no API calls).",
-        "The main table covers the three calibration samples the recipe rule was tuned on (`docs/CALIBRATION.md`);",
-        "samples recorded afterwards are listed separately as out-of-sample checks.",
+        "The look is built from ready-made shades to look good on her skin (`src/lookbrief/palettes.py`). It does",
+        "not copy the transfer, so a gap here is expected: the table shows how far the two are apart, as it is.",
         "Metric: CIEDE2000 between the median colour of the YouCam Makeup Transfer result and of the YouCam",
-        "Makeup VTO re-render of our recipe, measured on the pixels the transfer changed in each zone",
-        "(lower is closer; ~2 is the edge of what most people notice side by side). Coverage = share of the zone",
-        "the makeup visibly changes (ΔE76 > 6). Makeup VTO re-renders of one recipe are not identical: eyelids",
-        "and lips can differ by up to ~2 ΔE between runs, blush repeats within 0.04 (docs/CALIBRATION.md).",
+        "Makeup VTO render of the Soft glam look, on the pixels the transfer changed in each zone (lower is closer;",
+        "~2 is the edge of what most people notice side by side). Coverage = share of the zone the makeup visibly",
+        "changes (ΔE76 > 6). Makeup VTO renders of one recipe are not identical: eyelids and lips can differ by up",
+        "to ~2 ΔE between runs, blush repeats within 0.04 (docs/CALIBRATION.md).",
         "",
-        "| Sample | Zone | Shade gap ΔE2000 | Median per-pixel ΔE2000 | Coverage: transfer → re-render |",
+        "| Sample | Zone | Shade gap ΔE2000 | Median per-pixel ΔE2000 | Coverage: transfer → render |",
         "|---|---|---|---|---|",
         *rows,
         "",
         f"Mean shade gap: eyelids {means.get('eyes')}, cheeks {means.get('cheeks')}, lips {means.get('lips')}; "
         f"all zones {overall}.",
         "",
-        "Skin control (forehead, no makeup), median ΔE76 vs the bare selfie:",
+        "## All nine zones of the recipe",
         "",
-        "| Sample | Transfer | Re-render (`skin_smooth` 0) |",
+        "The makeup map reads three zones from the transfer. The recipe has nine, so this table compares the median",
+        "colour inside each zone's mask (`src/lookbrief/visibility.py`), whether or not the transfer changed it.",
+        "",
+        f"| Zone | {' | '.join(titles)} |",
+        f"|---|{'---|' * len(titles)}",
+        *[
+            f"| {palettes.ZONE_LABELS[z]} | " + " | ".join(f"{nine[t][z]:.2f}" for t in titles) + " |"
+            for z in palettes.ZONES
+        ],
+        "",
+        "## Skin control",
+        "",
+        "Forehead, no makeup, median ΔE76 vs the bare selfie:",
+        "",
+        "| Sample | Transfer | Render (`skin_smooth` 0) |",
         "|---|---|---|",
         *[
             f"| {v['title']} | {v['skin_control_transfer_de76']} | {v['skin_control_render_de76']} |"
@@ -104,22 +119,9 @@ def main() -> int:
         ],
         "",
         "Without an explicit `skin_smooth`, Makeup VTO smooths the whole face: forehead ΔE76 4.66 on the",
-        "development sample (control run, see docs/CALIBRATION.md).",
+        "development sample (control run, see docs/CALIBRATION.md). No render carries a foundation; a concealer in",
+        "her own colour sits under every look.",
     ]
-    if holdout_rows:
-        lines += [
-            "",
-            "## Out-of-sample: samples recorded after calibration",
-            "",
-            "| Sample | Zone | Shade gap ΔE2000 | Coverage: reference → re-render |",
-            "|---|---|---|---|",
-            *holdout_rows,
-            "",
-            "Hair-first samples are compared with the evened look (Makeup Transfer + Makeup VTO foundation in her",
-            "shade, coverage 30) — the look the bride is shown — and their recipe is read from it: on a face with",
-            "natural redness the raw transfer adds blotchy blush (docs/PLATFORM-FINDINGS.md §10), which would",
-            "otherwise inflate the cheeks. Every re-render of such a look carries the same foundation.",
-        ]
     live = ROOT / "docs" / "live-check-2026-10-31.json"
     if live.exists():
         lc = json.loads(live.read_text())
@@ -127,7 +129,10 @@ def main() -> int:
         edit = " + ".join(f"{z} {o}" for z, o in lc["edits"]) or "none"
         lines += [
             "",
-            "## Out-of-sample live check (through the app)",
+            "## History: live check of the first recipe rule",
+            "",
+            "Recorded before the ready-made shades, on a recipe that was computed from the transfer. It is kept as a",
+            "record, it does not describe the look of today.",
             "",
             f"{lc['what']} ({lc['units_spent']} units, task ids in `docs/live-check-2026-10-31.json`).",
             f"Shade gap after one edit ({edit}):",
@@ -135,9 +140,6 @@ def main() -> int:
             "| Zone | Base recipe | After the edit |",
             "|---|---|---|",
             *[f"| {gb[z]['label']} | {gb[z]['color_gap_de2000']:.2f} | {ga[z]['color_gap_de2000']:.2f} |" for z in gb],
-            "",
-            "On a pair the tuning never saw, the base recipe lands further from the transfer than on the calibration",
-            "samples; one zone edit is how the bride or artist closes the gap.",
         ]
     (ROOT / "docs" / "ACCURACY.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))

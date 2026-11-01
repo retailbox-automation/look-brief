@@ -1,4 +1,9 @@
-# Calibration of the editable recipe
+# Calibration of the first recipe rule (history)
+
+> **History.** This page records how the first recipe, computed from the transfer, was calibrated. That rule is gone:
+> the recipe is now ready-made shades in nine zones (`src/lookbrief/palettes.py`), the numbers below describe the
+> earlier recipe on earlier renders, and `scripts/calibration_report.py` no longer reproduces them on today's samples
+> (they were measured at commit cb2072b). The current distance from the transfer is in [ACCURACY.md](ACCURACY.md).
 
 AI Makeup Transfer returns a picture, not makeup parameters. Look Brief measures the makeup from pixels and
 writes an editable AI Makeup VTO recipe (`src/lookbrief/recipe.py`). How close the VTO re-render lands to the
@@ -8,10 +13,10 @@ changed, per zone; coverage = share of the zone visibly changed, ΔE76 > 6).
 ## Before and after, on the three recorded samples
 
 v1 rule (first pass): intensity from colour strength; product shade = skin + gain·(look − skin), gains 1.8 / 2.5 / 1.15.
-v2 rule (now): intensity from the transfer's **coverage** (eyes 80 + 130·(cov − 0.325), cheeks 56 + 120·cov),
+v2 rule (then): intensity from the transfer's **coverage** (eyes 80 + 130·(cov − 0.325), cheeks 56 + 120·cov),
 lips lifted by L* +8 (Makeup VTO lands lip colour darker than the hex it gets — every lip render was darker).
 
-| Sample | Zone | v1 first pass | v1 re-rendered for the record | v2 (replayed now) | Transfer coverage | v1 coverage | v2 coverage |
+| Sample | Zone | v1 first pass | v1 re-rendered for the record | v2 (at commit cb2072b) | Transfer coverage | v1 coverage | v2 coverage |
 |---|---|---|---|---|---|---|---|
 | s1-soft-glam | eyes | 2.84 | 2.10 | 0.59 | 29% | 47% | 34% |
 | s1-soft-glam | cheeks | 2.17 | 2.17 | 2.32 | 4% | 20% | 1% |
@@ -30,7 +35,7 @@ Makeup VTO is not deterministic for every effect: the identical v1 recipe render
 So a single-zone difference under ~1 ΔE is noise. Cheeks: v2 gives up 0.2–0.3 ΔE of shade for coverage much
 closer to the transfer (v1 painted 2–5× the transfer's blush area).
 v1 recipes: `docs/calibration/v1-recipes.json`; v1 re-renders with task IDs: `docs/calibration/*-v1-base.*`.
-Reproduce: `uv run python scripts/calibration_report.py` (no API calls).
+Reproduced at commit cb2072b with `uv run python scripts/calibration_report.py` (no API calls).
 
 ## How v2 was found (data, not taste)
 

@@ -1,46 +1,55 @@
 {
  "per_sample": {
   "s0-champagne-rose": {
-   "title": "Champagne & rose (vs the evened look, re-render with foundation)",
-   "reference": "even_out",
-   "skin_control_transfer_de76": 1.47,
-   "skin_control_render_de76": 1.48,
+   "title": "Champagne & rose",
+   "skin_control_transfer_de76": 0.0,
+   "skin_control_render_de76": 0.36,
    "zones": {
     "eyes": {
      "zone": "eyes",
      "label": "Eyelids",
-     "color_transfer": "#9a6954",
-     "color_render": "#9d6a55",
-     "color_gap_de2000": 0.86,
-     "pixel_gap_de2000": 8.06,
-     "coverage_transfer": 0.253,
-     "coverage_render": 0.1158
+     "color_transfer": "#986552",
+     "color_render": "#9a6652",
+     "color_gap_de2000": 0.61,
+     "pixel_gap_de2000": 5.94,
+     "coverage_transfer": 0.275,
+     "coverage_render": 0.1942
     },
     "cheeks": {
      "zone": "cheeks",
      "label": "Cheeks",
-     "color_transfer": "#bb7054",
-     "color_render": "#c08066",
-     "color_gap_de2000": 4.99,
-     "pixel_gap_de2000": 5.27,
-     "coverage_transfer": 0.0447,
-     "coverage_render": 0.062
+     "color_transfer": "#bf6e52",
+     "color_render": "#c48368",
+     "color_gap_de2000": 6.41,
+     "pixel_gap_de2000": 6.29,
+     "coverage_transfer": 0.232,
+     "coverage_render": 0.0566
     },
     "lips": {
      "zone": "lips",
      "label": "Lips",
-     "color_transfer": "#c17670",
-     "color_render": "#b8655d",
-     "color_gap_de2000": 5.52,
-     "pixel_gap_de2000": 6.34,
-     "coverage_transfer": 0.1252,
-     "coverage_render": 0.01
+     "color_transfer": "#c17571",
+     "color_render": "#a45556",
+     "color_gap_de2000": 11.68,
+     "pixel_gap_de2000": 10.97,
+     "coverage_transfer": 0.1271,
+     "coverage_render": 0.1558
     }
+   },
+   "nine_zones_by_mask": {
+    "eyes": 0.55,
+    "liner": 3.7,
+    "lashes": 4.2,
+    "brows": 2.57,
+    "cheeks": 2.37,
+    "bronzer": 2.32,
+    "highlight": 1.9,
+    "lips": 10.37,
+    "lip_line": 3.58
    },
    "task_ids": {
     "mu_transfer": "zFhlk4UZ2LDzKSvdYSqXE2Bsp7ps1uPJFWW_7BDW-cCr40gTcv_cdAR3i0vep5cBL1tdL0WuaKpao2rhLgDDpA",
-    "even_out": "jZUtW2ZlG5ci6dfkWm8eRuLYPJ88K3TdcvOR2Zcq8upLbTcQ8h3wjfYbi6CulJxhd-BTT-LvvMAmKHuvXEbI5Q",
-    "render:base": "HuOwh1ElWzxbYs3OQh_GRhKYUculDTKojZA79HpbNHIrT2Z9A2BPxWdXT4CYnueGd-BTT-LvvMAmKHuvXEbI5Q"
+    "render:base": "W6__uv0KnQr0aEHLtkW1l3MVa7h8sRKCr_Z4N_sBDs4z-ki5cvzAM1e2ldjt90TPd-BTT-LvvMAmKHuvXEbI5Q"
    },
    "recordings": [
     {
@@ -132,56 +141,12 @@
        "face_width_share": 0.568
       }
      }
-    }
-   ]
-  },
-  "s1-soft-glam": {
-   "title": "Soft glam",
-   "reference": "mu_transfer",
-   "skin_control_transfer_de76": 0.37,
-   "skin_control_render_de76": 0.0,
-   "zones": {
-    "eyes": {
-     "zone": "eyes",
-     "label": "Eyelids",
-     "color_transfer": "#906551",
-     "color_render": "#916653",
-     "color_gap_de2000": 0.59,
-     "pixel_gap_de2000": 6.45,
-     "coverage_transfer": 0.2879,
-     "coverage_render": 0.3372
     },
-    "cheeks": {
-     "zone": "cheeks",
-     "label": "Cheeks",
-     "color_transfer": "#eca18b",
-     "color_render": "#e4a58f",
-     "color_gap_de2000": 2.32,
-     "pixel_gap_de2000": 2.63,
-     "coverage_transfer": 0.0355,
-     "coverage_render": 0.0131
-    },
-    "lips": {
-     "zone": "lips",
-     "label": "Lips",
-     "color_transfer": "#b86958",
-     "color_render": "#b26356",
-     "color_gap_de2000": 2.82,
-     "pixel_gap_de2000": 4.71,
-     "coverage_transfer": 0.1832,
-     "coverage_render": 0.1727
-    }
-   },
-   "task_ids": {
-    "mu_transfer": "k-uiHOuju22YEieXPuTFHRG8Pu3OAfbOy_qflkmlPuhSXcrzXB7TFYW0DAGKu6x3L1tdL0WuaKpao2rhLgDDpA",
-    "render:base": "0c0bebJoDZVgL97JBxtpv7lZZQRnZppNc2D_vGV9VkxjSDYahRbrHL0iT7NaLbNFd-BTT-LvvMAmKHuvXEbI5Q"
-   },
-   "recordings": [
     {
-     "at": "2026-10-31T13:25:30Z",
-     "credit_before": 981,
-     "credit_after": 964,
-     "units_spent": 17,
+     "at": "2026-10-31T19:22:44Z",
+     "credit_before": 747,
+     "credit_after": 738,
+     "units_spent": 9,
      "photo_check": {
       "bride": {
        "role": "bride",
@@ -189,10 +154,10 @@
        "issues": [],
        "width": 768,
        "height": 1024,
-       "yaw_deg": 1.3,
-       "pitch_deg": 8.3,
-       "roll_deg": 1.0,
-       "face_width_share": 0.56
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
       },
       "inspiration": {
        "role": "inspiration",
@@ -201,17 +166,17 @@
        "width": 768,
        "height": 1024,
        "yaw_deg": 1.2,
-       "pitch_deg": 8.0,
-       "roll_deg": 1.5,
-       "face_width_share": 0.574
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
       }
      }
     },
     {
-     "at": "2026-10-31T13:34:09Z",
-     "credit_before": 927,
-     "credit_after": 914,
-     "units_spent": 13,
+     "at": "2026-10-31T19:24:51Z",
+     "credit_before": 733,
+     "credit_after": 730,
+     "units_spent": 3,
      "photo_check": {
       "bride": {
        "role": "bride",
@@ -219,10 +184,10 @@
        "issues": [],
        "width": 768,
        "height": 1024,
-       "yaw_deg": 1.3,
-       "pitch_deg": 8.3,
-       "roll_deg": 1.0,
-       "face_width_share": 0.56
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
       },
       "inspiration": {
        "role": "inspiration",
@@ -231,9 +196,309 @@
        "width": 768,
        "height": 1024,
        "yaw_deg": 1.2,
-       "pitch_deg": 8.0,
-       "roll_deg": 1.5,
-       "face_width_share": 0.574
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:26:18Z",
+     "credit_before": 727,
+     "credit_after": 724,
+     "units_spent": 3,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:30:10Z",
+     "credit_before": 702,
+     "credit_after": 701,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T22:43:51Z",
+     "credit_before": 639,
+     "credit_after": 594,
+     "units_spent": 45,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T23:19:24Z",
+     "credit_before": 562,
+     "credit_after": 525,
+     "units_spent": 37,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T23:55:58Z",
+     "credit_before": 486,
+     "credit_after": 456,
+     "units_spent": 30,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:03:36Z",
+     "credit_before": 452,
+     "credit_after": 450,
+     "units_spent": 2,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:14:34Z",
+     "credit_before": 450,
+     "credit_after": 449,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:15:02Z",
+     "credit_before": 449,
+     "credit_after": 448,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:44:19Z",
+     "credit_before": 442,
+     "credit_after": 441,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T01:40:00Z",
+     "credit_before": 371,
+     "credit_after": 330,
+     "units_spent": 41,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -13.2,
+       "pitch_deg": 6.7,
+       "roll_deg": 10.1,
+       "face_width_share": 0.539
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.2,
+       "pitch_deg": 7.5,
+       "roll_deg": 0.1,
+       "face_width_share": 0.568
       }
      }
     }
@@ -241,7 +506,6 @@
   },
   "s2-classic-red": {
    "title": "Classic red lip",
-   "reference": "mu_transfer",
    "skin_control_transfer_de76": 0.44,
    "skin_control_render_de76": 0.0,
    "zones": {
@@ -249,36 +513,47 @@
      "zone": "eyes",
      "label": "Eyelids",
      "color_transfer": "#885d4b",
-     "color_render": "#835a48",
-     "color_gap_de2000": 1.46,
-     "pixel_gap_de2000": 7.58,
+     "color_render": "#885d4b",
+     "color_gap_de2000": 0.14,
+     "pixel_gap_de2000": 6.24,
      "coverage_transfer": 0.3252,
-     "coverage_render": 0.1896
+     "coverage_render": 0.2776
     },
     "cheeks": {
      "zone": "cheeks",
      "label": "Cheeks",
      "color_transfer": "#e79d8f",
-     "color_render": "#e0a18f",
-     "color_gap_de2000": 2.84,
-     "pixel_gap_de2000": 3.14,
+     "color_render": "#e1a48e",
+     "color_gap_de2000": 4.04,
+     "pixel_gap_de2000": 3.92,
      "coverage_transfer": 0.0929,
-     "coverage_render": 0.1724
+     "coverage_render": 0.0012
     },
     "lips": {
      "zone": "lips",
      "label": "Lips",
      "color_transfer": "#a52b2d",
-     "color_render": "#a03432",
-     "color_gap_de2000": 1.75,
-     "pixel_gap_de2000": 4.45,
+     "color_render": "#92212c",
+     "color_gap_de2000": 5.25,
+     "pixel_gap_de2000": 6.09,
      "coverage_transfer": 0.2103,
-     "coverage_render": 0.1989
+     "coverage_render": 0.2106
     }
+   },
+   "nine_zones_by_mask": {
+    "eyes": 0.93,
+    "liner": 5.43,
+    "lashes": 2.76,
+    "brows": 3.87,
+    "cheeks": 1.53,
+    "bronzer": 0.54,
+    "highlight": 0.38,
+    "lips": 5.22,
+    "lip_line": 3.37
    },
    "task_ids": {
     "mu_transfer": "ygx_B9JwbbesH6d6YnOPlQyCg1ZdxRFvplay8BkAEQbqdwSc3E6MvTPC8ApWmK6WL1tdL0WuaKpao2rhLgDDpA",
-    "render:base": "q5RfCkZi_Y7XasRGcirp4xhTwaBsNwDHoEyCi_lJUeb9tq3Oqtx3WpmIfEU23QIWd-BTT-LvvMAmKHuvXEbI5Q"
+    "render:base": "KxjiH3APSQR5qhXDzUALhwm04sjYdFNOWWM6BAy968ZZM03mn4IrarRj6r80RxYad-BTT-LvvMAmKHuvXEbI5Q"
    },
    "recordings": [
     {
@@ -340,49 +615,209 @@
        "face_width_share": 0.547
       }
      }
+    },
+    {
+     "at": "2026-10-31T19:21:06Z",
+     "credit_before": 758,
+     "credit_after": 747,
+     "units_spent": 11,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:24:26Z",
+     "credit_before": 738,
+     "credit_after": 733,
+     "units_spent": 5,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:25:53Z",
+     "credit_before": 730,
+     "credit_after": 727,
+     "units_spent": 3,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:30:19Z",
+     "credit_before": 701,
+     "credit_after": 700,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:52:54Z",
+     "credit_before": 411,
+     "credit_after": 378,
+     "units_spent": 33,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.9,
+       "pitch_deg": 8.7,
+       "roll_deg": 1.3,
+       "face_width_share": 0.569
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": 1.6,
+       "pitch_deg": 9.5,
+       "roll_deg": -0.4,
+       "face_width_share": 0.547
+      }
+     }
     }
    ]
   },
   "s3-mauve-smoky": {
    "title": "Mauve smoky eye",
-   "reference": "mu_transfer",
    "skin_control_transfer_de76": 0.73,
-   "skin_control_render_de76": 0.0,
+   "skin_control_render_de76": 0.37,
    "zones": {
     "eyes": {
      "zone": "eyes",
      "label": "Eyelids",
      "color_transfer": "#694335",
-     "color_render": "#694537",
-     "color_gap_de2000": 1.0,
-     "pixel_gap_de2000": 7.93,
+     "color_render": "#855d46",
+     "color_gap_de2000": 9.89,
+     "pixel_gap_de2000": 11.8,
      "coverage_transfer": 0.4787,
-     "coverage_render": 0.3788
+     "coverage_render": 0.3628
     },
     "cheeks": {
      "zone": "cheeks",
      "label": "Cheeks",
      "color_transfer": "#d98d74",
-     "color_render": "#d08c71",
-     "color_gap_de2000": 2.49,
-     "pixel_gap_de2000": 3.53,
+     "color_render": "#c9896f",
+     "color_gap_de2000": 3.45,
+     "pixel_gap_de2000": 3.58,
      "coverage_transfer": 0.102,
-     "coverage_render": 0.152
+     "coverage_render": 0.0847
     },
     "lips": {
      "zone": "lips",
      "label": "Lips",
      "color_transfer": "#723c3f",
-     "color_render": "#6b3c3a",
-     "color_gap_de2000": 2.45,
-     "pixel_gap_de2000": 5.47,
+     "color_render": "#672930",
+     "color_gap_de2000": 5.31,
+     "pixel_gap_de2000": 6.71,
      "coverage_transfer": 0.2256,
-     "coverage_render": 0.2252
+     "coverage_render": 0.2432
     }
+   },
+   "nine_zones_by_mask": {
+    "eyes": 8.77,
+    "liner": 16.8,
+    "lashes": 16.64,
+    "brows": 1.82,
+    "cheeks": 1.23,
+    "bronzer": 0.37,
+    "highlight": 1.88,
+    "lips": 5.95,
+    "lip_line": 4.53
    },
    "task_ids": {
     "mu_transfer": "xC7JVkORVg7bxvMF-md6ZqSsc0S965L--inp8SVZvPrsvGefm5xKHXXcb7avNH40L1tdL0WuaKpao2rhLgDDpA",
-    "render:base": "g1PmAQsiWztGOgPd_v-YyeiihCyDVnxX-Sy6dc6BBEMpPSalLVv9fnJ9umlc5YVdd-BTT-LvvMAmKHuvXEbI5Q"
+    "render:base": "ClrcYCnIEKIyheUSJmypiwZ0HfvE7LT2KS1I6qu1xMdo2PMAMwSH-TtjES7EpjIyd-BTT-LvvMAmKHuvXEbI5Q"
    },
    "recordings": [
     {
@@ -444,14 +879,164 @@
        "face_width_share": 0.532
       }
      }
+    },
+    {
+     "at": "2026-10-31T19:27:47Z",
+     "credit_before": 724,
+     "credit_after": 713,
+     "units_spent": 11,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-10-31T19:30:46Z",
+     "credit_before": 699,
+     "credit_after": 697,
+     "units_spent": 2,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:48:37Z",
+     "credit_before": 441,
+     "credit_after": 411,
+     "units_spent": 30,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:54:45Z",
+     "credit_before": 375,
+     "credit_after": 372,
+     "units_spent": 3,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
+    },
+    {
+     "at": "2026-11-01T00:55:11Z",
+     "credit_before": 372,
+     "credit_after": 371,
+     "units_spent": 1,
+     "photo_check": {
+      "bride": {
+       "role": "bride",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -2.1,
+       "pitch_deg": 9.8,
+       "roll_deg": -0.7,
+       "face_width_share": 0.496
+      },
+      "inspiration": {
+       "role": "inspiration",
+       "ok": true,
+       "issues": [],
+       "width": 768,
+       "height": 1024,
+       "yaw_deg": -1.2,
+       "pitch_deg": 6.8,
+       "roll_deg": 1.2,
+       "face_width_share": 0.532
+      }
+     }
     }
    ]
   }
  },
  "mean_gap_de2000": {
-  "eyes": 1.02,
-  "cheeks": 2.55,
-  "lips": 2.34
+  "eyes": 3.55,
+  "cheeks": 4.63,
+  "lips": 7.41
  },
- "overall_mean_gap_de2000": 1.97
+ "overall_mean_gap_de2000": 5.2
 }
