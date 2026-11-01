@@ -103,6 +103,7 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     page.get_by_role("button", name="Evening", exact=True).click()
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening"), timeout=20_000)
     expect(page.get_by_role("button", name="Evening", exact=True)).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Your look, rendered by Makeup VTO")
     page.get_by_role("button", name="Soft glam", exact=True).click()
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-base"), timeout=20_000)
 

@@ -40,9 +40,10 @@
     const rows = view.snapshot.review_zones.map((z) => {
       const zi = zoneInfo(z), r = view.reviews[z] || {};
       const dots = (zi.palette || []).map((c) => `<span class="swatch" style="background:${esc(c)}" aria-hidden="true"></span>`).join(" ");
+      const codes = esc((zi.palette || []).join(" / ").toUpperCase());
       const detail = z === "skin"
-        ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))}`
-        : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${esc((zi.palette || []).join(" / "))} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
+        ? `${dots} ${esc(zi.shade_name)} · ${codes}`
+        : zi.product_hex ? `${dots} ${esc(zi.shade_name)} · ${codes} · ${finishText(zi)}intensity ${esc(zi.intensity)}`
         : hairFirst ? "Hair as in the agreed look photo above (YouCam Hair Transfer)" : "Hair as in the makeup + hair preview below";
       if (role !== "artist" || signed) {
         return `<fieldset class="review readonly" data-testid="review-${z}"><legend>${esc(zi.label)}</legend><p class="rv-detail">${detail}</p><p class="rv-answer"><strong>Artist:</strong> ${r.status ? esc(LABELS[r.status]) : "not reviewed yet"}${r.note ? ` — “${esc(r.note)}”` : ""}</p></fieldset>`;

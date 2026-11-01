@@ -26,8 +26,8 @@ EDIT_OPS = ("softer", "bolder")
 EDIT_ZONES = tuple(palettes.ZONES)
 EDIT_LABELS = {"softer": "softer", "bolder": "bolder"}
 BLOCK_NOTES = {  # why a button is off
-    "softest": "This is the softest shade in your palette.",
-    "boldest": "This is the boldest shade in your palette.",
+    "softest": "This is the softest shade of this colour.",
+    "boldest": "This is the boldest shade of this colour.",
     "current": "",
     "not_recorded": "This change isn't in the recorded set.",
     "quiet": "This change would not show on the photo.",

@@ -58,7 +58,7 @@ units then showed why strength cannot be the button: intensity +-8-10 moves a zo
   skin (CIEDE2000; lids: the lid colour). The same render as tapping that circle. The end of the way turns the button off.
 - **Circles:** every shade of lids, cheeks and lips, metallic and gloss looks among them.
 - **Styles:** liner, lashes, brows, highlighter and lip liner offer named steps with their own pattern and strength;
-  highlighter and lip liner can be left out. Bronzer has no choice: a light warm layer that is part of the look.
+  the highlighter can be left out. Bronzer has no choice: a light warm layer that is part of the look.
 No colour is computed: every colour sent is a shade of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)

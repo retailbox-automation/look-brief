@@ -27,8 +27,8 @@
       {% set zi = (snap.zones | selectattr('zone','equalto', z) | list) %}
       <tr>
         <th scope="row">{{ zi[0].label if zi else 'Hair' }}</th>
-        <td data-label="Product shade">{% if zi %}{% for c in zi[0].palette %}<span class="swatch" style="background:{{ c }}"></span> {% endfor %}{{ zi[0].shade_name }} · {{ zi[0].palette | join(' / ') }}{% else %}as in the look photo{% endif %}</td>
-        <td data-label="Intensity">{{ zi[0].intensity if zi else '' }}</td>
+        <td data-label="Product shade">{% if zi %}{% for c in zi[0].palette %}<span class="swatch" style="background:{{ c }}"></span> {% endfor %}{{ zi[0].shade_name }} · {{ zi[0].palette | join(' / ') | upper }}{% else %}as in the look photo{% endif %}</td>
+        <td data-label="Intensity">{{ zi[0].intensity if zi and zi[0].intensity is not none else '' }}</td>
         <td data-label="Artist">{{ v.review_labels[r.status] if r else 'not reviewed' }}</td>
         <td data-label="Note">{{ r.note if r else '' }}</td>
       </tr>

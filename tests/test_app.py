@@ -411,7 +411,8 @@ def test_a_button_on_the_edge_is_refused_and_changes_nothing(client):
     nearest = palettes.skin_order("medium", "lips", "#e4b29c")[0].id
     st = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": f"shade:{nearest}"}).json()
     opt = next(o for o in st["edit_options"] if (o["zone"], o["op"]) == ("lips", "softer"))
-    assert opt["reason"] == "softest" and opt["note"] and not opt["available"]
+    assert opt["reason"] == "softest" and opt["note"] == "This is the softest shade of this colour."
+    assert not opt["available"], "softer shades of another colour stay on the sheet: the note speaks of this colour"
     r = client.post(f"/api/sessions/{sid}/edits", json={"zone": "lips", "op": "softer"})
     assert r.status_code == 400 and r.json() == {"error": "softest", "reason": opt["note"]}
     assert client.get(f"/api/sessions/{sid}").json()["edits"] == [["lips", f"shade:{nearest}"]]
@@ -521,6 +522,15 @@ def test_card_lists_every_zone_of_the_recipe_with_its_shade(client):
     html = client.get(b["bride_url"].replace("/b/", "/card/")).text
     assert "Berry rose" in html and "Gold" in html and "#8A2F45" in html
     assert "Highlighter" not in html.split("</table>")[0].split("<table")[1]
+
+
+def test_the_card_writes_every_colour_one_way_and_prints_no_empty_value(client):
+    sid = _replay_session(client)
+    b = client.post(f"/api/sessions/{sid}/brief").json()
+    table = client.get(b["bride_url"].replace("/b/", "/card/")).text.split("</table>")[0]
+    codes = re.findall(r"· (#[0-9a-fA-F]{6})", table)
+    assert len(codes) >= 8 and all(c == c.upper() for c in codes), codes
+    assert ">None<" not in table, "the skin row has no intensity: the cell stays empty"
 
 
 def test_the_brief_names_the_concealer_in_the_skin_row(client):

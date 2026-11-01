@@ -28,7 +28,7 @@
   function stepCaption(meta, what) {
     if (!meta) return "";
     const src = meta.mode === "replay" ? "Recorded real YouCam API result" : "Live YouCam API result";
-    const when = meta.recorded_at ? ` · ${meta.recorded_at}` : "";
+    const when = meta.recorded_at ? ` · ${meta.recorded_at.replaceAll("-", "\u2060-\u2060")}` : ""; // the date stays on one line
     return `${what} — ${src} · task ${taskFragment(meta.task_id)} · ${meta.seconds}s${when}`;
   }
   // YouCam ids of one session share a long prefix and a 22-char suffix: show a part that differs between tasks
@@ -115,7 +115,7 @@
   }
 
   const renderKey = () => ((state.edits || []).length ? "render:" + state.edits.map((e) => e.join(":")).join("+") : "render:base");
-  const lookCaption = () => `${(state.edits || []).length ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
+  const lookCaption = () => `${(state.edits || []).some(([zone]) => zone !== "look") ? "Your edits, rendered" : "Your look, rendered"} by Makeup VTO`;
 
   // ---------- photo: close up on the chosen zone ----------
   // zone -> [outline it centres on, scale]. Brows, liner and lashes live around the eyes.
