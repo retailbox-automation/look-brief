@@ -149,6 +149,16 @@ def test_the_soft_mask_of_liner_covers_lids_and_lashes_together():
     assert soft[50 - box[0], 50 - box[2]] > .5 and soft[120 - box[0], 240 - box[2]] > .5
 
 
+def test_the_lash_layer_stays_at_the_lid_rim():
+    """TG 4336: on the whole eye area the strokes of a lash render lay over the lid she chose."""
+    zones = {z: np.zeros((200, 300), dtype=bool) for z in ("eyes", "liner", "lashes")}
+    zones["lashes"][100:104, 100:200] = True
+    zones["eyes"][60:100, 100:200] = True
+    box, soft = layers.soft_mask(zones, "lashes")
+    assert soft[102 - box[0], 150 - box[2]] > .5
+    assert box[0] > 70, "the upper lid is not in the lash layer"
+
+
 # ---------------- the cap of a session ----------------
 def _stacks(folder, n: int) -> list[str]:
     """n stack files, the lowest number the oldest."""
@@ -362,6 +372,16 @@ def lid_wing_volume(sample: str, shade: str) -> list[list[str]]:
 @pytest.mark.parametrize("sample", recorded_samples())
 def test_every_sample_holds_six_lids_on_evening(sample):
     assert len(lid_shades(sample)) == LIDS[sample], "the guard below measures 18 real multi-zone renders"
+
+
+@pytest.mark.parametrize("sample", recorded_samples())
+def test_lashes_leave_the_lid_above_the_rim_alone(sample):
+    """TG 4336: strokes of the lash render showed on the lid, more than in the real render of the same zones."""
+    masks = geometry(sample)[2]
+    far = masks["eyes"] & ~cv2.dilate(masks["lashes"].astype(np.uint8), np.ones((31, 31), np.uint8)).astype(bool)
+    edits = lid_wing_volume(sample, "bronze")
+    assert far.sum() > 200, sample
+    assert zone_gap(stacked(sample, edits), stacked(sample, edits[:-1]), far)[0] < 0.05
 
 
 def wing_pixels(sample: str) -> np.ndarray:

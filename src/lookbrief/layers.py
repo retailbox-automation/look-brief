@@ -37,10 +37,11 @@ JPEG_QUALITY = 92
 MAX_STACK_FILES = 60  # per session: one file is 0.2 s to make again, the same bytes
 # zone -> (mask zones that move together, dilation px, blur sigma)
 EYE_AREA = (("eyes", "liner", "lashes"), 26, 5)
+LASH_AREA = (("lashes",), 7, 3)  # at the lid rim: over the whole lid its strokes show on the shade she chose
 BROW_AREA = (("brows",), 12, 4)
 FACE_AREA = (("cheeks", "bronzer", "highlight"), 14, 8)
 LIP_AREA = (("lips", "lip_line"), 12, 4)
-AREAS = {"eyes": EYE_AREA, "liner": EYE_AREA, "lashes": EYE_AREA, "brows": BROW_AREA, "cheeks": FACE_AREA,
+AREAS = {"eyes": EYE_AREA, "liner": EYE_AREA, "lashes": LASH_AREA, "brows": BROW_AREA, "cheeks": FACE_AREA,
          "highlight": FACE_AREA, "lips": LIP_AREA, "lip_line": LIP_AREA}
 
 # Lookup tables: a whole frame of pow() holds seven 9 MB temporaries at once, on a container that was OOM-killed.
