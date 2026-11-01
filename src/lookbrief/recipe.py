@@ -32,6 +32,7 @@ BLOCK_NOTES = {  # why a button is off
     "not_recorded": "This change isn't in the recorded set.",
     "quiet": "This change would not show on the photo.",
 }
+NO_CHOICE_NOTE = "This shade stays close to your own {zone} on this photo."  # no step of the zone shows on her
 SHADE_PREFIX = "shade:"
 LOOK_ZONE = "look"  # an edit ["look", "evening"] swaps the whole recipe
 TONE_ZONES = ("lips", "cheeks", "eyes")  # the zones whose shade follows the inspiration on a live photo

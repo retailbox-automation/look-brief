@@ -151,6 +151,21 @@ def test_the_state_marks_the_zones_of_named_styles(client):
     assert bronzer["note"] == "A light warm layer is part of this look." and not bronzer["style"]
 
 
+def test_a_zone_with_nothing_left_says_so_and_offers_nothing(tmp_path, monkeypatch):
+    samples = make_v2_samples(tmp_path / "samples")
+    path = samples / "s2-classic-red" / "manifest.json"
+    mf = json.loads(path.read_text())
+    mf["quiet_edits"] = ["brows:shade:soft", "brows:shade:defined"]
+    path.write_text(json.dumps(mf))
+    monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
+    c = TestClient(app_mod.create_app(_settings(tmp_path / "x", samples_dir=samples)))
+    st = c.get(f"/api/sessions/{_replay_session(c)}").json()
+    zones = {z["zone"]: z for g in st["zone_groups"] for z in g["zones"]}
+    assert zones["brows"]["note"] == "This shade stays close to your own brows on this photo."
+    assert zones["bronzer"]["note"] == palettes.FIXED_ZONES["bronzer"] and zones["lips"]["note"] == ""
+    assert not [o for o in st["edit_options"] if o["zone"] == "brows"]
+
+
 def test_a_quiet_edit_is_hidden_and_refused(tmp_path, monkeypatch):
     monkeypatch.setattr(app_mod, "youcam_key", lambda: "")
     import shutil

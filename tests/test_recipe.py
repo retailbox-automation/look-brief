@@ -408,8 +408,8 @@ def test_the_recorded_grid_is_every_circle_and_style_and_two_looks():
     assert not [k for k in keys if "softer" in k or "bolder" in k or "finish" in k or k.startswith("bronzer")]
 
 
-def test_the_deep_grid_has_fewer_blushes_and_lips():
-    assert len(rcp.record_grid(_look("deep"))) == 25 + 2
+def test_the_deep_grid_has_fewer_lips():
+    assert len(rcp.record_grid(_look("deep"))) == 26 + 2
 
 
 def test_a_sample_with_a_liner_outside_the_ladder_records_the_natural_one_too():

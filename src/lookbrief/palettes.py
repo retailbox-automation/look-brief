@@ -264,9 +264,10 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
         # warm deep shades only: pinks and berries turn to mud (probes r1, v3), orange and loud reds are out
         "cheeks": _ladder(
             _blush("mulled-rose", "Mulled rose", "#8E3A3C", 36),
-            _blush("terracotta-rose", "Terracotta rose", "#A8553F", 54),
+            _blush("copper", "Copper", "#B8603C", 62),
+            _blush("coral-brick", "Coral brick", "#B84A38", 68),
             _blush("warm-berry", "Warm berry", "#8C3A4A", 50),
-            _blush("plum-wine", "Plum wine", "#6E2A3A", 50)),
+            _blush("deep-plum", "Deep plum", "#5A2036", 48)),
         "bronzer": (_bare("natural", "Natural", "#8A5230", 22),),
         "highlight": (_bare("natural", "Natural", "#E3B98C", 42), _bare("radiant", "Radiant", "#D9A066", 66)),
         "lips": _ladder(
@@ -350,7 +351,7 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
     },
     "medium": {
         "fresh": _look(("peach-taupe", (90, 76), (80, 0)), ("soft-brown", 55), ("natural", 72), ("soft-dark", 30),
-                       ("soft-coral", 44, "1color2", 40), ("natural", 40), (NONE_ID, 0), ("rosy-nude", 68),
+                       ("soft-coral", 50, "1color2", 40), ("natural", 40), (NONE_ID, 0), ("rosy-nude", 68),
                        ("rosy", 28)),
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
                           ("soft-coral", 38, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80), ("red", 45)),

@@ -37,7 +37,7 @@ def dry(*args):
 
 
 @pytest.mark.parametrize(("sample", "renders", "units", "hair"), [
-    ("s0-champagne-rose", 29, 29, False), ("s2-classic-red", 31, 33, True), ("s3-mauve-smoky", 28, 30, True)])
+    ("s0-champagne-rose", 29, 29, False), ("s2-classic-red", 31, 33, True), ("s3-mauve-smoky", 29, 31, True)])
 def test_dry_lists_the_grid_without_a_key(sample, renders, units, hair, tmp_path):
     r = dry(str(before_the_grid(sample, tmp_path / sample)), "--max-units", "230")
     assert r.returncode == 0, r.stderr
@@ -67,7 +67,7 @@ def test_skin_of_the_samples_for_a_run_without_a_measured_map():
 
 def test_dry_says_where_the_ceiling_stops_it(tmp_path):
     r = dry(str(before_the_grid("s3-mauve-smoky", tmp_path / "s3")), "--max-units", "25")
-    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 30 units" in r.stdout
+    assert r.returncode == 0 and "--max-units 25 stops it at 25 of 31 units" in r.stdout
 
 
 def test_dry_without_pins_says_it_cannot_plan(tmp_path):
@@ -161,14 +161,14 @@ def test_a_grid_stops_at_the_ceiling_resumes_and_then_spends_nothing(script, mon
     assert not old.exists() and not (sd / "fixtures" / "render__old.json").exists(), "old files go with their steps"
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 30, "the second run only pays for what the first one did not record"
+    assert _spent() == 31, "the second run only pays for what the first one did not record"
     assert FakeClient.tasks.count("mu-transfer") == 0 and FakeClient.tasks.count("hair-transfer") == 1
     assert (sd / "results" / "mu_transfer.jpg").read_bytes() == old_transfer
     keys = set(ReplayEngine(sd).recorded_render_keys())
     assert keys == {"base", *(rcp.edit_key(e) for e in rcp.record_grid(base))}
 
     assert _record(script, monkeypatch, sd, 100) == 0
-    assert _spent() == 30, "a finished grid spends nothing"
+    assert _spent() == 31, "a finished grid spends nothing"
 
 
 def test_a_changed_shade_is_recorded_again_alone(script, monkeypatch, tmp_path):

@@ -199,6 +199,7 @@ def test_report_writes_the_quiet_list_into_the_manifest(tmp_path, monkeypatch):
     (tmp_path / "docs").mkdir()
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(sys, "argv", ["edit_visibility_report.py"])
+    real = (SAMPLES / "s3-mauve-smoky" / "manifest.json").read_bytes()
     assert mod.main() == 0
     mf = json.loads((tmp_path / "samples" / "s3-mauve-smoky" / "manifest.json").read_text())
     assert "quiet_edits" not in mf, "without --write the report only prints"
@@ -207,4 +208,4 @@ def test_report_writes_the_quiet_list_into_the_manifest(tmp_path, monkeypatch):
     assert mod.main() == 0
     mf = json.loads((tmp_path / "samples" / "s3-mauve-smoky" / "manifest.json").read_text())
     assert "lips:shade:plum" in mf["quiet_edits"] and "render:base" in mf["steps"], "the rest of the manifest stays"
-    assert "quiet_edits" not in json.loads((SAMPLES / "s3-mauve-smoky" / "manifest.json").read_text())
+    assert (SAMPLES / "s3-mauve-smoky" / "manifest.json").read_bytes() == real, "the real sample is not touched"

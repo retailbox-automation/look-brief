@@ -17,7 +17,7 @@ APPROVED = json.loads((Path(__file__).parent / "fixtures" / "approved_looks.json
 DOCS = json.loads((Path(__file__).parent / "fixtures" / "youcam_docs_snapshot.json").read_text())
 LIGHT_SIZES = {"eyes": 6, "liner": 3, "lashes": 3, "brows": 3, "cheeks": 5, "bronzer": 1, "highlight": 1, "lips": 10,
                "lip_line": 2}
-DEEP_SIZES = {**LIGHT_SIZES, "cheeks": 4, "highlight": 2, "lips": 9}
+DEEP_SIZES = {**LIGHT_SIZES, "highlight": 2, "lips": 9}
 ALL = [(g, z) for g in palettes.GROUPS for z in palettes.ZONES]
 
 
@@ -182,17 +182,36 @@ def test_ruby_is_a_step_of_the_light_lips_for_the_classic_red_sample():
 
 
 def test_deep_blush_stays_warm():
-    """Probes r1/v3: pinks and berries turn to mud on deep skin, warm deep shades are beautiful (#8E3A3C, #7E2A38)."""
+    """Probes r1/v3: pinks and berries turn to mud on deep skin, warm deep shades are beautiful (#8E3A3C, #7E2A38).
+    Only a shade darker than L* 30 may reach a plum: there it reads as depth, not as pink (probe p23)."""
     for s in palettes.ladder("deep", "cheeks"):
-        assert 9 <= _hue(s.main) <= 60, (s.id, _hue(s.main))
-        assert _chroma(s.main) >= 30, s.id
+        hue = (_hue(s.main) + 180) % 360 - 180  # 359 sits next to 0
+        dark = hex_to_lab(s.main)[0] < 30
+        assert (-5 if dark else 9) <= hue <= 60, (s.id, hue)
+        assert _chroma(s.main) >= (25 if dark else 30), s.id
+
+
+def _loud_on_deep_skin(color: str) -> str:
+    """Why a blush reads orange or loud on deep skin, "" if it does not. Both limits are against the forehead of s3:
+    close to the skin in lightness a warm shade is a pale orange patch (#D9785E), too vivid it shouts (#BF2900,
+    #C0262C). Fitted on these colours and the renders of probe p23: one face, the colour alone, not its strength."""
+    if hex_to_lab(color)[0] > hex_to_lab(SKIN["deep"])[0] - 8:
+        return "too light"
+    if _chroma(color) > 1.85 * _chroma(SKIN["deep"]):
+        return "too vivid"
+    return ""
+
+
+@pytest.mark.parametrize("color", ["#BF2900", "#D9785E", "#C0262C", "#C86A5A", "#FF8C00", "#FF6A00", "#E8743B",
+                                   "#D2691E", "#CC5500", "#C0501E", "#B85A1E", "#C84B10", "#D05A2A"])
+def test_the_rule_catches_the_orange_she_turned_down_and_any_bright_orange(color):
+    assert _loud_on_deep_skin(color)
 
 
 def test_deep_blush_has_no_orange_and_nothing_loud():
     """Nadya's complaint about orange cheeks; the matte red shouted. Warm deep shades took their place."""
-    colors = {s.colors[0] for s in palettes.ladder("deep", "cheeks")}
-    assert not colors & {"#D9785E", "#C86A5A", "#C0262C"}
-    assert {"#A8553F", "#8C3A4A"} <= colors
+    shades = [*palettes.ladder("deep", "cheeks"), *palettes.LOOK_SHADES["deep"]["cheeks"]]
+    assert not {s.id: _loud_on_deep_skin(s.main) for s in shades if _loud_on_deep_skin(s.main)}
     assert palettes.LOOKS["deep"]["softglam"]["cheeks"].shade == "mulled-rose"
 
 

@@ -28,6 +28,22 @@ def _options(state, keys=None):
 
 
 # ---------------- buttons ----------------
+def test_a_zone_with_no_step_that_shows_offers_no_button_and_says_why():
+    both = ["brows:shade:soft", "brows:shade:defined"]
+    assert pipeline.no_choice_zones(_state(quiet=both)) == ["brows"]
+    assert not [o for o in pipeline.edit_options(_state(quiet=both)) if o["zone"] == "brows"]
+    assert pipeline.no_choice_zones(_state(quiet=both, base=_look(look="fresh"))) == ["brows"], "whatever the look"
+
+
+def test_one_step_left_keeps_the_choice():
+    st = _state(quiet=["brows:shade:soft"])
+    assert pipeline.no_choice_zones(st) == [] and ("brows", "shade:defined") in _options(st)
+
+
+def test_a_zone_without_circles_is_not_a_zone_without_a_choice():
+    assert pipeline.no_choice_zones(_state()) == [] and "bronzer" not in pipeline.no_choice_zones(_state(quiet=["x"]))
+
+
 def test_options_cover_looks_steps_and_every_circle():
     opts = _options(_state())
     assert {("look", k) for k in palettes.LOOK_IDS} <= set(opts)
@@ -253,6 +269,16 @@ def _copy_sample(src, dst):
     return dst
 
 
+def _before_the_grid(src, dst):
+    """A copy of the sample with no render on the current recipe: the real one may be recorded by now."""
+    sd = _copy_sample(src, dst)
+    mf = json.loads((sd / "manifest.json").read_text())
+    mf["steps"] = {k: v for k, v in mf["steps"].items() if not k.startswith("render:")}
+    mf["steps"]["hair_transfer"]["label"] = ""
+    (sd / "manifest.json").write_text(json.dumps(mf))
+    return sd
+
+
 def _grid_engine(sd, max_units=100):
     client = FakeClient()
     return client, GridEngine(client, recorder=Recorder(sd), max_units=max_units)
@@ -270,7 +296,7 @@ def test_grid_engine_serves_what_is_recorded_for_free(tmp_path):
 
 
 def test_grid_engine_renders_a_new_recipe_and_reuses_it_on_the_next_run(tmp_path):
-    sd = _copy_sample(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
+    sd = _before_the_grid(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
     client, eng = _grid_engine(sd)
     ctx = SessionCtx(b"bride", b"insp")
     r = _look("deep")
@@ -284,7 +310,7 @@ def test_grid_engine_renders_a_new_recipe_and_reuses_it_on_the_next_run(tmp_path
 
 
 def test_grid_engine_stops_before_the_ceiling(tmp_path):
-    sd = _copy_sample(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
+    sd = _before_the_grid(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
     client, eng = _grid_engine(sd, max_units=1)
     ctx = SessionCtx(b"bride", b"insp")
     eng.render(ctx, _look("deep"), [])
@@ -311,7 +337,7 @@ def test_hair_on_a_render_needs_a_render_first():
 
 
 def test_grid_engine_redoes_hair_only_for_a_new_base(tmp_path):
-    sd = _copy_sample(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
+    sd = _before_the_grid(SAMPLES / "s3-mauve-smoky", tmp_path / "s3")
     client, eng = _grid_engine(sd)
     ctx = SessionCtx(b"bride", b"insp")
     r = _look("deep")
@@ -327,7 +353,7 @@ def test_grid_engine_redoes_hair_only_for_a_new_base(tmp_path):
 
 def test_build_look_on_transfer_first_puts_the_hair_on_the_base_render(tmp_path):
     src = SAMPLES / "s3-mauve-smoky"
-    sd = _copy_sample(src, tmp_path / "s3")
+    sd = _before_the_grid(src, tmp_path / "s3")
     client, eng = _grid_engine(sd)
     ctx = SessionCtx((src / "bride.jpg").read_bytes(), (src / "inspiration.jpg").read_bytes())
     st = pipeline.build_look(eng, ctx, tmp_path / "work", recorder=eng.recorder, order="transfer_first",

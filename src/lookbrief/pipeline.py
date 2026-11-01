@@ -231,6 +231,19 @@ def _option(state: dict, zone: str, op: str, label: str, recorded: set[str] | No
     return opt
 
 
+def no_choice_zones(state: dict) -> list[str]:
+    """Zones where no step from the base shade shows on this photo: the sheet names her shade and offers nothing."""
+    base = state["recipe_base"]
+    quiet = set(state.get("quiet_edits") or ())
+    zones = []
+    for zone, z in base["zones"].items():
+        others = [rcp.quiet_key(base, zone, rcp.SHADE_PREFIX + s.id) for s in palettes.circles(base["group"], zone)
+                  if s.id != z["shade_id"]]
+        if others and quiet.issuperset(others):
+            zones.append(zone)
+    return zones
+
+
 def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dict]:
     """Every button of the look screen: {zone, op, label, available, replaces[, reason, note]}. `zone` "look" holds the
     look buttons (+`selected`); op "softer" / "bolder" the steps of lids, cheeks and lips; op "shade:<id>" the circles
@@ -239,7 +252,10 @@ def edit_options(state: dict, recorded_keys: set[str] | None = None) -> list[dic
     now = state.get("recipe") or state["recipe_base"]
     opts = [_option(state, rcp.LOOK_ZONE, look, palettes.LOOK_LABELS[look], recorded_keys, selected=look == now["look"])
             for look in palettes.LOOK_IDS]
+    none_left = no_choice_zones(state)
     for zone, z in now["zones"].items():
+        if zone in none_left:
+            continue
         if zone in palettes.STEP_ZONES:
             opts += [_option(state, zone, op, rcp.EDIT_LABELS[op], recorded_keys) for op in rcp.EDIT_OPS]
         opts += [_option(state, zone, rcp.SHADE_PREFIX + s.id, s.name, recorded_keys, name=s.name,

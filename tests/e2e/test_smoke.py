@@ -447,7 +447,8 @@ def assert_caption_clear(page, width: int) -> None:
     assert m["textTop"] >= m["sheetTop"], f"{width}px: the caption left the sheet {m}"
 
 
-IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute RGB difference (0..255) inside the zone's outline box
+# The strongest channel: pink to peach moves blue alone, and a mean over the three channels hides that.
+IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute difference (0..255) inside the zone's outline box
   const load = (u) => new Promise((ok, no) => {
     const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = u; });
   const [x, y] = await Promise.all([load(a), load(b)]);
@@ -461,10 +462,10 @@ IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute RGB difference (0..
     const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d");
     g.drawImage(img, x0 * img.naturalWidth, y0 * img.naturalHeight, (x1 - x0) * img.naturalWidth,
                 (y1 - y0) * img.naturalHeight, 0, 0, w, h); return g.getImageData(0, 0, w, h).data; };
-  const p = px(x), q = px(y); let s = 0;
+  const p = px(x), q = px(y), s = [0, 0, 0];
   for (let i = 0; i < p.length; i += 4)
-    s += Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]);
-  return s / (p.length / 4) / 3;
+    for (let c = 0; c < 3; c++) s[c] += Math.abs(p[i + c] - q[i + c]);
+  return Math.max(...s) / (p.length / 4);
 }"""
 
 
@@ -502,12 +503,21 @@ def test_edits_show_on_the_photo_in_every_view_and_zones_step_aside(base_url, br
     expect(hero).to_have_attribute("src", re.compile(render_name(second)))
     d2 = page.evaluate(IMG_DIFF_JS, [src1, hero.get_attribute("src"), "lips"])
     same = page.evaluate(IMG_DIFF_JS, [src1, src1, "lips"])
-    assert same == 0 and d2 > 4.0, f"switching circles changes the lips: {d2} (control, same photo: {same})"
+    away = page.evaluate(IMG_DIFF_JS, [src1, hero.get_attribute("src"), "eyes"])
+    assert same == 0 and away < 4.0 < d2, f"switching circles changes the lips: {d2} (same photo {same}, eyes {away})"
+    # no step of the brows shows on this photo: the zone names her shade and says why, with no button
+    open_zone(page, "brows")
+    expect(page.get_by_test_id("shade-brows")).to_have_text("Natural")
+    expect(page.get_by_test_id("note-brows")).to_have_text("This shade stays close to your own brows on this photo.")
+    expect(page.get_by_test_id("zone-brows").locator("button")).to_have_count(0)
+    open_zone(page, "lips")
     # the hair preview says it is the look before her changes
     page.get_by_role("button", name="Makeup + hair").click()
     expect(page.get_by_test_id("hero-caption")).to_contain_text("before your changes")
     page.get_by_role("button", name="Makeup", exact=True).click()
-    # "Show zones" brings them back until the next choice
+    # a close-up has no zone pill: "Whole face" comes first, then "Show zones" brings them back until the next choice
+    expect(page.locator("#zones-btn")).to_be_hidden()
+    page.locator("#whole-btn").click()
     page.locator("#zones-btn").click()
     expect(page.locator("#outlines .zone-outline").first).to_be_visible()
     expect(page.locator("#zones-btn")).to_have_text("Hide zones")

@@ -212,9 +212,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             out.update({k: st.get(k) for k in ("map", "recipe", "recipe_base", "edits", "gaps", "gaps_base", "steps",
                                                 "shades", "recipe_sha256", "vto_effects", "notes", "outlines",
                                                 "checks", "order", "map_reference", "views")})
+            none_left = pipeline.no_choice_zones(st)
+            notes = {**{z: rcp.NO_CHOICE_NOTE.format(zone=palettes.ZONE_LABELS[z].lower()) for z in none_left},
+                     **palettes.FIXED_ZONES}
             out["zone_groups"] = [{"label": label, "zones": [{"zone": z, "label": palettes.ZONE_LABELS[z],
                                                               "style": z in palettes.STYLE_ZONES,
-                                                              "note": palettes.FIXED_ZONES.get(z, "")} for z in zs]}
+                                                              "note": notes.get(z, "")} for z in zs]}
                                   for label, zs in palettes.ZONE_GROUPS]
             if sess["mode"] == "replay":
                 out["edit_options"] = pipeline.edit_options(st, replay_keys(sess))
