@@ -119,12 +119,12 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .hero-strip .thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: 50% 30%; }
 .hero-strip .arrow { width: 14px; height: 10px; margin: 0 2px; color: var(--ink-2); }
 .hero-badge { position: absolute; z-index: 4; right: 12px; top: 55px; max-width: 148px; text-align: center; text-wrap: balance; background: var(--glass); color: var(--ink-2); font-size: 11px; padding: 4px 9px; border-radius: 14px; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
-.hero-check { position: absolute; z-index: 4; left: 13px; bottom: 56px; max-width: calc(100% - 26px); margin: 0; padding: 4px 11px; border-radius: 12px; background: var(--glass); color: var(--ink-2); font-size: 11.5px; line-height: 1.3; text-wrap: balance; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
+.hero-check { position: absolute; z-index: 4; left: 13px; bottom: 74px; max-width: calc(100% - 26px); margin: 0; padding: 4px 11px; border-radius: 12px; background: var(--glass); color: var(--ink-2); font-size: 11.5px; line-height: 1.3; text-wrap: balance; box-shadow: 0 1px 3px rgba(60, 40, 30, .1); }
 .hero-check[hidden] { display: none; }
-.hero-toggle { position: absolute; z-index: 4; right: 9px; bottom: 10px; display: flex; padding: 3px; border-radius: 999px; background: rgba(214, 205, 194, .82); border: 1px solid rgba(255, 255, 255, .6); }
+.hero-toggle { position: absolute; z-index: 4; right: 9px; bottom: 28px; display: flex; padding: 3px; border-radius: 999px; background: rgba(214, 205, 194, .82); border: 1px solid rgba(255, 255, 255, .6); }
 .hero-toggle[hidden] { display: none; }
 .chip-note { margin: 6px 0 0; font-size: .8rem; color: var(--muted, #6b605a); }
-.hero-zones { position: absolute; z-index: 4; left: 13px; bottom: 10px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 999px; padding: 6px 12px; background: var(--glass); color: var(--ink); font: 12.5px/1.2 var(--sans); cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 30, .12); }
+.hero-zones { position: absolute; z-index: 4; left: 13px; bottom: 28px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 999px; padding: 6px 12px; background: var(--glass); color: var(--ink); font: 12.5px/1.2 var(--sans); cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 30, .12); }
 .hero-img.zones-off .outlines, .hero-img.zones-off .pins { display: none; }
 .hero-whole { min-height: 44px; padding: 0 16px; font-size: 13.5px; }
 .hero-whole[hidden] { display: none; }
@@ -139,6 +139,9 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
 .sheet { position: relative; z-index: 5; margin-top: -18px; padding: 10px 17px 18px; background: var(--sheet); border-radius: 18px 18px 0 0; box-shadow: 0 -2px 10px rgba(60, 40, 30, .06); }
 .handle { display: block; width: 38px; height: 4px; margin: 0 auto 12px; border-radius: 2px; background: #d3cbc2; }
 .sheet-title { font-size: 1.85rem; line-height: 1.1; margin: 0 0 12px; }
+@media (max-height: 520px) { /* the look buttons stay on the first screen of a small phone */
+  .sheet-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
 .look-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
 .look-btn { min-height: 44px; padding: 4px 6px; font: 14.5px/1.2 var(--serif); color: var(--ink); background: var(--card); border: 1px solid var(--line-2); border-radius: 10px; cursor: pointer; }
 .look-btn:hover:not(:disabled):not([aria-pressed=true]) { background: var(--chip); }
@@ -276,4 +279,4 @@ legend { font-family: var(--serif); font-size: 1.15rem; padding: 0 4px; }
   .attest, .gaps tr, figure { break-inside: avoid; page-break-inside: avoid; }
 }
 
-.hero-cap { font-size: .78rem; color: var(--muted, #6b605a); margin: 6px 16px 0; padding-bottom: 24px; line-height: 1.35; }  /* the sheet overlaps the hero by 18px */
+.hero-cap { font-size: .78rem; color: var(--muted, #6b605a); margin: 10px 0 0; line-height: 1.35; }

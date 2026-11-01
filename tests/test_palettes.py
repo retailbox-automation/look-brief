@@ -74,6 +74,11 @@ def test_the_steps_of_light_and_medium_follow_the_final_looks():
     assert palettes.shade("medium", "lips", "wine").colors == ("#7A1A2E",)
 
 
+def test_the_buttons_start_with_classic_and_the_screen_opens_on_soft_glam():
+    assert [palettes.LOOK_LABELS[look] for look in palettes.LOOK_IDS] == ["Classic", "Soft glam", "Evening"]
+    assert palettes.DEFAULT_LOOK == "softglam"
+
+
 @pytest.mark.parametrize("group", palettes.GROUPS)
 def test_none_is_offered_on_the_highlighter_only(group):
     for zone in palettes.ZONES:

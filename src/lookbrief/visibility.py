@@ -20,6 +20,7 @@ from .color import delta_e2000
 from .recipe import EDIT_OPS, LOOK_ZONE, edit_key, record_grid
 
 MIN_P90 = 2.5
+ZONE_MIN_P90 = {"brows": 3.5}  # set by the critic's second look at close-up crops of the brows
 LINER_REACH = 0.05  # height of the band above the upper lid, x inter-ocular distance
 LASHES_REACH = 0.09
 LIP_RING = 0.03  # half width of the ring on the lip edge, x inter-ocular distance
@@ -58,10 +59,14 @@ def zone_masks(face: landmarks.FaceGeometry) -> dict[str, np.ndarray]:
     }
 
 
-def _stat(a: np.ndarray, b: np.ndarray) -> dict:
+def min_p90(zone: str) -> float:
+    return ZONE_MIN_P90.get(zone, MIN_P90)
+
+
+def _stat(a: np.ndarray, b: np.ndarray, zone: str) -> dict:
     de = delta_e2000(a, b)
     p90 = round(float(np.percentile(de, 90)), 2)
-    return {"p90": p90, "mean": round(float(de.mean()), 2), "ok": p90 >= MIN_P90}
+    return {"p90": p90, "mean": round(float(de.mean()), 2), "ok": p90 >= min_p90(zone)}
 
 
 def edit_visibility(sample_dir: Path) -> dict:
@@ -89,7 +94,7 @@ def edit_visibility(sample_dir: Path) -> dict:
 
     def measure(name: str, a: str, b: str, zone: str) -> None:
         if a in steps and b in steps:
-            edits[name] = _stat(zone_lab(a, zone), zone_lab(b, zone))
+            edits[name] = _stat(zone_lab(a, zone), zone_lab(b, zone), zone)
         else:
             missing.append(name)
 

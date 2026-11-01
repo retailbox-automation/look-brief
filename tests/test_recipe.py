@@ -329,10 +329,11 @@ def test_bronzer_has_nothing_to_pick():
     assert "bronzer" not in {e[0][0] for e in rcp.record_grid(_look())}
 
 
-def test_light_fresh_shows_nine_zones_and_sends_no_lip_liner_as_approved():
-    r = _look("light", "fresh")
-    assert len(r["zones"]) == 9 and r["zones"]["lip_line"]["shade_id"] == "none"
-    assert "lip_liner" not in [e["category"] for e in rcp.to_vto_effects(r)]
+@pytest.mark.parametrize("group", ["light", "medium", "deep"])
+def test_the_classic_look_wears_a_soft_lip_liner_and_no_highlighter(group):
+    r = _look(group, "fresh")
+    cats = [e["category"] for e in rcp.to_vto_effects(r)]
+    assert len(r["zones"]) == 9 and "lip_liner" in cats and "highlighter" not in cats
 
 
 # ---------------- edits as a list ----------------
@@ -448,12 +449,6 @@ def test_every_look_sends_the_concealer_under_the_tones():
         for look in palettes.LOOK_IDS:
             cats = [e["category"] for e in rcp.to_vto_effects(_look(group, look))]
             assert cats[:2] == ["skin_smooth", "concealer"] and "foundation" not in cats, (group, look)
-
-
-def test_sheer_lips_carry_gloss_and_transparency():
-    lips = next(e for e in rcp.to_vto_effects(_look("light", "fresh")) if e["category"] == "lip_color")
-    assert lips["palettes"] == [{"color": "#D98C86", "texture": "sheer", "colorIntensity": 55, "gloss": 45,
-                                 "transparencyIntensity": 30}]
 
 
 def test_the_gloss_circle_is_sheer_for_a_soft_shine():

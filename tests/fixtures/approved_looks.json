@@ -1,5 +1,5 @@
 {
- "_source": "Final request bodies (2026-10-31), colours frozen. light (s0): B p19-spec c8-nohigh; A, C p14-spec without foundation and highlighter, concealer 8/70/35, blush #C87A6E 34 and #B85A68 40. medium (s2): B p15-spec B2, C p17-spec C-wine, A p14-spec with the concealer and bronzer of B2 and no highlighter. deep (s3): A p15-spec A2, B p12-spec, C p16-spec C2.",
+ "_source": "Final request bodies (2026-10-31), colours frozen. light (s0): B p19-spec c8-nohigh; A p22-spec; C p14-spec without foundation and highlighter, concealer 8/70/35, blush #B85A68 40. medium (s2): B p15-spec B2, C p17-spec C-wine, A p22-spec. deep (s3): A p22-spec, B p12-spec, C p16-spec C2.",
  "light": {
   "fresh": [
    {
@@ -25,27 +25,27 @@
     },
     "palettes": [
      {
-      "color": "#D9B08C",
+      "color": "#E0B098",
       "texture": "shimmer",
-      "shimmerColor": "#D9B08C",
-      "shimmerIntensity": 60,
-      "colorIntensity": 70
+      "shimmerColor": "#E0B098",
+      "shimmerIntensity": 80,
+      "colorIntensity": 90
      },
      {
       "color": "#8A6450",
       "texture": "matte",
-      "colorIntensity": 62
+      "colorIntensity": 76
      }
     ]
    },
    {
     "category": "eye_liner",
     "pattern": {
-     "name": "Upper283"
+     "name": "Upper1"
     },
     "palettes": [
      {
-      "color": "#7A5C52",
+      "color": "#4A342C",
       "texture": "matte",
       "colorIntensity": 50
      }
@@ -59,7 +59,7 @@
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 60
+      "colorIntensity": 70
      }
     ]
    },
@@ -71,8 +71,8 @@
     "palettes": [
      {
       "color": "#5A4034",
-      "texture": "matte",
-      "colorIntensity": 35
+      "colorIntensity": 30,
+      "texture": "matte"
      }
     ]
    },
@@ -83,10 +83,10 @@
     },
     "palettes": [
      {
-      "color": "#C87A6E",
+      "color": "#D0705E",
       "texture": "satin",
-      "glowStrength": 30,
-      "colorIntensity": 34
+      "glowStrength": 40,
+      "colorIntensity": 44
      }
     ]
    },
@@ -98,7 +98,7 @@
     "palettes": [
      {
       "color": "#C08A55",
-      "colorIntensity": 20
+      "colorIntensity": 16
      }
     ]
    },
@@ -112,11 +112,24 @@
     },
     "palettes": [
      {
-      "color": "#D98C86",
-      "texture": "sheer",
-      "colorIntensity": 55,
-      "gloss": 45,
-      "transparencyIntensity": 30
+      "color": "#D0857F",
+      "texture": "satin",
+      "colorIntensity": 66
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#B0706E",
+      "texture": "matte",
+      "colorIntensity": 28,
+      "thickness": 12,
+      "smoothness": 90
      }
     ]
    }
@@ -413,29 +426,29 @@
     },
     "palettes": [
      {
-      "color": "#D9B08C",
+      "color": "#E0B098",
       "texture": "shimmer",
-      "shimmerColor": "#D9B08C",
-      "shimmerIntensity": 60,
-      "colorIntensity": 70
+      "shimmerColor": "#E0B098",
+      "shimmerIntensity": 80,
+      "colorIntensity": 90
      },
      {
-      "color": "#8A6450",
+      "color": "#7A5A48",
       "texture": "matte",
-      "colorIntensity": 62
+      "colorIntensity": 76
      }
     ]
    },
    {
     "category": "eye_liner",
     "pattern": {
-     "name": "Upper283"
+     "name": "Upper1"
     },
     "palettes": [
      {
-      "color": "#7A5C52",
+      "color": "#3A2A24",
       "texture": "matte",
-      "colorIntensity": 50
+      "colorIntensity": 55
      }
     ]
    },
@@ -447,7 +460,7 @@
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 60
+      "colorIntensity": 72
      }
     ]
    },
@@ -458,9 +471,9 @@
     },
     "palettes": [
      {
-      "color": "#5A4034",
-      "texture": "matte",
-      "colorIntensity": 35
+      "color": "#33241E",
+      "colorIntensity": 30,
+      "texture": "matte"
      }
     ]
    },
@@ -471,10 +484,10 @@
     },
     "palettes": [
      {
-      "color": "#F0A090",
+      "color": "#D87A6A",
       "texture": "satin",
-      "glowStrength": 30,
-      "colorIntensity": 30
+      "glowStrength": 40,
+      "colorIntensity": 44
      }
     ]
    },
@@ -486,7 +499,7 @@
     "palettes": [
      {
       "color": "#A86A40",
-      "colorIntensity": 60
+      "colorIntensity": 40
      }
     ]
    },
@@ -500,11 +513,24 @@
     },
     "palettes": [
      {
-      "color": "#D98C86",
-      "texture": "sheer",
-      "colorIntensity": 55,
-      "gloss": 45,
-      "transparencyIntensity": 30
+      "color": "#C87C76",
+      "texture": "satin",
+      "colorIntensity": 68
+     }
+    ]
+   },
+   {
+    "category": "lip_liner",
+    "pattern": {
+     "name": "Natural1"
+    },
+    "palettes": [
+     {
+      "color": "#A86A66",
+      "texture": "matte",
+      "colorIntensity": 28,
+      "thickness": 12,
+      "smoothness": 90
      }
     ]
    }
@@ -801,29 +827,29 @@
     },
     "palettes": [
      {
-      "color": "#C9A050",
+      "color": "#D9B080",
       "texture": "shimmer",
-      "shimmerColor": "#C9A050",
-      "shimmerIntensity": 65,
-      "colorIntensity": 80
+      "shimmerColor": "#D9B080",
+      "shimmerIntensity": 85,
+      "colorIntensity": 92
      },
      {
       "color": "#6E4A2A",
       "texture": "matte",
-      "colorIntensity": 70
+      "colorIntensity": 76
      }
     ]
    },
    {
     "category": "eye_liner",
     "pattern": {
-     "name": "Upper283"
+     "name": "Upper1"
     },
     "palettes": [
      {
       "color": "#2B1B17",
       "texture": "matte",
-      "colorIntensity": 60
+      "colorIntensity": 62
      }
     ]
    },
@@ -835,7 +861,7 @@
     "palettes": [
      {
       "color": "#17110f",
-      "colorIntensity": 70
+      "colorIntensity": 74
      }
     ]
    },
@@ -859,10 +885,10 @@
     },
     "palettes": [
      {
-      "color": "#B5535A",
+      "color": "#A84A48",
       "texture": "satin",
-      "glowStrength": 30,
-      "colorIntensity": 46
+      "glowStrength": 40,
+      "colorIntensity": 50
      }
     ]
    },
@@ -879,22 +905,6 @@
     ]
    },
    {
-    "category": "highlighter",
-    "pattern": {
-     "name": "OvalFace28"
-    },
-    "palettes": [
-     {
-      "color": "#D9A066",
-      "glowIntensity": 45,
-      "shimmerIntensity": 25,
-      "shimmerDensity": 35,
-      "shimmerSize": 25,
-      "colorIntensity": 40
-     }
-    ]
-   },
-   {
     "category": "lip_color",
     "shape": {
      "name": "original"
@@ -904,7 +914,7 @@
     },
     "palettes": [
      {
-      "color": "#9A5A50",
+      "color": "#A85E58",
       "texture": "satin",
       "colorIntensity": 90
      }
@@ -919,7 +929,7 @@
      {
       "color": "#6A3A34",
       "texture": "matte",
-      "colorIntensity": 35,
+      "colorIntensity": 34,
       "thickness": 30,
       "smoothness": 70
      }

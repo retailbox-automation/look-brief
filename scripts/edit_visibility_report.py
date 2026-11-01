@@ -63,7 +63,8 @@ No colour is computed: every colour sent is a shade of the palette.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
 Inside the mask of the zone (open eye and mouth left out), against the render without edits, or between the two shades
-of a step: **the 90th percentile of dE2000 >= {vis.MIN_P90}**. A step below that is quiet: `quiet_edits` in the manifest,
+of a step: **the 90th percentile of dE2000 >= {vis.MIN_P90}**, for the brows **>= {vis.ZONE_MIN_P90['brows']}** (the
+critic's second look at close-up crops of the brows). A step below that is quiet: `quiet_edits` in the manifest,
 no button, the server refuses it.
 
 Why p90 and not a mean: a mean over the mask dilutes thin elements (a wing liner: mean 3.7, p90 10.5). Why it is the

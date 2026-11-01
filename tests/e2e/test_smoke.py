@@ -396,6 +396,21 @@ def test_named_styles_are_chips_in_thin_zones(base_url, browser_ctx):
 
 
 @needs("s0-champagne-rose")
+@pytest.mark.parametrize(("width", "height"), [(320, 568), (320, 460), (390, 844), (390, 664)])
+def test_the_three_looks_are_on_the_first_screen(base_url, browser_ctx, width, height):
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": width, "height": height})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    buttons = page.locator(".look-btn")
+    expect(buttons).to_have_text(["Classic", "Soft glam", "Evening"])
+    expect(page.get_by_role("button", name="Soft glam", exact=True)).to_have_attribute("aria-pressed", "true")
+    assert page.evaluate("scrollY") == 0
+    for box in (buttons.nth(i).bounding_box() for i in range(3)):
+        assert box["x"] >= 0 and box["x"] + box["width"] <= width and box["y"] + box["height"] <= height, box
+    page.close()
+
+
 def test_details_keep_the_numbers_out_of_the_sheet(base_url, browser_ctx):
     page = browser_ctx.new_page()
     page.goto(base_url + "/try/s0-champagne-rose")
@@ -423,13 +438,13 @@ CAPTION_LAYOUT_JS = """() => {
 
 
 def assert_caption_clear(page, width: int) -> None:
-    """The Replay label under the photo must be fully readable: nothing on the photo overlaps it and the
-    makeup-map sheet (which overlaps the hero by 18px) does not cover its last line."""
+    """The Replay label lives in the sheet, so the looks stay on the first screen; the sheet overlaps the hero by
+    18px and must not cover the controls on the photo."""
     page.evaluate("window.scrollTo(0, 0)")
     m = page.evaluate(CAPTION_LAYOUT_JS)
     assert not m["clash"], f"{width}px: the photo-check pill, the zones pill and the preview toggle overlap {m}"
-    assert m["textTop"] >= m["overBottom"], f"{width}px: photo controls overlap the caption {m}"
-    assert m["textBottom"] <= m["sheetTop"], f"{width}px: the sheet covers the caption {m}"
+    assert m["overBottom"] <= m["sheetTop"], f"{width}px: the sheet covers the photo controls {m}"
+    assert m["textTop"] >= m["sheetTop"], f"{width}px: the caption left the sheet {m}"
 
 
 IMG_DIFF_JS = """async ([a, b, zone]) => {  // mean absolute RGB difference (0..255) inside the zone's outline box

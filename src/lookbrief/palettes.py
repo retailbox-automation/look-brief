@@ -38,8 +38,8 @@ ZONE_LABELS = {"eyes": "Eyelids", "liner": "Eyeliner", "lashes": "Lashes", "brow
                "bronzer": "Bronzer", "highlight": "Highlighter", "lips": "Lips", "lip_line": "Lip liner"}
 ZONE_GROUPS = (("Eyes", ("eyes", "liner", "lashes", "brows")), ("Face", ("cheeks", "bronzer", "highlight")),
                ("Lips", ("lips", "lip_line")))
-LOOK_IDS = ("softglam", "fresh", "evening")
-LOOK_LABELS = {"softglam": "Soft glam", "fresh": "Fresh", "evening": "Evening"}
+LOOK_IDS = ("fresh", "softglam", "evening")  # in the order of the buttons
+LOOK_LABELS = {"fresh": "Classic", "softglam": "Soft glam", "evening": "Evening"}
 DEFAULT_LOOK = "softglam"
 
 # Skin group from the forehead (cheeks read too red to use: s0 17.5, s3 16.0). A heuristic fitted on four faces only:
@@ -285,18 +285,22 @@ LADDERS: dict[str, dict[str, tuple[Shade, ...]]] = {
 
 LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
     "light": {
-        "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D9B08C", "#8A6450"),
+        "eyes": (_eye("peach-taupe", "Peach taupe", "#E0B098", "#8A6450"),
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
-        "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
-        "cheeks": (_blush("soft-peach", "Soft peach", "#C87A6E"),),
-        "lip_line": (_style("red", "Red", "#8E0F1A"), _style("ruby-line", "Ruby", "#A01028")),
+        "liner": (_style("soft-brown", "Soft brown", "#4A342C", pattern="Upper1"),),
+        "cheeks": (_blush("soft-coral", "Soft coral", "#D0705E"),),
+        "lips": (_lip("rosy-nude", "Rosy nude", "#D0857F"),),
+        "lip_line": (_style("rosy", "Rosy", "#B0706E", stroke=(12, 90)), _style("red", "Red", "#8E0F1A"),
+                     _style("ruby-line", "Ruby", "#A01028")),
     },
     "medium": {
-        "eyes": (_eye("sunlit-taupe", "Sunlit taupe", "#D9B08C", "#8A6450"),
+        "eyes": (_eye("peach-taupe", "Peach taupe", "#E0B098", "#7A5A48"),
                  _eye("copper-umber", "Copper umber", "#A8613A", "#2F1C16")),
-        "liner": (_style("taupe-brown", "Taupe brown", "#7A5C52", pattern="Upper283"),),
-        "cheeks": (_blush("soft-peach", "Soft peach", "#F0A090"),),
-        "lip_line": (_style("red", "Red", "#8E0F1A"), _style("wine-line", "Wine", "#5A1424")),
+        "liner": (_style("soft-brown", "Soft brown", "#3A2A24", pattern="Upper1"),),
+        "brows": (_style("soft-dark", "Soft dark", "#33241E"),),
+        "lips": (_lip("rosy-nude", "Rosy nude", "#C87C76"),),
+        "lip_line": (_style("rosy", "Rosy", "#A86A66", stroke=(12, 90)), _style("red", "Red", "#8E0F1A"),
+                     _style("wine-line", "Wine", "#5A1424")),
     },
     "olive": {
         "eyes": (_eye("warm-gold-taupe", "Warm gold taupe", "#C9A24A", "#8A5A3A"),
@@ -306,12 +310,13 @@ LOOK_SHADES: dict[str, dict[str, tuple[Shade, ...]]] = {
         "lip_line": (_style("rose-brown", "Rose brown", "#A5685E"), _style("wine", "Wine", "#6A1B2C")),
     },
     "deep": {
-        "eyes": (_eye("gold-bronze", "Gold bronze", "#C9A050", "#6E4A2A"),
+        "eyes": (_eye("soft-gold", "Soft gold", "#D9B080", "#6E4A2A"),
                  _eye("copper-night", "Copper night", "#C98A48", "#2A140E")),
-        "liner": (_style("smudge", "Smudge", "#2B1B17", pattern="Upper283"),),
-        "cheeks": (_blush("warm-rose", "Warm rose", "#B5535A"), _blush("dark-cherry", "Dark cherry", "#7E2A38")),
+        "liner": (_style("soft-black", "Soft black", "#2B1B17", pattern="Upper1"),),
+        "cheeks": (_blush("soft-brick", "Soft brick", "#A84A48"), _blush("dark-cherry", "Dark cherry", "#7E2A38")),
         "bronzer": (_bare("deep-bronze", "Deep bronze", "#8A4A2B"), _bare("dark-bronze", "Dark bronze", "#6B3F28")),
         "highlight": (_bare("deep-gold", "Deep gold", "#C9A24A"),),
+        "lips": (_lip("warm-nude", "Warm nude", "#A85E58"),),
         "lip_line": (_style("deep-wine", "Deep wine", "#7A1A2C"),),
     },
 }
@@ -333,8 +338,9 @@ def _look(eyes: tuple[str, tuple[int, ...], tuple[int, ...]], liner: tuple[str, 
 
 LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
     "light": {
-        "fresh": _look(("sunlit-taupe", (70, 62), (60, 0)), ("taupe-brown", 50), ("natural", 60), ("natural", 35),
-                       ("soft-peach", 34, "1color2", 30), ("natural", 20), (NONE_ID, 0), ("rosy-peach", 55)),
+        "fresh": _look(("peach-taupe", (90, 76), (80, 0)), ("soft-brown", 50), ("natural", 70), ("natural", 30),
+                       ("soft-coral", 44, "1color2", 40), ("natural", 16), (NONE_ID, 0), ("rosy-nude", 66),
+                       ("rosy", 28)),
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
                           ("warm-rose", 38, "1color2", 30), ("natural", 20), (NONE_ID, 0), ("dusty-rose", 68),
                           ("natural", 30)),
@@ -343,8 +349,9 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
                          ("ruby-line", 40)),
     },
     "medium": {
-        "fresh": _look(("sunlit-taupe", (70, 62), (60, 0)), ("taupe-brown", 50), ("natural", 60), ("natural", 35),
-                       ("soft-peach", 30, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("rosy-peach", 55)),
+        "fresh": _look(("peach-taupe", (90, 76), (80, 0)), ("soft-brown", 55), ("natural", 72), ("soft-dark", 30),
+                       ("soft-coral", 44, "1color2", 40), ("natural", 40), (NONE_ID, 0), ("rosy-nude", 68),
+                       ("rosy", 28)),
         "softglam": _look(("rose-gold", (92, 88), (70, 0)), ("classic", 60), ("natural", 75), ("natural", 35),
                           ("soft-coral", 38, "1color2", 30), ("natural", 60), (NONE_ID, 0), ("ruby", 80), ("red", 45)),
         "evening": _look(("copper-umber", (94, 92), (75, 0)), ("wing", 76), ("volume", 80), ("natural", 42),
@@ -363,9 +370,9 @@ LOOKS: dict[str, dict[str, dict[str, ZoneLook]]] = {
                          ("wine", 58)),
     },
     "deep": {
-        "fresh": _look(("gold-bronze", (80, 70), (65, 0)), ("smudge", 60), ("natural", 70), ("soft", 30),
-                       ("warm-rose", 46, "1color2", 30), ("deep-bronze", 18), ("radiant", 40), ("caramel-nude", 90),
-                       ("defined", 35)),
+        "fresh": _look(("soft-gold", (92, 76), (85, 0)), ("soft-black", 62), ("natural", 74), ("soft", 30),
+                       ("soft-brick", 50, "1color2", 40), ("deep-bronze", 18), (NONE_ID, 0), ("warm-nude", 90),
+                       ("defined", 34)),
         "softglam": _look(("gold", (95, 90), (80, 0)), ("classic", 70), ("natural", 80), ("natural", 40),
                           ("mulled-rose", 36, "1color5", 25), ("natural", 22), ("natural", 42), ("berry-rose", 76),
                           ("natural", 55)),

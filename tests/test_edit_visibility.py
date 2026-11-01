@@ -126,6 +126,14 @@ def test_the_gate_is_the_90th_percentile_only():
     assert not hasattr(visibility, "MIN_MEAN") and not hasattr(visibility, "MIN_SHARE")
 
 
+@pytest.mark.parametrize(("zone", "shows"), [("brows", False), ("lips", True), ("cheeks", True), ("lashes", True)])
+def test_the_brows_ask_for_more_than_the_other_zones(zone, shows):
+    a, b = np.full((50, 3), [50.0, 0.0, 0.0]), np.full((50, 3), [53.0, 0.0, 0.0])  # dE2000 3.0: between the thresholds
+    stat = visibility._stat(a, b, zone)
+    assert 2.5 < stat["p90"] < 3.5 and stat["ok"] is shows
+    assert visibility.min_p90(zone) == (3.5 if zone == "brows" else 2.5)
+
+
 def test_a_style_is_read_inside_its_own_mask(synthetic):
     sd, steps = synthetic
     _paint(sd, steps, "render:brows:shade:soft", "brows")

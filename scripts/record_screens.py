@@ -95,7 +95,7 @@ def pause(page, ms: int) -> None:
 # ---------- the seven steps, filmed in ONE session: the edit of (e) is what the artist (f) and the card (g) show ----------
 STORY_SHADE = ("Lips", "Lips: Ruby")  # the circle of (e); the most visible change on the heroine's lips
 STORY_STYLE = ("Eyeliner", "Eyeliner: Wing")  # a named style of a thin zone
-LOOKS = ("Fresh", "Evening", "Soft glam")
+LOOKS = ("Classic", "Evening", "Soft glam")
 
 
 def step_a(page) -> None:  # photos + photo check (top of the look screen: inspiration -> you strip, check pill)
