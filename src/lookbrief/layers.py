@@ -176,6 +176,8 @@ def stack_of(base: dict, edits: list[list[str]], recorded: set[str]) -> Stack | 
     ordered = canonical(edits)
     look = [e for e in ordered if e[0] == rcp.LOOK_ZONE]
     frame = rcp.edit_key(look)
+    if frame not in recorded:
+        return None
     prefix = f"{frame}+" if look else ""
     wide = [*look, *(e for e in ordered if e[0] in palettes.STEP_ZONES)]
     worn = rcp.apply_edits(base, wide)["zones"]  # a lip brings its own lip liner, and its render holds that one

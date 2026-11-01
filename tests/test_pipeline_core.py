@@ -140,6 +140,10 @@ def test_a_choice_with_no_source_stays_not_recorded():
     assert _options(st, keys)[("cheeks", "shade:peach")]["reason"] == "not_recorded"
 
 
+def test_a_look_nobody_recorded_stays_off():
+    assert pipeline.plan_edit(_state(), "look", "evening", {"base"}) == {"reason": "not_recorded"}
+
+
 def test_a_recorded_combination_is_kept():
     base = _look()
     st = _state(base, [["lips", "shade:ruby"]])

@@ -16,10 +16,12 @@ from helpers import ROOT, SAMPLES, geometry, grow, load_rgb, recorded_samples, z
 from PIL import Image
 
 from lookbrief import app as app_mod
-from lookbrief import makeup_map
+from lookbrief import makeup_map, pipeline
+from lookbrief import recipe as rcp
 from lookbrief.color import delta_e2000
 from lookbrief.config import Settings
-from lookbrief.engine import ReplayEngine
+from lookbrief.engine import LiveEngine, ReplayEngine, SessionCtx
+from lookbrief.youcam import UNITS, TaskResult
 
 LID = {"s0-champagne-rose": ("chocolate", "Chocolate"), "s2-classic-red": ("chocolate", "Chocolate"),
        "s3-mauve-smoky": ("burgundy", "Burgundy")}
@@ -194,6 +196,18 @@ def test_any_click_order_gives_the_same_file_and_the_same_recipe(client):
     assert a["recipe_sha256"] == b["recipe_sha256"]
 
 
+def test_a_lip_liner_she_chose_survives_either_click_order(client):
+    """A lip pulls the plain liner with it (s2), so applying the clicks as they came would give two recipes."""
+    clicks = [("lips", "shade:raspberry"), ("lip_line", "shade:natural")]
+    one, two = session(client, "s2-classic-red"), session(client, "s2-classic-red")
+    for zone, op in clicks:
+        a = edit(client, one, zone=zone, op=op)
+    for zone, op in reversed(clicks):
+        b = edit(client, two, zone=zone, op=op)
+    assert a["recipe"]["zones"]["lip_line"]["shade_id"] == b["recipe"]["zones"]["lip_line"]["shade_id"] == "natural"
+    assert a["recipe_sha256"] == b["recipe_sha256"] and image(client, a) == image(client, b)
+
+
 # ---------------- what stays a real render ----------------
 def test_one_change_stays_the_real_render_with_its_task_id(client):
     sid = session(client, "s0-champagne-rose")
@@ -333,7 +347,6 @@ def test_one_compose_adds_under_40_mb():
     import tracemalloc
 
     from lookbrief import layers
-    from lookbrief import recipe as rcp
 
     sample = "s0-champagne-rose"
     mf, face, _, _ = geometry(sample)
@@ -347,3 +360,53 @@ def test_one_compose_adds_under_40_mb():
     peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     assert peak < 40 * 1024 * 1024, peak / 1024 / 1024
+
+
+# ---------------- acceptance 7 ----------------
+class OneCallClient:
+    """A Live client that holds every real call: Live must stay one call with the whole recipe."""
+
+    def __init__(self):
+        self.calls: list[tuple[str, dict]] = []
+
+    def upload(self, content, name, content_type="image/jpeg"):
+        return f"file-{name}"
+
+    def run_task(self, name, body, version=None):
+        self.calls.append((name, body))
+        return TaskResult(name, f"task-{len(self.calls)}", "fake://render", 1.0, UNITS[name], {})
+
+    def download(self, url):
+        return (SAMPLES / "s2-classic-red/results/render__base.png").read_bytes()
+
+
+def test_live_sends_the_whole_recipe_in_one_call_whatever_was_chosen_before(tmp_path):
+    sample = SAMPLES / "s2-classic-red"
+    mf = json.loads((sample / "manifest.json").read_text())
+    ctx = SessionCtx((sample / "bride.jpg").read_bytes(), (sample / "inspiration.jpg").read_bytes())
+    ctx.ids["bride"] = "file-bride"
+    client = OneCallClient()
+    engine = LiveEngine(client)
+    workdir = tmp_path / "live"
+    workdir.mkdir()
+    (workdir / "bride.jpg").write_bytes(ctx.bride_jpeg)
+    (workdir / "look.jpg").write_bytes((sample / mf["steps"]["mu_transfer"]["image"]).read_bytes())
+    state = {"steps": {}, "images": {"look": "look.jpg"}, "order": "transfer_first", "bare": "bride.jpg",
+             "recipe_base": mf["steps"]["render:base"]["recipe"], "map": mf["map"], "gaps_base": {}}
+    edits = [["eyes", "shade:chocolate"], ["liner", "shade:wing"], ["lips", "shade:wine"]]
+    state = pipeline.rerender(engine, ctx, workdir, state, edits)
+    assert [name for name, _ in client.calls] == ["makeup-vto"], "one real call, nothing composed"
+    sent = {e["category"]: e for e in client.calls[0][1]["effects"]}
+    wanted = rcp.apply_edits(state["recipe_base"], edits)["zones"]
+    assert sent["eye_shadow"]["palettes"][0]["color"] == wanted["eyes"]["palette"][0]
+    assert sent["eye_liner"]["pattern"]["name"] == wanted["liner"]["pattern"] == "Upper4"
+    assert sent["lip_color"]["palettes"][0]["color"] == wanted["lips"]["palette"][0]
+    assert state["composition"] is None and state["images"]["render"].endswith(".png")
+    assert state["steps"][f"render:{rcp.edit_key(edits)}"]["task_id"] == "task-1"
+
+
+def test_live_plans_any_list_without_asking_what_is_recorded():
+    base = json.loads((SAMPLES / "s2-classic-red/manifest.json").read_text())["steps"]["render:base"]["recipe"]
+    state = {"recipe_base": base, "recipe": base, "edits": [["eyes", "shade:chocolate"]]}
+    assert pipeline.plan_edit(state, "liner", "shade:wing", None) == {
+        "edits": [["eyes", "shade:chocolate"], ["liner", "shade:wing"]], "notice": ""}

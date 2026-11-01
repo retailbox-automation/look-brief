@@ -3,17 +3,24 @@ Mobile viewport; axe-core WCAG 2 A/AA on every screen. Optional: LOOKBRIEF_RECOR
 per page (used for the demo footage). Buttons are read from the session's edit_options: a sample's quiet list decides
 which ones exist."""
 
+import io
 import json
 import os
 import re
+import sys
 import time
 from pathlib import Path
 
+import numpy as np
 import pytest
 from axe_playwright_python.sync_playwright import Axe
+from PIL import Image
 from playwright.sync_api import expect, sync_playwright
 
 from lookbrief import palettes
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from helpers import geometry, grow, load_rgb, zone_gap  # noqa: E402
 
 SAMPLES = Path(os.environ.get("LOOKBRIEF_SAMPLES", Path(__file__).resolve().parents[2] / "samples"))
 
@@ -31,7 +38,7 @@ def needs(sample: str):
 
 pytestmark = pytest.mark.e2e
 AXE = Axe()
-REPLACED = "Updated. Samples hold one recorded change at a time — this replaced your previous change."
+ASSEMBLED = "Assembled from {n} recorded YouCam Makeup VTO results, one per zone"
 UP_TO_DATE = "Your brief is already up to date — no new edits."
 HERO_ON_SCREEN_JS = "() => { const r = document.getElementById('img-hero').getBoundingClientRect(); " \
     "return r.height > 0 && r.bottom > 0 && r.top < innerHeight; }"
@@ -70,7 +77,7 @@ def circles(page, zone: str) -> list[dict]:
 
 
 def open_zone(page, zone: str) -> None:
-    page.get_by_role("button", name=LABEL[zone], exact=True).click()
+    page.locator(f'.tab[data-zone="{zone}"]').click()
 
 
 def tap_circle(page, opt: dict) -> None:
@@ -115,9 +122,9 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     expect(page.get_by_test_id("shade-lips")).to_contain_text(first["name"])
     open_zone(page, "eyes")
     second = circles(page, "eyes")[0]
-    tap_circle(page, second)  # a change in another zone replaces the first: one recorded change at a time
-    expect(page.locator("#edit-msg")).to_have_text(REPLACED, timeout=20_000)
-    expect(page.locator("#img-after")).to_have_attribute("src", re.compile(render_name(second)))
+    tap_circle(page, second)  # a change in another zone lands on the first: one assembled file
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#img-after")).to_have_attribute("src", STACK_FILE)
 
     page.get_by_role("button", name="Send brief to my makeup artist").click()
     expect(page.get_by_test_id("artist-link")).to_have_attribute("href", re.compile(r"^/b/"))
@@ -130,8 +137,8 @@ def test_guided_path_both_roles(base_url, browser_ctx):
     bride = browser_ctx.new_page()
     bride.goto(base_url + bride_url)
     expect(bride.locator("#agree-help")).to_have_text("Waiting for your makeup artist to answer every zone.")
-    expect(bride.locator("#b-after")).to_have_attribute("src", re.compile(render_name(second)))
-    expect(bride.locator("#b-after-cap")).to_contain_text("Agreed look: your recipe")
+    expect(bride.locator("#b-after")).to_have_attribute("src", STACK_FILE)
+    expect(bride.locator("#b-after-cap")).to_have_text(f"Agreed look: your recipe. {ASSEMBLED.format(n=2)}")
     for cap in bride.locator(".pair-photos figcaption").all():  # on screen, not screen-reader-only (1px)
         box = cap.bounding_box()
         assert box and box["width"] > 40 and box["height"] > 8, f"caption not visible: {box}"
@@ -262,6 +269,159 @@ def test_hair_first_sample_by_link(base_url, browser_ctx):
     expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
     page.get_by_role("button", name="Back to my look").click()
     expect(page.locator("#edit-msg")).to_have_text("Back to your look.", timeout=20_000)
+
+
+STACK_FILE = re.compile(r"/stack-[0-9a-f]{16}\.jpg")
+SAMPLE_LID = [("s0-champagne-rose", "chocolate", "Chocolate"), ("s2-classic-red", "chocolate", "Chocolate"),
+              ("s3-mauve-smoky", "burgundy", "Burgundy")]
+
+
+def hero_pixels(page) -> np.ndarray:
+    """The picture the phone is showing, fetched with her cookie, as it arrived."""
+    body = page.request.get(page.url.split("/s/")[0] + page.locator("#img-hero").get_attribute("src")).body()
+    return np.asarray(Image.open(io.BytesIO(body)).convert("RGB"), dtype=np.uint8)
+
+
+def in_view(box: dict, width: int, height: int) -> bool:
+    return box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= width and box["y"] + box["height"] <= height
+
+
+@pytest.mark.parametrize(("sample", "lid", "name"), SAMPLE_LID)
+def test_nadyas_path_on_a_phone(base_url, browser_ctx, sample, lid, name):
+    """Eyelids, then Eyeliner Wing: the lid stays and the wing lands on it. Remove this step in Eyeliner keeps the lid."""
+    if not recorded(sample):
+        pytest.skip(f"{sample} waits for re-recording")
+    mf, _, masks, size = geometry(sample)
+
+    def single(key: str) -> np.ndarray:
+        return load_rgb(SAMPLES / sample / mf["steps"][key]["image"], size)
+
+    page = browser_ctx.new_page()
+    page.goto(f"{base_url}/try/{sample}")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    remove = page.locator(".zone:not([hidden]) .remove-step")
+    open_zone(page, "eyes")
+    expect(remove).to_have_count(0)  # hidden while the zone has no change of hers
+    page.get_by_role("button", name=f"Eyelids: {name}", exact=True).click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Your edits, rendered by Makeup VTO")
+    expect(remove).to_be_visible()
+    open_zone(page, "liner")
+    expect(remove).to_have_count(0)
+    page.get_by_role("button", name="Eyeliner: Wing", exact=True).click()
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    hero = page.locator("#img-hero")
+    expect(hero).to_have_attribute("src", STACK_FILE)
+    page.wait_for_function("document.getElementById('img-hero').complete", timeout=5_000)
+
+    lids = masks["eyes"] & ~grow(masks["liner"], 3)
+    wing = grow(masks["liner"], 30) & (np.abs(single("render:base").astype(int)
+                                              - single("render:liner:shade:wing").astype(int)).sum(-1) > 90)
+    both, lid_only = hero_pixels(page), single(f"render:eyes:shade:{lid}")
+    assert zone_gap(both, lid_only, lids)[0] < 2.0, "the lid she chose stays"
+    assert zone_gap(both, single("render:liner:shade:wing"), lids)[0] > 3.0, "must differ: not the last click alone"
+    assert zone_gap(both, lid_only, wing)[0] > 5.0, "the wing is on the photo"
+
+    # the words say what the picture is, everywhere she reads them
+    assembled = ASSEMBLED.format(n=2)
+    expect(page.get_by_test_id("hero-caption")).to_have_text(assembled)
+    expect(page.locator("#cap-after")).to_have_text(assembled)
+    expect(page.locator("#look-source")).to_contain_text("assembled from 2 recorded")
+    assert "rendered by" not in page.content().lower()
+
+    # the button: seen with the photo, a real target, not moving the photo
+    expect(remove).to_have_text("Remove this step")
+    frame_y = page.locator(".hero-frame").bounding_box()["y"]
+    box = remove.bounding_box()
+    assert box["height"] >= 44, box
+    assert in_view(box, 390, 844), f"on the first screen, with the photo: {box}"
+    expect(page.locator('.tab[data-zone="liner"] .tab-mark')).to_be_visible()
+    expect(page.locator('.tab[data-zone="eyes"] .tab-mark')).to_be_visible()
+    expect(page.locator('.tab[data-zone="lips"] .tab-mark')).to_have_count(0)
+    page.get_by_role("button", name="Eyelids (changed)", exact=True).wait_for()
+    assert page.evaluate(HERO_ON_SCREEN_JS)
+    check_a11y(page, "a stacked look")
+
+    remove.click()
+    expect(page.locator("#edit-msg")).to_have_text("Removed. Your other changes stay.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(f"render-eyes-shade-{lid}"))
+    expect(page.locator('.tab[data-zone="liner"] .tab-mark')).to_have_count(0)
+    expect(page.locator('.tab[data-zone="eyes"] .tab-mark')).to_be_visible()
+    expect(page.get_by_test_id("hero-caption")).to_contain_text("Your edits, rendered by Makeup VTO")
+    assert page.locator(".hero-frame").bounding_box()["y"] == frame_y, "the photo stays where it was"
+    assert page.evaluate(HERO_ON_SCREEN_JS)
+    open_zone(page, "eyes")
+    expect(page.get_by_test_id("shade-eyes")).to_contain_text(name)
+    assert zone_gap(hero_pixels(page), lid_only, lids)[0] < 0.01, "back to the real render of her lid"
+
+    # Undo brings the removed step back, the same picture
+    page.get_by_role("button", name="Undo last change").click()
+    expect(page.locator("#edit-msg")).to_have_text("Undone.", timeout=20_000)
+    expect(hero).to_have_attribute("src", STACK_FILE)
+    assert np.array_equal(hero_pixels(page), both), "byte for byte"
+    page.get_by_role("button", name="Back to my look").click()
+    expect(page.locator("#edit-msg")).to_have_text("Back to your look.", timeout=20_000)
+    expect(hero).to_have_attribute("src", re.compile(r"render-base"))
+    expect(page.locator(".tab-mark")).to_have_count(0)
+    page.close()
+
+
+@needs("s0-champagne-rose")
+def test_the_brief_and_the_card_of_a_stacked_look_say_what_the_picture_is(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    for zone, label in (("eyes", "Eyelids: Chocolate"), ("liner", "Eyeliner: Wing"), ("lashes", "Lashes: Volume")):
+        open_zone(page, zone)
+        page.get_by_role("button", name=label, exact=True).click()
+        expect(page.locator(f'.tab[data-zone="{zone}"] .tab-mark')).to_be_visible(timeout=20_000)
+    page.get_by_role("button", name="Send brief to my makeup artist").click()
+    expect(page.get_by_test_id("artist-link")).to_have_attribute("href", re.compile(r"^/b/"))
+    artist = browser_ctx.new_page()
+    artist.goto(base_url + page.get_by_test_id("artist-link").get_attribute("href"))
+    assembled = ASSEMBLED.format(n=3)
+    expect(artist.locator("#b-after-cap")).to_have_text(f"Agreed look: the bride's recipe. {assembled}")
+    expect(artist.locator("#b-after")).to_have_attribute("alt", f"Agreed look: the bride's recipe. {assembled}")
+    assert "rendered" not in artist.content().lower()
+    artist.goto(base_url + page.get_by_test_id("bride-link").get_attribute("href").replace("/b/", "/card/"))
+    expect(artist.get_by_text(f"Agreed look: her recipe. {assembled}")).to_be_visible()
+    assert "rendered" not in artist.content().lower()
+
+
+@needs("s0-champagne-rose")
+@pytest.mark.parametrize(("width", "height"), [(320, 640), (390, 844)])
+def test_the_remove_button_fits_a_phone_in_every_zone_tab(base_url, browser_ctx, width, height):
+    page = browser_ctx.new_page()
+    page.set_viewport_size({"width": width, "height": height})
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    sid = page.url.rsplit("/", 1)[1]
+    for zone, op in (("highlight", "shade:radiant"), ("lip_line", "shade:defined"), ("eyes", "shade:chocolate")):
+        page.evaluate("""async ([sid, zone, op]) => { await fetch(`/api/sessions/${sid}/edits`, {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify({zone, op})}); }""", [sid, zone, op])
+    page.reload()
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    for zone in ("highlight", "lip_line", "eyes"):
+        open_zone(page, zone)
+        box = page.locator(f"#remove-{zone}").bounding_box()
+        assert box["height"] >= 44 and box["x"] + box["width"] <= width, (zone, box)
+        m = page.evaluate(TOUCH_JS)
+        assert not m["small"] and not m["cut"] and m["overflow"] <= 0, (zone, m)
+        name = page.locator(f"#zone-h-{zone}").bounding_box()
+        assert name["x"] + name["width"] <= box["x"], (zone, name, box)
+
+
+@needs("s0-champagne-rose")
+def test_a_style_with_no_source_on_this_look_is_off_and_says_why(base_url, browser_ctx):
+    page = browser_ctx.new_page()
+    page.goto(base_url + "/try/s0-champagne-rose")
+    expect(page.locator("#look")).to_be_visible(timeout=30_000)
+    page.get_by_role("button", name="Classic", exact=True).click()  # the look, not the eyeliner style
+    expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-fresh"), timeout=20_000)
+    open_zone(page, "liner")
+    expect(page.get_by_role("button", name="Eyeliner: Classic", exact=True)).to_be_disabled()
+    expect(page.get_by_test_id("note-liner")).to_have_text("This change isn't in the recorded set.")
+    page.close()
 
 
 def task_fragment(task_id: str) -> str:
@@ -414,7 +574,7 @@ def test_a_circle_on_evening_stays_on_evening_and_undo_keeps_it(base_url, browse
 
 
 @needs("s0-champagne-rose")
-def test_a_style_on_evening_moves_to_soft_glam_says_so_and_undo_comes_back(base_url, browser_ctx):
+def test_a_style_on_evening_stays_on_evening_and_undo_comes_back(base_url, browser_ctx):
     page = browser_ctx.new_page()
     page.goto(base_url + "/try/s0-champagne-rose")
     expect(page.locator("#look")).to_be_visible(timeout=30_000)
@@ -423,9 +583,11 @@ def test_a_style_on_evening_moves_to_soft_glam_says_so_and_undo_comes_back(base_
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
     page.get_by_role("button", name="Eyeliner", exact=True).click()
     page.get_by_role("button", name="Eyeliner: Flick", exact=True).click()
-    expect(page.locator("#edit-msg")).to_have_text("Styles are recorded on Soft glam, so your look moved to Soft glam.",
-                                                   timeout=20_000)
-    expect(page.get_by_role("button", name="Soft glam", exact=True)).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#edit-msg")).to_have_text("Updated.", timeout=20_000)
+    expect(page.locator("#img-hero")).to_have_attribute("src", STACK_FILE)
+    expect(evening).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_test_id("hero-caption")).to_have_text(
+        "Assembled from 1 recorded YouCam Makeup VTO result, one per zone")
     page.get_by_role("button", name="Undo last change").click()
     expect(page.locator("#img-hero")).to_have_attribute("src", re.compile(r"render-look-evening\."), timeout=20_000)
     expect(evening).to_have_attribute("aria-pressed", "true")

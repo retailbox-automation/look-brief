@@ -186,20 +186,24 @@ def rerender(engine: Engine, ctx: SessionCtx, workdir: Path, state: dict, edits:
                 raise NotRecorded(rcp.edit_key(edits))
             recipe = rcp.apply_edits(state["recipe_base"], layers.canonical(edits))
     recipe = recipe or rcp.apply_edits(state["recipe_base"], edits)
-    face = face or face_of(workdir, bare_name)
+    meta, composition = None, None
     if isinstance(engine, ReplayEngine) and stack is not None:
         name = layers.file_name(edits)
+        face = face or face_of(workdir, bare_name)
         if not (workdir / name).exists():  # the same choices again, by Undo or in another order: the same bytes
             (workdir / name).write_bytes(layers.to_jpeg(engine.compose(stack, recipe, face)))
-        state["composition"] = engine.composition(stack)
+        composition = engine.composition(stack)
     else:
         res = engine.render(ctx, recipe, edits, on="base" if state.get("order") == "hair_first" else "bride")
         name = _save(workdir, render_name(edits), res)
-        state["steps"][f"render:{rcp.edit_key(edits)}"] = asdict(res.meta)
-        state["composition"] = None
+        meta = asdict(res.meta)
+    face = face or face_of(workdir, bare_name)
     bare, transfer = _arrays(workdir, state["images"]["look"], bare_name)
     _, render = _arrays(workdir, name, bare_name)
     gaps = makeup_map.compare(bare, transfer, render, face)
+    if meta is not None:
+        state["steps"][f"render:{rcp.edit_key(edits)}"] = meta
+    state["composition"] = composition
     state["images"]["render"] = name
     state["edits"] = edits
     state["recipe"] = recipe

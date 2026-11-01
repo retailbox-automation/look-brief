@@ -205,6 +205,11 @@ def test_a_choice_that_could_not_change_the_photo_has_no_source():
     assert _stack([*FRESH, ["liner", "shade:classic"]]) is None
 
 
+def test_a_look_with_no_frame_of_its_own_has_no_source():
+    assert layers.stack_of(SOFT, EVENING, {"base"}) is None
+    assert layers.stack_of(SOFT, [*EVENING, ["liner", "shade:flick"]], {"base", "liner:shade:flick"}) is None
+
+
 def test_a_thin_zone_nobody_recorded_has_no_source():
     assert _stack([["liner", "shade:wing"], ["brows", "shade:defined"]]) is None
 
