@@ -5,8 +5,9 @@
 
 One clip per step, phone viewport 390x844 @2x (MP4, 780x1688, 30 fps; frames from the DevTools screencast), plus a PNG per step at 1290x2796
 (430x932 @3x). Steps, all on ONE bride session: a-photos-check, b-before-after, c-zone-map, d-looks, e-shade-circle,
-e2-liner-style (when the sample offers it), f-artist-brief, g-agreed-card; plus h-samples (home page, two other
-looks) and h-home.png. Every frame shows real recorded YouCam results with their Replay labels.
+e2-liner-style, e3-lashes-stack, e4-remove-step, e5-whole-stack (when the sample offers them; her choices add up),
+f-artist-brief, g-agreed-card; plus h-samples (home page, two other looks) and h-home.png. One change is a recorded
+YouCam result; several are assembled from recorded results, and the page says so.
 """
 
 from __future__ import annotations
@@ -94,7 +95,8 @@ def pause(page, ms: int) -> None:
 
 # ---------- the seven steps, filmed in ONE session: the edit of (e) is what the artist (f) and the card (g) show ----------
 STORY_SHADE = ("Lips", "Lips: Ruby")  # the circle of (e); the most visible change on the heroine's lips
-STORY_STYLE = ("Eyeliner", "Eyeliner: Wing")  # a named style of a thin zone
+STORY_STYLE = ("Eyeliner", "Eyeliner: Wing")  # a named style of a thin zone, on top of the lips
+STORY_LASHES = ("Lashes", "Lashes: Volume")  # a third zone on top; the lids stay as the look has them
 LOOKS = ("Classic", "Evening", "Soft glam")
 
 
@@ -160,24 +162,51 @@ def step_e(page) -> None:  # a circle: ~1 s, tap, the photo comes back into view
 
 
 def style_offered(page) -> bool:
-    """A sample's quiet list can hide the story's style."""
-    return page.get_by_role("button", name=STORY_STYLE[1], exact=True).count() > 0
+    """A sample's quiet list can hide the story's style. The tab of the style is closed here: ask the page, not the role."""
+    return page.locator('#zones button[data-zone="liner"][data-op="shade:wing"]').count() > 0
 
 
-def prep_e2(page) -> None:  # the story shows one change at a time: back to her look off camera
-    page.get_by_role("button", name="Undo last change").click()
-    page.wait_for_selector("#edit-msg:has-text('Undone')", timeout=20_000)
+def prep_e2(page) -> None:  # the next zone lands on top of the last: nothing is undone between the clips
     page.evaluate("window.scrollTo(0, 0)")
     pause(page, 300)
 
 
-def step_e2(page) -> None:  # a style by name: the zone, the style, hold the result
+def add_zone(page, zone: str, button: str) -> None:  # a zone by name, its style, hold the result
+    src = page.locator("#img-hero").get_attribute("src")
     pause(page, 800)
-    page.get_by_role("button", name=STORY_STYLE[0], exact=True).click()
+    page.get_by_role("button", name=zone, exact=True).click()
     pause(page, 700)
-    page.get_by_role("button", name=STORY_STYLE[1], exact=True).click()
+    page.get_by_role("button", name=button, exact=True).click()
+    page.wait_for_function("b => document.getElementById('img-hero').getAttribute('src') !== b", arg=src, timeout=20_000)
     page.wait_for_selector("#edit-msg:has-text('Updated')", timeout=20_000)
     pause(page, 3000)
+
+
+def step_e2(page) -> None:
+    add_zone(page, *STORY_STYLE)
+
+
+def step_e3(page) -> None:
+    add_zone(page, *STORY_LASHES)
+
+
+def step_e4(page) -> None:  # Remove this step: the zone goes back to the look, the others stay
+    pause(page, 1200)
+    page.locator("#remove-lashes").click()
+    page.wait_for_selector("#edit-msg:has-text('Removed')", timeout=20_000)
+    pause(page, 2600)
+
+
+def prep_e5(page) -> None:  # the step comes back off camera: the brief carries all three
+    page.get_by_role("button", name="Undo last change").click()
+    page.wait_for_selector("#edit-msg:has-text('Undone')", timeout=20_000)
+    pause(page, 400)
+
+
+def step_e5(page) -> None:  # all her choices on the whole face
+    pause(page, 600)
+    page.locator("#whole-btn").click()
+    pause(page, 3400)
 
 
 def step_f(page) -> None:  # the artist's link: answer every zone, add a note, agree
@@ -274,8 +303,10 @@ def main() -> int:
                 film(look, "e-shade-circle", step_e, prep_e)
                 filmed_style = style_offered(look)
                 if filmed_style:
-                    prep_e2(look)
-                    film(look, "e2-liner-style", step_e2)
+                    film(look, "e2-liner-style", step_e2, prep_e2)
+                    film(look, "e3-lashes-stack", step_e3, prep_e2)
+                    film(look, "e4-remove-step", step_e4)
+                    film(look, "e5-whole-stack", step_e5, prep_e5)
                 look.get_by_role("button", name="Send brief to my makeup artist").click()
                 look.wait_for_selector("[data-testid=artist-link][href^='/b/']", timeout=10_000)
                 artist_url = look.get_by_test_id("artist-link").get_attribute("href")
@@ -293,7 +324,8 @@ def main() -> int:
                 card = ctx.new_page()
                 card.goto(f"{base}/card/{bid}?t={bride_t}")
                 card.wait_for_load_state("networkidle")
-                wanted = "render-" + "_".join(f"{z}-{op.replace(':', '-')}" for z, op in edits)
+                wanted = snap["images"]["render"]  # the stack file of her choices, not the look she started from
+                checks[kind]["composed"] = (snap.get("composition") or {}).get("caption")
                 checks[kind]["card_has_edit_render"] = bool(edits) and wanted in card.content()
                 if not checks[kind]["card_has_edit_render"]:
                     raise RuntimeError(f"the edit of (e) did not reach the brief and the card: {checks[kind]}")
@@ -315,7 +347,7 @@ def main() -> int:
         proc.wait(timeout=10)
     (out / "README.json").write_text(json.dumps({
         "sample": args.sample, "made": made, "video": "390x844 @2x", "png": "430x932 @3x = 1290x2796",
-        "one_session": "a-e on one bride session; the brief is sent from it after the edit, so f and g show it",
+        "one_session": "a-e on one bride session; the brief is sent from it after her edits, so f and g show them",
         "edit_carried": checks,
         "source": "Replay of recorded real YouCam API results (no API calls); scripts/record_screens.py"}, indent=1))
     print("\n".join(made))
