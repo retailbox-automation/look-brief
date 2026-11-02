@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -541,3 +542,11 @@ def test_live_plans_any_list_without_asking_what_is_recorded():
     state = {"recipe_base": base, "recipe": base, "edits": [["eyes", "shade:chocolate"]]}
     assert pipeline.plan_edit(state, "liner", "shade:wing", None) == {
         "edits": [["eyes", "shade:chocolate"], ["liner", "shade:wing"]], "notice": ""}
+
+
+def test_public_wording_does_not_call_an_assembled_look_one_real_call():
+    root = Path(__file__).resolve().parents[1] / "src" / "lookbrief"
+    home = (root / "templates" / "index.html").read_text(encoding="utf-8")
+    brief = (root / "static" / "brief.js").read_text(encoding="utf-8")
+    assert "every result is a real" not in home and "assembled from them, one per zone" in home
+    assert 'view.snapshot.composition ? " · sample, assembled from recorded YouCam API results"' in brief

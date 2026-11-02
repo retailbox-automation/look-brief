@@ -72,7 +72,7 @@
     else help = me ? `You agreed at ${me}. Waiting for the ${other}.` : (a[other] ? `The ${other} agreed ✓ · waiting for you.` : "");
     $("agree-help").textContent = Date.now() < noteUntil ? `${help} ${UP_TO_DATE}`.trim() : help;
     $("agree").disabled = signed || !view.can_agree || !!me;
-    $("b-status").textContent = `Version ${view.version}${view.snapshot.mode === "replay" ? " · sample (recorded real YouCam API results)" : ""}`;
+    $("b-status").textContent = `Version ${view.version}${view.snapshot.mode !== "replay" ? "" : view.snapshot.composition ? " · sample, assembled from recorded YouCam API results" : " · sample (recorded real YouCam API results)"}`;
     if (signed || a.bride || a.artist) { $("card-a").href = `/card/${bid}?t=${token}`; $("card-link").hidden = false; }
   }
 
