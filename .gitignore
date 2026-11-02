@@ -12,7 +12,6 @@ __pycache__/
 *.pem
 credentials*.json
 service-account*.json
-.claude/settings.local.json
 node_modules/
 /data/
 /dev-local/

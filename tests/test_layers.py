@@ -178,7 +178,7 @@ def test_a_stroke_both_renders_hold_paints_nothing():
 
 
 def test_the_lash_layer_stays_at_the_lid_rim():
-    """TG 4336: on the whole eye area the strokes of a lash render lay over the lid she chose."""
+    """On the whole eye area the strokes of a lash render lay over the lid she chose."""
     zones = {z: np.zeros((200, 300), dtype=bool) for z in ("eyes", "liner", "lashes")}
     zones["lashes"][100:104, 100:200] = True
     zones["eyes"][60:100, 100:200] = True
@@ -404,7 +404,7 @@ def test_every_sample_holds_six_lids_on_evening(sample):
 
 @pytest.mark.parametrize("sample", recorded_samples())
 def test_lashes_leave_the_lid_above_the_rim_alone(sample):
-    """TG 4336: strokes of the lash render showed on the lid, more than in the real render of the same zones."""
+    """Strokes of the lash render showed on the lid, more than in the real render of the same zones."""
     masks = geometry(sample)[2]
     far = masks["eyes"] & ~cv2.dilate(masks["lashes"].astype(np.uint8), np.ones((31, 31), np.uint8)).astype(bool)
     edits = lid_wing_volume(sample, "bronze")

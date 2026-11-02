@@ -55,5 +55,5 @@
   "error_code": "InvalidParameters"
  },
  "ts": "2026-10-31T12:48:55Z",
- "source": "spike/out/log.jsonl line 46 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+ "source": "spike/out/log.jsonl line 46 (spike, 2026-10-31); request body as sent, signed URLs redacted"
 }

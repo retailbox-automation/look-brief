@@ -658,7 +658,7 @@ def test_no_render_carries_the_foundation_of_the_even_out_step(live_client, monk
     assert st["map_reference"] == "even", "the map still reads the evened transfer, not the blotchy one"
 
 
-# ---------------- click-test fixes of 2026-10-31 (CT3110-YCBQ) ----------------
+# ---------------- click-test fixes of 2026-10-31 ----------------
 def _sample_session(client, sample: str) -> str:
     r = client.get(f"/try/{sample}", follow_redirects=False)
     sid = r.headers["location"].rsplit("/", 1)[1]
@@ -785,7 +785,7 @@ def test_footer_live_status_opens_the_live_page(client):
     assert "Try a recorded sample instead" in client.get("/live").text
 
 
-# ---------------- click-test fixes, second batch (CT3110-YCBQ) ----------------
+# ---------------- click-test fixes, second batch ----------------
 def test_hair_first_brief_serves_the_hair_transfer_on_her_selfie(client):
     """s0 has no "hair" image: the Hair Transfer on her selfie is "base", and the brief shows it as the hair."""
     sid = _sample_session(client, "s0-champagne-rose")

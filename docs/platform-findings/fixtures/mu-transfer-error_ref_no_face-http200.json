@@ -13,5 +13,5 @@
   }
  },
  "ts": "2026-10-31T12:44:59Z",
- "source": "spike/out/log.jsonl line 43 (CT3110-YCB spike, 2026-10-31); request body as sent, signed URLs redacted"
+ "source": "spike/out/log.jsonl line 43 (spike, 2026-10-31); request body as sent, signed URLs redacted"
 }
