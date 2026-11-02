@@ -21,7 +21,7 @@ the server, so the paid trial only executes what both already saw.
 | History: how the first computed recipe was calibrated | [`docs/CALIBRATION.md`](docs/CALIBRATION.md) | v1 3.2 → v2 1.97 on that earlier recipe, replaced by the ready-made shades |
 | The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
 | Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → a foundation in her shade over the transfer gives 4 %, lips stay at ΔE 0.66. The makeup map is read from that layer; no render carries it |
-| The artist confirms each zone; the agreement is verifiable | Demo → "Create the brief link" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
+| The artist confirms each zone; the agreement is verifiable | Demo → "Send brief to my makeup artist" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
 | Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 729 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, zone stacking against real multi-zone renders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
 | Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Inside the zone the 90th percentile of ΔE2000 is at least 2.5 (brows 3.5); a step below that gets no button. Softer and Bolder go to the next shade of the same colour |
 | Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
@@ -81,8 +81,8 @@ API from the server only, behind a consent screen, with a unit budget, a per-net
 per-session cap; when any limit is reached it falls back to the recorded samples. Uploaded photos are deleted after
 24 hours or on request.
 
-**Zone choices stack.** One change shows the recorded render itself. Several changed zones have no recorded render, so
-Replay assembles them on the server from recorded single-zone renders, one per zone, and says so on the photo, the brief
+**Zone choices stack.** A recorded change shows that render itself. Anything without a recorded render of its own, such
+as several changed zones, Replay assembles on the server from recorded single-zone renders, one per zone, and says so on the photo, the brief
 and the card; the signed record lists every component task id. Live makes one real call with the whole recipe.
 [`docs/EDITS.md`](docs/EDITS.md) has the rule and the measurement.
 
@@ -129,7 +129,7 @@ python scripts/verify_card.py look-brief-<id>.json \
 ## Tests and checks
 
 ```bash
-uv run pytest -q                 # 575 unit tests + 24 Playwright tests (run `uv run playwright install chromium` once)
+uv run pytest -q                 # 691 unit tests + 38 Playwright tests (run `uv run playwright install chromium` once)
 uv run ruff check src tests scripts && uv run mypy src
 ```
 
@@ -144,7 +144,7 @@ smoke walks the bride and artist paths on a 390×844 phone viewport and runs axe
 
 Ten findings with evidence in this repo — [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md). The four
 that shaped the product: Makeup VTO smooths the whole face unless `skin_smooth` is set to 0; Makeup VTO is not
-deterministic for eye shadow and lips (identical recipe, up to 2.13 ΔE2000 apart) while blush is; lip colour
+deterministic for eye shadow and lips (identical recipe, the gap to the transfer moved by up to 2.13 ΔE2000 on eyelids and 1.28 on lips) while blush is; lip colour
 lands darker than the hex it is given; and Makeup Transfer paints patchy blush on a face with natural redness,
 which the hair-first order plus a foundation layer under the reading avoids with the API itself.
 
