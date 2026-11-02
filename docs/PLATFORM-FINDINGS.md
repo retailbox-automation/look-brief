@@ -80,8 +80,12 @@ files committed here; dates are 2026-10-31 (UTC). Nothing here is a complaint: m
   smoothing. Blush area fell to 4 % (measured against the haired base), the lips stayed as transferred (ΔE2000 to
   the inspiration 0.66), eyelids 2.6. Freckles get softer too — it is a foundation. In the app this is the
   "Even out redness" step, labelled "foundation in her shade over the transfer", and the artist confirms it as a zone.
-- **Edits keep the even tone:** every later Makeup VTO re-render (base recipe and each zone edit) carries the same
-  foundation under the recipe, and the recipe is read from the evened look, not from the blotchy transfer. Before
+- **Later, 01.11:** the look moved to ready-made shades, and on the heroine foundation left the cheek paler than her
+  bare skin, so renders no longer carry it (`recipe.py`, `to_vto_effects`). The even-out step stays only as the look the
+  map is read from, and the Skin line of the brief is concealer in her shade. The rest of this item is the record of
+  that stage.
+- **Edits keep the even tone:** every later Makeup VTO re-render (base recipe and each zone edit) carried the same
+  foundation under the recipe, and the recipe was read from the evened look, not from the blotchy transfer. Before
   that, "Cheeks: softer" brought the redness back and still showed more blush than the evened look (visible blush
   area 11 % vs 4.5 %); now the evened look 4.5 %, base recipe 6 % (`samples/s0-champagne-rose`,
   `tests/test_app.py::test_edits_after_even_out_keep_her_foundation`). Since 31.10 evening "softer" is not offered on
