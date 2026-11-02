@@ -16,14 +16,14 @@ the server, so the paid trial only executes what both already saw.
 | Claim | Check it | What you will see |
 |---|---|---|
 | Real YouCam API results, not mock-ups | Demo → any sample → caption under each picture; `samples/*/manifest.json`, `samples/*/fixtures/` | "Recorded real YouCam API result · task W6__…ldjt90TP · 6.6s · 2026-10-31T23:52:14Z"; the same task ids and sanitized API responses in the repo |
-| Three YouCam APIs work as one flow | [API map](#how-it-works) below; `src/lookbrief/engine.py` | Makeup Transfer → Hair Transfer → Makeup VTO, chained per session |
+| Three YouCam APIs work as one flow | [API map](#how-it-works) below; `src/lookbrief/engine.py` | Hair Transfer → Makeup Transfer → Makeup VTO in Live and the heroine sample; the other two samples ran the transfer first |
 | The distance from the transfer is measured and shown | [`docs/ACCURACY.md`](docs/ACCURACY.md), `uv run python scripts/accuracy_report.py` | The look is ready-made shades chosen for her skin, not a copy of the transfer: mean shade gap ΔE2000 **5.2** on 3 faces (eyelids 3.55, cheeks 4.63, lips 7.41), plus all nine zones |
 | History: how the first computed recipe was calibrated | [`docs/CALIBRATION.md`](docs/CALIBRATION.md) | v1 3.2 → v2 1.97 on that earlier recipe, replaced by the ready-made shades |
-| The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.0 with `skin_smooth: 0` vs 4.70 with the API default |
+| The bride's skin is kept, not beautified | `docs/ACCURACY.md` (skin control), [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §1 | Forehead (no makeup) ΔE76 0.37 or less with `skin_smooth: 0` on all three samples vs 4.66 with the API default |
 | Patchy transfer blush, found and fixed with the API itself | [`docs/PLATFORM-FINDINGS.md`](docs/PLATFORM-FINDINGS.md) §10, `docs/platform-findings/transfer-blush/` | On a face with natural redness Makeup Transfer painted patchy blush for all 5 inspirations (14–32 % of the cheeks); hair first → transfer → a foundation in her shade over the transfer gives 4 %, lips stay at ΔE 0.66. The makeup map is read from that layer; no render carries it |
 | The artist confirms each zone; the agreement is verifiable | Demo → "Send brief to my makeup artist" → artist link → agree; `scripts/verify_card.py` | Ed25519 server attestation over zones, statuses, recipe hash and image hashes; tampering fails verification |
-| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 729 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, zone stacking against real multi-zone renders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
-| Every edit button visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Inside the zone the 90th percentile of ΔE2000 is at least 2.5 (brows 3.5); a step below that gets no button. Softer and Bolder go to the next shade of the same colour |
+| Tested | `uv run pytest -q`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 730 tests: colour maths vs Sharma 2005, zones, recipe schema, photo check, API client, replay fixtures, both pipeline orders, zone stacking against real multi-zone renders, security regressions, app API, Playwright smoke of both roles with axe WCAG A/AA = 0 violations |
+| Every edit button in the recorded samples visibly changes the face | [`docs/EDITS.md`](docs/EDITS.md), `tests/test_edit_visibility.py`, `uv run python scripts/edit_visibility_report.py` | Inside the zone the 90th percentile of ΔE2000 is at least 2.5 (brows 3.5); a step below that gets no button. Softer and Bolder go to the next shade of the same colour |
 | Honest about cost | `samples/*/recording.json`, `docs/calibration/v1-recording.json`, `docs/platform-findings/` | YouCam credit is read before and after every recording; every result keeps its task id |
 | No key in the browser or on the public server | `Dockerfile` (`LOOKBRIEF_LIVE=0`), `src/lookbrief/youcam.py` | Public demo is Replay-only; Live runs server-side with your own key |
 
@@ -130,7 +130,7 @@ python scripts/verify_card.py look-brief-<id>.json \
 ## Tests and checks
 
 ```bash
-uv run pytest -q                 # 691 unit tests + 38 Playwright tests (run `uv run playwright install chromium` once)
+uv run pytest -q                 # 692 unit tests + 38 Playwright tests (run `uv run playwright install chromium` once)
 uv run ruff check src tests scripts && uv run mypy src
 ```
 
