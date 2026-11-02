@@ -107,6 +107,7 @@ LOOKBRIEF_LIVE=1 uv run --env-file .env lookbrief   # then open /live
 
 Limits are environment variables: `LOOKBRIEF_LIVE_UNIT_BUDGET` (default 200), `LOOKBRIEF_LIVE_MIN_CREDIT` (100),
 `LOOKBRIEF_LIVE_SESSIONS_PER_IP_DAY` (5), `LOOKBRIEF_LIVE_SESSION_UNIT_CAP` (12). Live status: `GET /api/limits`.
+The final code ran through Live once on the real API, 7 units: `docs/live-check-2026-11-02.json`.
 
 **Record your own sample** (rights-cleared faces only): put `bride.jpg` and `inspiration.jpg` in
 `samples/<id>/` with a `sample.json`, then `uv run python scripts/record_sample.py samples/<id>`. The full grid costs

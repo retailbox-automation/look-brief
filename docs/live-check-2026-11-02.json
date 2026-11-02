@@ -1,0 +1,144 @@
+{
+ "what": "One real pass of the Live route on a local server, final code",
+ "build": "6bd21cf",
+ "started": "2026-11-02T01:44:15Z",
+ "finished": "2026-11-02T01:44:59Z",
+ "result": "passed",
+ "faces": "AI-generated demo pair of samples/s0-champagne-rose",
+ "order": "hair_first",
+ "credit_before": 240,
+ "credit_after": 233,
+ "look_seconds": 34.6,
+ "edit_seconds": 7.3,
+ "units_after_look": 6,
+ "units_after_edit": 7,
+ "edit": {
+  "zone": "lips",
+  "op": "shade:light-pink",
+  "label": "Light pink",
+  "options_offered": 43
+ },
+ "composition": null,
+ "recipe_sha256": "3bcb7cc8c60f2d2abf7c21b9187ba02f56ad7c3a8d9b9101430c4d0345b85269",
+ "zones": {
+  "eyes": {
+   "shade_id": "chocolate",
+   "shade_name": "Chocolate",
+   "palette": [
+    "#7A5040",
+    "#2F1C16"
+   ],
+   "intensity": 92
+  },
+  "liner": {
+   "shade_id": "classic",
+   "shade_name": "Classic",
+   "palette": [
+    "#2B1B17"
+   ],
+   "intensity": 60
+  },
+  "lashes": {
+   "shade_id": "natural",
+   "shade_name": "Natural",
+   "palette": [
+    "#17110f"
+   ],
+   "intensity": 75
+  },
+  "brows": {
+   "shade_id": "natural",
+   "shade_name": "Natural",
+   "palette": [
+    "#5A4034"
+   ],
+   "intensity": 35
+  },
+  "cheeks": {
+   "shade_id": "peach",
+   "shade_name": "Peach",
+   "palette": [
+    "#EE8F6A"
+   ],
+   "intensity": 50
+  },
+  "bronzer": {
+   "shade_id": "natural",
+   "shade_name": "Natural",
+   "palette": [
+    "#C08A55"
+   ],
+   "intensity": 20
+  },
+  "highlight": {
+   "shade_id": "none",
+   "shade_name": "None",
+   "palette": [],
+   "intensity": 0
+  },
+  "lips": {
+   "shade_id": "rosy-peach",
+   "shade_name": "Rosy peach",
+   "palette": [
+    "#D98C86"
+   ],
+   "intensity": 68
+  },
+  "lip_line": {
+   "shade_id": "natural",
+   "shade_name": "Natural",
+   "palette": [
+    "#B0606E"
+   ],
+   "intensity": 30
+  }
+ },
+ "steps": {
+  "hair_transfer": {
+   "mode": "live",
+   "task_id": "ahpuhgfWSPAJvYUEBLoMp3EtPpqSB_uU_VXOhtpnCRVbOTY4GGHO8Xd3w3wCcCQfAO6h9Y273R6RR5V6m9KYNQ",
+   "seconds": 6.7,
+   "units": 2,
+   "recorded_at": "2026-11-02T01:44:25Z"
+  },
+  "mu_transfer": {
+   "mode": "live",
+   "task_id": "_sF1mzs0OcB1F4VB0hRm0OlkCcEJQys_yxPrCEQZXQdiwHSXY3jCs_WhjYmj1vFcL1tdL0WuaKpao2rhLgDDpA",
+   "seconds": 6.6,
+   "units": 2,
+   "recorded_at": "2026-11-02T01:44:33Z"
+  },
+  "even_out": {
+   "mode": "live",
+   "task_id": "_hDuSaM6QSNX1jES5HZ8wD1I1v3dMT9PWJWjmOfIwf9Y28m3EDpNSTWN_PHYOqUgd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.7,
+   "units": 1,
+   "recorded_at": "2026-11-02T01:44:40Z"
+  },
+  "render:base": {
+   "mode": "live",
+   "task_id": "_sF1mzs0OcB1F4VB0hRm0OlkCcEJQys_yxPrCEQZXQfGlodh0pWWpMbYU-FFYcgnd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 8.8,
+   "units": 1,
+   "recorded_at": "2026-11-02T01:44:50Z"
+  },
+  "render:lips:shade:light-pink": {
+   "mode": "live",
+   "task_id": "_sF1mzs0OcB1F4VB0hRm0OlkCcEJQys_yxPrCEQZXQf2n4bjvTXIj1LLS_yiBr3qd-BTT-LvvMAmKHuvXEbI5Q",
+   "seconds": 6.6,
+   "units": 1,
+   "recorded_at": "2026-11-02T01:44:58Z"
+  }
+ },
+ "changed_pixels": {
+  "threshold": "sum of RGB differences above 30",
+  "count": 5370,
+  "box_x_y": [
+   294,
+   574,
+   437,
+   640
+  ],
+  "where": "lips only"
+ }
+}
