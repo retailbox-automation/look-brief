@@ -33,7 +33,8 @@ look. I pick Eyeliner, add Wing, but I want that Chocolate eyelid to stay." A zo
   render, is off and says so: the photo could not change while the tab said it had.
 - **Blend**, in linear light inside the mask of the zone: the ratio T/R on the frame. Liner and lashes that add to the
   frame are painted instead, liner keeping the depth of the render in its opaque core (`layers.PAINT`, one line to swap).
-  Going back to a lighter style uses the ratio: paint cannot lighten.
+  Going back to a lighter style uses the ratio: paint cannot lighten. Lashes land only at the lid rim. A sparkle of the
+  shimmer that only one render holds is not product: read as coverage it left dark dots on the chosen lid.
 - **On disk.** A session keeps at most 60 assembled files. The oldest goes first, never the current look or a file a
   brief shows, so a sent link and its hash keep working, and Undo makes a file that went again, the same bytes.
 - **It says so.** "Assembled from N recorded YouCam Makeup VTO results, one per zone" on the photo, before and after,
@@ -45,13 +46,15 @@ Checked against what the samples hold for real: Evening is recorded with Wing an
 
 | | Mean, average | Mean, worst | p95, average | p95, worst |
 |---|---|---|---|---|
-| Assembled pixels | 0.81 | 1.05 | 2.98 | 4.25 |
-| The same after the JPEG she gets | 1.22 | 1.46 | 3.45 | 4.49 |
+| Assembled pixels | 0.70 | 0.89 | 2.76 | 3.85 |
+| The same after the JPEG she gets | 1.15 | 1.30 | 3.32 | 4.21 |
 | A real render through the same JPEG, against itself | 0.84 | 1.01 | 2.18 | 2.80 |
+| The last click alone, the old answer | 2.68 | 6.53 | 11.55 | 28.54 |
 
-On the 216-225 pixels of the wing itself: mean 2.54 at worst, against 11.1 at best for the last click alone. Six zones on
+On the 216-225 pixels of the wing itself: mean 1.74 on average, 2.79 at worst. Six zones on
 the whole face have no real render to compare with. One compose of eight zones: 0.21 s on the development machine, about
-39 MB of arrays at its peak, under the same one-at-a-time slot as every render. Not measured on the 1 CPU container.
+39 MB of arrays at its peak, under the same one-at-a-time slot as every render. On a copy with 1 CPU and 1536 MB: one
+visitor 0.4 s, 12 at once 5.1 s, memory peak 493 MB, no OOM.
 
 ## The gate (`src/lookbrief/visibility.py`, `tests/test_edit_visibility.py`)
 Inside the mask of the zone (open eye and mouth left out), against the render without edits, or between the two shades
